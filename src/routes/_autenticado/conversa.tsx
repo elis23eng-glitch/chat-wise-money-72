@@ -46,7 +46,44 @@ function Conversa() {
   const enviar = useServerFn(sendMessage);
   const limpar = useServerFn(clearMessages);
   const [texto, setTexto] = useState("");
+  const [ajudaAberta, setAjudaAberta] = useState(false);
   const { t, idioma } = useIdioma();
+
+  const COMANDOS_VOZ = [
+    {
+      titulo: t("Registrar gasto", "Log an expense"),
+      exemplo: t("“Gastei 35 reais no mercado hoje”", '"I spent $35 at the market today"'),
+    },
+    {
+      titulo: t("Registrar entrada", "Log income"),
+      exemplo: t(
+        "“Recebi 1.500 reais de aposentadoria”",
+        '"I received $1,500 from retirement"',
+      ),
+    },
+    {
+      titulo: t("Corrigir lançamento", "Correct an entry"),
+      exemplo: t(
+        "“Corrigir o último gasto para 50 reais”",
+        '"Change my last expense to $50"',
+      ),
+    },
+    {
+      titulo: t("Excluir lançamento", "Delete an entry"),
+      exemplo: t("“Apagar o último gasto”", '"Delete my last expense"'),
+    },
+    {
+      titulo: t("Consultar resumo", "Check summary"),
+      exemplo: t("“Quanto eu gastei este mês?”", '"How much did I spend this month?"'),
+    },
+    {
+      titulo: t("Cancelar", "Cancel"),
+      exemplo: t(
+        "Diga “cancelar” ou “deixa pra lá” para interromper um pedido.",
+        'Say "cancel" or "never mind" to stop a request.',
+      ),
+    },
+  ];
 
   const SUGESTOES = [
     t("Gastei 35 reais no mercado hoje", "I spent $35 at the market today"),

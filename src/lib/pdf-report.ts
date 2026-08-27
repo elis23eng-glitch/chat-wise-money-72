@@ -29,6 +29,11 @@ export type DadosRelatorio = {
   entradas: number;
   gastos: number;
   saldo: number;
+  saldos: {
+    dia: number;
+    semana: number;
+    mes: number;
+  };
   mediaDiaria: number;
   projecaoMes?: number;
   porCategoria: Record<string, number>;
@@ -65,6 +70,10 @@ const T = {
     entradas: "Entradas",
     gastos: "Saídas",
     saldo: "Saldo",
+    hoje: "Hoje",
+    semanaLabel: "Semana",
+    mesLabel: "Mês",
+    destaqueSaldo: "Seu saldo",
     mediaDiaria: "Média diária de gastos",
     projecao: "Projeção do mês",
     categorias: "Gastos por categoria",
@@ -93,6 +102,10 @@ const T = {
     entradas: "Income",
     gastos: "Expenses",
     saldo: "Balance",
+    hoje: "Today",
+    semanaLabel: "Week",
+    mesLabel: "Month",
+    destaqueSaldo: "Your balance",
     mediaDiaria: "Daily spending average",
     projecao: "Month projection",
     categorias: "Spending by category",
@@ -191,6 +204,25 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
 
   if (d.secoes.resumo) {
     titulo(L.resumo);
+
+    // Cartões de saldo: dia, semana e mês
+    const saldos = [
+      { label: L.hoje, valor: d.saldos.dia },
+      { label: L.semanaLabel, valor: d.saldos.semana },
+      { label: L.mesLabel, valor: d.saldos.mes },
+    ];
+    for (const s of saldos) {
+      const positivo = s.valor >= 0;
+      quebra();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(positivo ? 20 : 190, positivo ? 90 : 40, positivo ? 70 : 50);
+      doc.text(`${s.label}: ${brl(s.valor, d.idioma)} (${positivo ? L.positivo : L.negativo})`, m, y);
+      doc.setTextColor(35, 35, 35);
+      y += 18;
+    }
+    y += 6;
+
     linha(L.entradas, brl(d.entradas, d.idioma));
     linha(L.gastos, brl(d.gastos, d.idioma));
     linha(`${L.saldo} (${d.saldo >= 0 ? L.positivo : L.negativo})`, brl(d.saldo, d.idioma), true);

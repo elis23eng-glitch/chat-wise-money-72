@@ -14,6 +14,10 @@ const TXT = {
     saldo: "Saldo",
     positivo: "positivo",
     negativo: "negativo",
+    hoje: "Hoje",
+    semanaLabel: "Semana",
+    mesLabel: "Mês",
+    destaqueSaldo: "Seu saldo",
     mediaDiaria: "Média diária de gastos",
     projecao: "Projeção do mês",
     categorias: "Gastos por categoria",
@@ -36,6 +40,10 @@ const TXT = {
     saldo: "Balance",
     positivo: "positive",
     negativo: "negative",
+    hoje: "Today",
+    semanaLabel: "Week",
+    mesLabel: "Month",
+    destaqueSaldo: "Your balance",
     mediaDiaria: "Daily spending average",
     projecao: "Month projection",
     categorias: "Spending by category",
@@ -85,6 +93,33 @@ function Linha({ esquerda, direita }: { esquerda: string; direita?: string }) {
   );
 }
 
+function CartaoSaldo({
+  label,
+  valor,
+  idioma,
+}: {
+  label: string;
+  valor: number;
+  idioma: "pt" | "en";
+}) {
+  const positivo = valor >= 0;
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${
+        positivo
+          ? "border-primary/30 bg-primary/10 text-primary-deep"
+          : "border-destructive/40 bg-destructive/10 text-destructive"
+      }`}
+    >
+      <p className="text-sm font-semibold opacity-90">{label}</p>
+      <p className="mt-1 font-display text-2xl">{brl(valor, idioma)}</p>
+      <p className="mt-1 text-sm font-medium opacity-90">
+        {positivo ? TXT[idioma].positivo : TXT[idioma].negativo}
+      </p>
+    </div>
+  );
+}
+
 export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
   const L = TXT[dados.idioma];
   const cats = Object.entries(dados.porCategoria).sort((a, b) => b[1] - a[1]);
@@ -104,16 +139,24 @@ export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
 
       {dados.secoes.resumo && (
         <Secao titulo={L.resumo}>
-          <Linha esquerda={L.entradas} direita={brl(dados.entradas, dados.idioma)} />
-          <Linha esquerda={L.gastos} direita={brl(dados.gastos, dados.idioma)} />
-          <Linha
-            esquerda={`${L.saldo} (${dados.saldo >= 0 ? L.positivo : L.negativo})`}
-            direita={brl(dados.saldo, dados.idioma)}
-          />
-          <Linha esquerda={L.mediaDiaria} direita={brl(dados.mediaDiaria, dados.idioma)} />
-          {dados.modo === "mes" && typeof dados.projecaoMes === "number" && (
-            <Linha esquerda={L.projecao} direita={brl(dados.projecaoMes, dados.idioma)} />
-          )}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <CartaoSaldo label={L.hoje} valor={dados.saldos.dia} idioma={dados.idioma} />
+            <CartaoSaldo label={L.semanaLabel} valor={dados.saldos.semana} idioma={dados.idioma} />
+            <CartaoSaldo label={L.mesLabel} valor={dados.saldos.mes} idioma={dados.idioma} />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Linha esquerda={L.entradas} direita={brl(dados.entradas, dados.idioma)} />
+            <Linha esquerda={L.gastos} direita={brl(dados.gastos, dados.idioma)} />
+            <Linha
+              esquerda={`${L.saldo} (${dados.saldo >= 0 ? L.positivo : L.negativo})`}
+              direita={brl(dados.saldo, dados.idioma)}
+            />
+            <Linha esquerda={L.mediaDiaria} direita={brl(dados.mediaDiaria, dados.idioma)} />
+            {dados.modo === "mes" && typeof dados.projecaoMes === "number" && (
+              <Linha esquerda={L.projecao} direita={brl(dados.projecaoMes, dados.idioma)} />
+            )}
+          </div>
         </Secao>
       )}
 

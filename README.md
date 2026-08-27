@@ -100,9 +100,11 @@ O projeto foi pensado para ser usado por pessoas de todas as idades, com foco es
 - [Lovable Cloud](https://lovable.dev) — backend, autenticação e banco de dados.
 - [Supabase](https://supabase.com) — banco PostgreSQL, auth e storage.
 - [AI SDK](https://sdk.vercel.ai) — integração com modelo de linguagem.
+- [Lovable AI Gateway](https://lovable.dev) — geração de áudio TTS para a voz da Nina.
 - [Recharts](https://recharts.org) — gráficos interativos.
 - [jsPDF](https://github.com/parallax/jsPDF) — geração de relatórios PDF.
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — reconhecimento de voz.
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — reconhecimento e síntese de voz.
+- [Remotion](https://www.remotion.dev) — renderização do tutorial em vídeo.
 
 ---
 

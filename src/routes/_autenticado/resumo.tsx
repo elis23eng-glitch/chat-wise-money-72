@@ -103,7 +103,7 @@ function Resumo() {
           valor: Number(valorE.replace(",", ".")),
           categoria: categoriaE,
           descricao: descricaoE || categoriaE,
-          data: new Date().toISOString().slice(0, 10),
+          data: dataE,
         },
       }),
     onSuccess: () => {
@@ -112,7 +112,9 @@ function Resumo() {
       toast.success(t("Entrada anotada!", "Income recorded!"));
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["ano"] });
     },
+
     onError: () =>
       toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
   });

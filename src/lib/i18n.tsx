@@ -1,5 +1,6 @@
 import {
   createContext,
+  Fragment,
   useCallback,
   useContext,
   useEffect,
@@ -55,7 +56,13 @@ export function IdiomaProvider({ children }: { children: ReactNode }) {
     [idioma, definirIdioma, t],
   );
 
-  return <IdiomaContext.Provider value={valor}>{children}</IdiomaContext.Provider>;
+  // A chave força a remontagem ao trocar o idioma: assim valores em memo/cache
+  // (moeda, datas) são reformatados no idioma novo, sem sobrar texto antigo.
+  return (
+    <IdiomaContext.Provider value={valor}>
+      <Fragment key={idioma}>{children}</Fragment>
+    </IdiomaContext.Provider>
+  );
 }
 
 export function useIdioma(): Contexto {

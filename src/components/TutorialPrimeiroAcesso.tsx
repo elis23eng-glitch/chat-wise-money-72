@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BarChart3, FileDown, Languages, MessageCircle, Mic, Target } from "lucide-react";
+import { BarChart3, FileDown, Languages, ListChecks, MessageCircle, Mic, Target } from "lucide-react";
 
 import { useIdioma } from "@/lib/i18n";
 
@@ -82,8 +82,16 @@ export function TutorialPrimeiroAcesso({ aberto, aoFechar }: { aberto: boolean; 
       icone: FileDown,
       titulo: t("Guarde ou envie seu relatório", "Save or send your report"),
       texto: t(
-        "No Painel, o botão Exportar PDF cria um relatório para baixar ou compartilhar com quem você quiser.",
-        "On the Dashboard, the Export PDF button creates a report you can download or share with anyone.",
+        "No Painel, o botão Exportar PDF cria um relatório para baixar, compartilhar ou enviar por link.",
+        "On the Dashboard, the Export PDF button creates a report you can download, share or send by link.",
+      ),
+    },
+    {
+      icone: ListChecks,
+      titulo: t("Confira antes de exportar", "Check before exporting"),
+      texto: t(
+        "Em Ver prévia aparece uma listinha de verificação: idioma, saldo, gastos por categoria, metas e histórico de alertas. Marque que conferiu e só então os botões de exportar liberam.",
+        "In Preview you get a small checklist: language, balance, spending by category, goals and alert history. Tick that you checked it and the export buttons unlock.",
       ),
     },
     {

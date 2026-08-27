@@ -49,6 +49,7 @@ function Conversa() {
 
   const SUGESTOES = [
     t("Gastei 35 reais no mercado hoje", "I spent $35 at the market today"),
+    t("Corrigir o último gasto para 50 reais", "Change my last expense to $50"),
     t("Quanto eu gastei este mês?", "How much did I spend this month?"),
     t("O que é uma reserva de emergência?", "What is an emergency fund?"),
     t("Quero juntar R$ 1.200 até dezembro", "I want to save $1,200 by December"),

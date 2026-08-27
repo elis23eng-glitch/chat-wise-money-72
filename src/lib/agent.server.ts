@@ -40,7 +40,8 @@ O que você faz:
 - Registra entradas de dinheiro (salário, aposentadoria, pensão, trabalho extra, venda...) quando a pessoa disser que recebeu algo. Use registrar_entrada e confirme depois.
 - Se faltar o valor ou ficar ambíguo, pergunte antes de registrar.
 - Quando perguntarem sobre saldo ("sobrou?", "estou no vermelho?"), use resumo_financeiro: saldo = entradas menos gastos do mês. Explique com carinho se estiver negativo.
-- Classifica os gastos em uma destas categorias: ${CATEGORIAS.join(", ")}. Se a pessoa corrigir, use corrigir_categoria.
+- Classifica os gastos em uma destas categorias: ${CATEGORIAS.join(", ")}. Se a pessoa corrigir só a categoria do último gasto, use corrigir_categoria.
+- Corrige lançamentos por voz ou texto. Quando a pessoa disser algo como "corrigir o último gasto para 50 reais", "o mercado foi 80 e não 100", "mudar a entrada de ontem para aposentadoria" ou "errei o valor", use corrigir_lancamento (valor, categoria, descrição e/ou data). Se não estiver claro qual lançamento é, use listar_ultimos_lancamentos, leia as opções em voz simples ("1) mercado, R$ 100,00, hoje") e pergunte qual delas. Depois de corrigir, confirme em voz alta o que ficou: "Pronto, mudei o mercado de R$ 100,00 para R$ 80,00."
 - Cria e acompanha metas simples com criar_meta, listar_metas e guardar_na_meta.
 - Mostra resumos e tendências com resumo_financeiro.
 - Explica conceitos (juros, orçamento, reserva de emergência, inflação, Tesouro Direto, CDB, fundos) de forma bem simples, com exemplos do dia a dia.
@@ -130,6 +131,102 @@ function buildTools(supabase: Client, userId: string) {
         if (!ultimo) return { ok: false, erro: "Nenhum gasto encontrado." };
         const { error } = await supabase.from("expenses").update({ categoria }).eq("id", ultimo.id);
         return error ? { ok: false, erro: error.message } : { ok: true, categoria };
+      },
+    }),
+
+    listar_ultimos_lancamentos: tool({
+      description:
+        "Lista os lançamentos mais recentes (gastos e/ou entradas) para identificar qual o usuário quer corrigir ou apagar.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada", "ambos"]).describe("Qual tipo listar."),
+        limite: z.number().int().min(1).max(10).describe("Quantos lançamentos, ex.: 5"),
+      }),
+      execute: async ({ tipo, limite }) => {
+        const resultado: { gastos?: unknown[]; entradas?: unknown[] } = {};
+        if (tipo === "gasto" || tipo === "ambos") {
+          const { data } = await supabase
+            .from("expenses")
+            .select("id, valor, categoria, descricao, data, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(limite);
+          resultado.gastos = data ?? [];
+        }
+        if (tipo === "entrada" || tipo === "ambos") {
+          const { data } = await supabase
+            .from("incomes")
+            .select("id, valor, categoria, descricao, data, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(limite);
+          resultado.entradas = data ?? [];
+        }
+        return { ok: true, ...resultado };
+      },
+    }),
+
+    corrigir_lancamento: tool({
+      description:
+        "Corrige um lançamento já registrado (gasto ou entrada): valor, categoria, descrição e/ou data. Se não informar id, corrige o mais recente do tipo escolhido.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada"]),
+        id: z.string().nullable().describe("Id do lançamento. Use null para o mais recente."),
+        valor: z.number().nullable().describe("Novo valor em reais ou null para manter."),
+        categoria: z.string().nullable().describe("Nova categoria ou null para manter."),
+        descricao: z.string().nullable().describe("Nova descrição ou null para manter."),
+        data: z.string().nullable().describe("Nova data AAAA-MM-DD ou null para manter."),
+      }),
+      execute: async ({ tipo, id, valor, categoria, descricao, data }) => {
+        const tabela = tipo === "gasto" ? "expenses" : "incomes";
+        const permitidas: readonly string[] =
+          tipo === "gasto" ? CATEGORIAS : (CATEGORIAS_ENTRADA as readonly string[]);
+
+        if (categoria && !permitidas.includes(categoria)) {
+          return {
+            ok: false,
+            erro: `Categoria inválida. Use uma destas: ${permitidas.join(", ")}.`,
+          };
+        }
+        if (valor !== null && !(valor > 0)) {
+          return { ok: false, erro: "O valor precisa ser maior que zero." };
+        }
+
+        let alvoId = id;
+        if (!alvoId) {
+          const { data: ultimo } = await supabase
+            .from(tabela)
+            .select("id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (!ultimo) return { ok: false, erro: "Nenhum lançamento encontrado para corrigir." };
+          alvoId = ultimo.id;
+        }
+
+        const patch: {
+          valor?: number;
+          categoria?: string;
+          descricao?: string;
+          data?: string;
+        } = {};
+        if (valor !== null) patch.valor = valor;
+        if (categoria !== null) patch.categoria = categoria;
+        if (descricao !== null) patch.descricao = descricao;
+        if (data !== null) patch.data = data;
+        if (Object.keys(patch).length === 0) {
+          return { ok: false, erro: "Nada para alterar: diga o que deve ser corrigido." };
+        }
+
+        const { data: row, error } = await supabase
+          .from(tabela)
+          .update(patch)
+          .eq("id", alvoId)
+          .eq("user_id", userId)
+          .select()
+          .single();
+        if (error) return { ok: false, erro: error.message };
+        return { ok: true, tipo, lancamento: row };
       },
     }),
 

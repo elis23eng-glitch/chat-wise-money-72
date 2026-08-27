@@ -286,6 +286,47 @@ function Painel() {
             ? t("Projeção no vermelho", "Projected to end in the red")
             : t("Semana mais cara que a anterior", "Pricier week than the previous one");
 
+  const estatAlertas = useMemo(() => {
+    const itens = historico ?? [];
+    if (itens.length === 0) return null;
+
+    const media = (nums: number[]) => nums.reduce((s, n) => s + n, 0) / nums.length;
+    const pior = itens.reduce((p, a) => (a.saldo < p.saldo ? a : p), itens[0]!);
+
+    const contagem = new Map<TipoAlerta, number>();
+    for (const a of itens) contagem.set(a.tipo, (contagem.get(a.tipo) ?? 0) + 1);
+    const maisComum = [...contagem.entries()].sort((a, b) => b[1] - a[1])[0]![0];
+
+    const meses = new Map<string, { quantidade: number; saldos: number[] }>();
+    for (const a of itens) {
+      const chave = a.criadoEm.slice(0, 7);
+      const atual = meses.get(chave) ?? { quantidade: 0, saldos: [] };
+      atual.quantidade += 1;
+      atual.saldos.push(a.saldo);
+      meses.set(chave, atual);
+    }
+    const porMes = [...meses.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-12)
+      .map(([chave, v]) => ({
+        chave,
+        rotulo: mesCurto(`${chave}-01`, idioma),
+        quantidade: v.quantidade,
+        saldoMedio: Math.round(media(v.saldos) * 100) / 100,
+      }));
+
+    return {
+      total: itens.length,
+      maisComum,
+      saldoMedio: media(itens.map((a) => a.saldo)),
+      entradasMedia: media(itens.map((a) => a.entradas)),
+      gastosMedia: media(itens.map((a) => a.gastos)),
+      pior,
+      porMes,
+    };
+  }, [historico, idioma]);
+
+
   return (
     <div className="space-y-8">
       <header>

@@ -20,7 +20,7 @@ export type AlertaRegistro = {
 /** Grava os alertas disparados (um por tipo/período), sem duplicar. */
 export const registrarAlertas = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { alertas: AlertaRegistro[] }) => input)
+  .validator((input: { alertas: AlertaRegistro[] }) => input)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.alertas.length) return { gravados: 0 };

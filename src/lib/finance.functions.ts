@@ -118,7 +118,7 @@ export const getMessages = createServerFn({ method: "GET" })
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         message: z.string().min(1).max(2000),
@@ -167,7 +167,7 @@ export const clearMessages = createServerFn({ method: "POST" })
 
 export const addExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         valor: z.number().positive(),
@@ -187,7 +187,7 @@ export const addExpense = createServerFn({ method: "POST" })
 
 export const deleteExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await context.supabase
       .from("expenses")
@@ -199,7 +199,7 @@ export const deleteExpense = createServerFn({ method: "POST" })
 
 export const createGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         titulo: z.string().min(2).max(80),
@@ -218,7 +218,7 @@ export const createGoal = createServerFn({ method: "POST" })
 
 export const addToGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string().uuid(), valor: z.number() }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -240,7 +240,7 @@ export const addToGoal = createServerFn({ method: "POST" })
 
 export const deleteGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await context.supabase.from("goals").delete().eq("id", data.id).eq("user_id", context.userId);
     return { ok: true };
@@ -248,7 +248,7 @@ export const deleteGoal = createServerFn({ method: "POST" })
 
 export const addIncome = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         valor: z.number().positive(),
@@ -268,7 +268,7 @@ export const addIncome = createServerFn({ method: "POST" })
 
 export const deleteIncome = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await context.supabase.from("incomes").delete().eq("id", data.id).eq("user_id", context.userId);
     return { ok: true };

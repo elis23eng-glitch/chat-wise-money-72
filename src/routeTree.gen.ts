@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
+import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
 import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
 import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
 import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
@@ -36,6 +37,11 @@ const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
   path: '/conversa',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoInsightsRoute = AutenticadoInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 const AutenticadoMercadoRoute = AutenticadoMercadoRouteImport.update({
   id: '/mercado',
   path: '/mercado',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
   '/resumo': typeof AutenticadoResumoRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
   '/resumo': typeof AutenticadoResumoRoute
@@ -74,21 +82,37 @@ export interface FileRoutesById {
   '/_autenticado': typeof AutenticadoRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
+  '/_autenticado/insights': typeof AutenticadoInsightsRoute
   '/_autenticado/mercado': typeof AutenticadoMercadoRoute
   '/_autenticado/metas': typeof AutenticadoMetasRoute
   '/_autenticado/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/entrar' | '/conversa' | '/mercado' | '/metas' | '/resumo'
+  fullPaths:
+    | '/'
+    | '/entrar'
+    | '/conversa'
+    | '/insights'
+    | '/mercado'
+    | '/metas'
+    | '/resumo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/conversa' | '/mercado' | '/metas' | '/resumo'
+  to:
+    | '/'
+    | '/entrar'
+    | '/conversa'
+    | '/insights'
+    | '/mercado'
+    | '/metas'
+    | '/resumo'
   id:
     | '__root__'
     | '/'
     | '/_autenticado'
     | '/entrar'
     | '/_autenticado/conversa'
+    | '/_autenticado/insights'
     | '/_autenticado/mercado'
     | '/_autenticado/metas'
     | '/_autenticado/resumo'
@@ -130,6 +154,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoConversaRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/insights': {
+      id: '/_autenticado/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AutenticadoInsightsRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
     '/_autenticado/mercado': {
       id: '/_autenticado/mercado'
       path: '/mercado'
@@ -156,6 +187,7 @@ declare module '@tanstack/react-router' {
 
 interface AutenticadoRouteRouteChildren {
   AutenticadoConversaRoute: typeof AutenticadoConversaRoute
+  AutenticadoInsightsRoute: typeof AutenticadoInsightsRoute
   AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
   AutenticadoMetasRoute: typeof AutenticadoMetasRoute
   AutenticadoResumoRoute: typeof AutenticadoResumoRoute
@@ -163,6 +195,7 @@ interface AutenticadoRouteRouteChildren {
 
 const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoConversaRoute: AutenticadoConversaRoute,
+  AutenticadoInsightsRoute: AutenticadoInsightsRoute,
   AutenticadoMercadoRoute: AutenticadoMercadoRoute,
   AutenticadoMetasRoute: AutenticadoMetasRoute,
   AutenticadoResumoRoute: AutenticadoResumoRoute,

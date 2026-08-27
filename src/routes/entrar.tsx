@@ -37,6 +37,12 @@ function Entrar() {
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  // Lembra o e-mail para facilitar o próximo acesso no celular.
+  useEffect(() => {
+    const salvo = window.localStorage.getItem("wise-money-email");
+    if (salvo) setEmail(salvo);
+  }, []);
+
   useEffect(() => {
     if (!loading && session) navigate({ to: "/conversa" });
   }, [loading, session, navigate]);

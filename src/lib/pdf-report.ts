@@ -314,3 +314,30 @@ export async function compartilharRelatorioPdf(d: DadosRelatorio, titulo: string
   }
   return false;
 }
+
+/**
+ * Sobe o relatório e devolve um link temporário (7 dias) para compartilhar.
+ * O arquivo fica guardado numa pasta privada do próprio usuário.
+ */
+export async function gerarLinkRelatorioPdf(d: DadosRelatorio) {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const { blob, nome } = await gerarRelatorioPdf(d);
+
+  const { data: sessao } = await supabase.auth.getUser();
+  const uid = sessao.user?.id;
+  if (!uid) throw new Error("sem-sessao");
+
+  const caminho = `${uid}/${Date.now()}-${nome}`;
+  const { error } = await supabase.storage
+    .from("relatorios")
+    .upload(caminho, blob, { contentType: "application/pdf", upsert: true });
+  if (error) throw error;
+
+  const { data, error: erroLink } = await supabase.storage
+    .from("relatorios")
+    .createSignedUrl(caminho, 60 * 60 * 24 * 7);
+  if (erroLink || !data?.signedUrl) throw erroLink ?? new Error("sem-link");
+
+  return data.signedUrl;
+}
+

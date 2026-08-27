@@ -265,7 +265,6 @@ function buildTools(supabase: Client, userId: string) {
       },
     }),
 
-
     resumo_financeiro: tool({
       description:
         "Retorna entradas, gastos e saldo do mês atual, do mês anterior e os gastos por categoria.",

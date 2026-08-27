@@ -104,9 +104,11 @@ function Resumo() {
   const delEntradaMutation = useMutation({
     mutationFn: (id: string) => apagarEntrada({ data: { id } }),
     onSuccess: () => {
+      toast.success(t("Entrada apagada.", "Income deleted."));
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
+    onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
 
   const addMutation = useMutation({
@@ -133,9 +135,11 @@ function Resumo() {
   const delMutation = useMutation({
     mutationFn: (id: string) => apagar({ data: { id } }),
     onSuccess: () => {
+      toast.success(t("Gasto apagado.", "Expense deleted."));
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
+    onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
 
   const total = data?.totalMes ?? 0;
@@ -280,7 +284,17 @@ function Resumo() {
                 </button>
                 <button
                   aria-label={t("Apagar gasto", "Delete expense")}
-                  onClick={() => delMutation.mutate(g.id)}
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        t(
+                          `Apagar o gasto "${g.descricao}" de ${brl(Number(g.valor))}?`,
+                          `Delete the expense "${g.descricao}" of ${brl(Number(g.valor))}?`,
+                        ),
+                      )
+                    )
+                      delMutation.mutate(g.id);
+                  }}
                   className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-4" />
@@ -440,7 +454,17 @@ function Resumo() {
                     </button>
                     <button
                       aria-label={t("Apagar entrada", "Delete income")}
-                      onClick={() => delEntradaMutation.mutate(e.id)}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            t(
+                              `Apagar a entrada "${e.descricao}" de ${brl(Number(e.valor))}?`,
+                              `Delete the income "${e.descricao}" of ${brl(Number(e.valor))}?`,
+                            ),
+                          )
+                        )
+                          delEntradaMutation.mutate(e.id);
+                      }}
                       className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />

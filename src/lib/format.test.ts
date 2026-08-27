@@ -15,7 +15,7 @@ import {
 
 /** Normaliza espaços (Intl usa espaço não-quebrável em alguns locales). */
 function normalizar(texto: string) {
-  return texto.replace(/ /g, " ");
+  return texto.replace(/\u00a0/g, " ");
 }
 
 describe("brl — formatação de moeda", () => {

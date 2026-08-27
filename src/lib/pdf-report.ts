@@ -13,8 +13,16 @@ type Alerta = {
   criadoEm: string;
 };
 
+export type SecoesRelatorio = {
+  resumo: boolean;
+  categorias: boolean;
+  metas: boolean;
+  alertas: boolean;
+};
+
 export type DadosRelatorio = {
   idioma: IdiomaFormato;
+  secoes: SecoesRelatorio;
   modo: "mes" | "semana";
   periodoInicio: string;
   periodoFim: string;
@@ -26,7 +34,23 @@ export type DadosRelatorio = {
   porCategoria: Record<string, number>;
   metas: Meta[];
   historico: Alerta[];
-  tituloAlerta: (tipo: string) => string;
+};
+
+const TITULOS_ALERTA: Record<IdiomaFormato, Record<string, string>> = {
+  pt: {
+    saldo_negativo: "Saldo negativo",
+    saldo_apertado: "Saldo apertado",
+    sobra: "Sobrou dinheiro",
+    projecao_vermelho: "Projeção no vermelho",
+    gasto_acima_semana: "Semana mais cara que a anterior",
+  },
+  en: {
+    saldo_negativo: "Negative balance",
+    saldo_apertado: "Tight balance",
+    sobra: "Money left over",
+    projecao_vermelho: "Projected to end in the red",
+    gasto_acima_semana: "Pricier week than the previous one",
+  },
 };
 
 const T = {
@@ -138,11 +162,13 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
   doc.text(L.app, m, 70);
   const agora = new Date();
   doc.text(
-    `${L.geradoEm} ${agora.toLocaleDateString(d.idioma === "pt" ? "pt-BR" : "en-US")} ${agora
-      .toLocaleTimeString(d.idioma === "pt" ? "pt-BR" : "en-US", {
+    `${L.geradoEm} ${agora.toLocaleDateString(d.idioma === "pt" ? "pt-BR" : "en-US")} ${agora.toLocaleTimeString(
+      d.idioma === "pt" ? "pt-BR" : "en-US",
+      {
         hour: "2-digit",
         minute: "2-digit",
-      })}`,
+      },
+    )}`,
     largura - m,
     70,
     { align: "right" },
@@ -163,74 +189,83 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
   );
   y += 8;
 
-  titulo(L.resumo);
-  linha(L.entradas, brl(d.entradas, d.idioma));
-  linha(L.gastos, brl(d.gastos, d.idioma));
-  linha(`${L.saldo} (${d.saldo >= 0 ? L.positivo : L.negativo})`, brl(d.saldo, d.idioma), true);
-  linha(L.mediaDiaria, brl(d.mediaDiaria, d.idioma));
-  if (d.modo === "mes" && typeof d.projecaoMes === "number") {
-    linha(L.projecao, brl(d.projecaoMes, d.idioma));
+  if (d.secoes.resumo) {
+    titulo(L.resumo);
+    linha(L.entradas, brl(d.entradas, d.idioma));
+    linha(L.gastos, brl(d.gastos, d.idioma));
+    linha(`${L.saldo} (${d.saldo >= 0 ? L.positivo : L.negativo})`, brl(d.saldo, d.idioma), true);
+    linha(L.mediaDiaria, brl(d.mediaDiaria, d.idioma));
+    if (d.modo === "mes" && typeof d.projecaoMes === "number") {
+      linha(L.projecao, brl(d.projecaoMes, d.idioma));
+    }
   }
 
   // Categorias
-  titulo(L.categorias);
-  const cats = Object.entries(d.porCategoria).sort((a, b) => b[1] - a[1]);
-  const totalCats = cats.reduce((s, [, v]) => s + v, 0);
-  if (cats.length === 0) {
-    linha(L.semCategorias, "");
-  } else {
-    for (const [nome, valor] of cats) {
-      const pct = totalCats > 0 ? Math.round((valor / totalCats) * 100) : 0;
-      linha(`${categoriaLabel(nome, d.idioma)} — ${pct}%`, brl(valor, d.idioma));
+  if (d.secoes.categorias) {
+    titulo(L.categorias);
+    const cats = Object.entries(d.porCategoria).sort((a, b) => b[1] - a[1]);
+    const totalCats = cats.reduce((s, [, v]) => s + v, 0);
+    if (cats.length === 0) {
+      linha(L.semCategorias, "");
+    } else {
+      for (const [nome, valor] of cats) {
+        const pct = totalCats > 0 ? Math.round((valor / totalCats) * 100) : 0;
+        linha(`${categoriaLabel(nome, d.idioma)} — ${pct}%`, brl(valor, d.idioma));
+      }
     }
   }
 
   // Metas
-  titulo(L.metas);
-  if (d.metas.length === 0) {
-    linha(L.semMetas, "");
-  } else {
-    for (const meta of d.metas) {
-      const pct = meta.valor_alvo > 0 ? Math.round((meta.valor_atual / meta.valor_alvo) * 100) : 0;
-      const prazo = meta.prazo ? ` (${L.prazo} ${dataCurta(meta.prazo, d.idioma)})` : "";
-      linha(
-        `${meta.titulo}${prazo} — ${pct}%`,
-        `${brl(meta.valor_atual, d.idioma)} / ${brl(meta.valor_alvo, d.idioma)}`,
-      );
+  if (d.secoes.metas) {
+    titulo(L.metas);
+    if (d.metas.length === 0) {
+      linha(L.semMetas, "");
+    } else {
+      for (const meta of d.metas) {
+        const pct =
+          meta.valor_alvo > 0 ? Math.round((meta.valor_atual / meta.valor_alvo) * 100) : 0;
+        const prazo = meta.prazo ? ` (${L.prazo} ${dataCurta(meta.prazo, d.idioma)})` : "";
+        linha(
+          `${meta.titulo}${prazo} — ${pct}%`,
+          `${brl(meta.valor_atual, d.idioma)} / ${brl(meta.valor_alvo, d.idioma)}`,
+        );
+      }
     }
   }
 
   // Histórico de alertas
-  titulo(L.alertas);
-  if (d.historico.length === 0) {
-    linha(L.semAlertas, "");
-  } else {
-    for (const a of d.historico.slice(0, 30)) {
-      quebra(34);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.text(
-        `${dataCurta(a.criadoEm.slice(0, 10), d.idioma)} — ${d.tituloAlerta(a.tipo)}`,
-        m,
-        y,
-      );
-      y += 14;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(90, 90, 90);
-      doc.text(
-        `${a.periodo === "semana" ? L.semana : L.mes}: ${dataCurta(a.inicio, d.idioma)} – ${dataCurta(
-          a.fim,
-          d.idioma,
-        )}  |  ${L.entradas} ${brl(a.entradas, d.idioma)}  |  ${L.gastos} ${brl(
-          a.gastos,
-          d.idioma,
-        )}  |  ${L.saldo} ${brl(a.saldo, d.idioma)}`,
-        m,
-        y,
-      );
-      doc.setTextColor(35, 35, 35);
-      y += 20;
+  if (d.secoes.alertas) {
+    titulo(L.alertas);
+    if (d.historico.length === 0) {
+      linha(L.semAlertas, "");
+    } else {
+      for (const a of d.historico.slice(0, 30)) {
+        quebra(34);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11);
+        doc.text(
+          `${dataCurta(a.criadoEm.slice(0, 10), d.idioma)} — ${TITULOS_ALERTA[d.idioma][a.tipo] ?? a.tipo}`,
+          m,
+          y,
+        );
+        y += 14;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(90, 90, 90);
+        doc.text(
+          `${a.periodo === "semana" ? L.semana : L.mes}: ${dataCurta(a.inicio, d.idioma)} – ${dataCurta(
+            a.fim,
+            d.idioma,
+          )}  |  ${L.entradas} ${brl(a.entradas, d.idioma)}  |  ${L.gastos} ${brl(
+            a.gastos,
+            d.idioma,
+          )}  |  ${L.saldo} ${brl(a.saldo, d.idioma)}`,
+          m,
+          y,
+        );
+        doc.setTextColor(35, 35, 35);
+        y += 20;
+      }
     }
   }
 
@@ -241,14 +276,41 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(140, 140, 140);
-    doc.text(
-      `${L.app}  ·  ${p}/${paginas}`,
-      largura / 2,
-      doc.internal.pageSize.getHeight() - 24,
-      { align: "center" },
-    );
+    doc.text(`${L.app}  ·  ${p}/${paginas}`, largura / 2, doc.internal.pageSize.getHeight() - 24, {
+      align: "center",
+    });
   }
 
   const nome = `${d.idioma === "pt" ? "relatorio" : "report"}-${d.periodoFim}.pdf`;
-  doc.save(nome);
+  return { blob: doc.output("blob") as Blob, nome };
+}
+
+/** Baixa o PDF no aparelho. */
+export async function baixarRelatorioPdf(d: DadosRelatorio) {
+  const { blob, nome } = await gerarRelatorioPdf(d);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/** Compartilha o PDF (WhatsApp, e-mail…). Volta false quando o aparelho não suporta. */
+export async function compartilharRelatorioPdf(d: DadosRelatorio, titulo: string) {
+  const { blob, nome } = await gerarRelatorioPdf(d);
+  const arquivo = new File([blob], nome, { type: "application/pdf" });
+  const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+  if (typeof nav.share === "function" && nav.canShare?.({ files: [arquivo] })) {
+    try {
+      await nav.share({ files: [arquivo], title: titulo, text: titulo });
+      return true;
+    } catch (erro) {
+      if ((erro as DOMException)?.name === "AbortError") return true;
+      return false;
+    }
+  }
+  return false;
 }

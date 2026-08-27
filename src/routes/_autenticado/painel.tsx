@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   PiggyBank,
+  Share2,
   Target,
   TrendingDown,
   TrendingUp,
@@ -347,31 +348,73 @@ function Painel() {
 
 
   // ---- Exportar o painel em PDF ----
-  const [exportando, setExportando] = useState(false);
-  async function exportarPdf() {
-    if (!data) return;
-    setExportando(true);
+  const [painelPdfAberto, setPainelPdfAberto] = useState(false);
+  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar">(null);
+  const [avisoPdf, setAvisoPdf] = useState("");
+  const [idiomaPdf, setIdiomaPdf] = useState<"pt" | "en">(idioma);
+  const [secoesPdf, setSecoesPdf] = useState({
+    resumo: true,
+    categorias: true,
+    metas: true,
+    alertas: true,
+  });
+
+  const dadosPdf = () =>
+    data
+      ? {
+          idioma: idiomaPdf,
+          secoes: secoesPdf,
+          modo: (semanal ? "semana" : "mes") as "semana" | "mes",
+          periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
+          periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
+          entradas: periodoEntradas,
+          gastos: periodoGastos,
+          saldo: periodoSaldo,
+          mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
+          projecaoMes: data.projecaoMes,
+          porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),
+          metas: data.metas ?? [],
+          historico: historicoFiltrado,
+        }
+      : null;
+
+  const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
+
+  async function exportarPdf(acao: "baixar" | "compartilhar") {
+    const dados = dadosPdf();
+    if (!dados || nenhumaSecao) return;
+    setAvisoPdf("");
+    setExportando(acao);
     try {
-      const { gerarRelatorioPdf } = await import("@/lib/pdf-report");
-      await gerarRelatorioPdf({
-        idioma,
-        modo: semanal ? "semana" : "mes",
-        periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
-        periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
-        entradas: periodoEntradas,
-        gastos: periodoGastos,
-        saldo: periodoSaldo,
-        mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
-        projecaoMes: data.projecaoMes,
-        porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),
-        metas: data.metas ?? [],
-        historico: historicoFiltrado,
-        tituloAlerta: (tipo) => tituloAlerta(tipo as TipoAlerta),
-      });
+      const mod = await import("@/lib/pdf-report");
+      if (acao === "baixar") {
+        await mod.baixarRelatorioPdf(dados);
+      } else {
+        const ok = await mod.compartilharRelatorioPdf(
+          dados,
+          idiomaPdf === "pt" ? "Relatório financeiro" : "Financial report",
+        );
+        if (!ok) {
+          await mod.baixarRelatorioPdf(dados);
+          setAvisoPdf(
+            t(
+              "Este aparelho não permite compartilhar direto — o arquivo foi baixado para você enviar.",
+              "This device can't share directly — the file was downloaded so you can send it.",
+            ),
+          );
+        }
+      }
     } finally {
-      setExportando(false);
+      setExportando(null);
     }
   }
+
+  const SECOES_PDF = [
+    { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
+    { chave: "categorias" as const, rotulo: t("Gastos por categoria", "Spending by category") },
+    { chave: "metas" as const, rotulo: t("Metas", "Goals") },
+    { chave: "alertas" as const, rotulo: t("Histórico de alertas", "Alert history") },
+  ];
 
   return (
     <div className="space-y-8">
@@ -416,13 +459,113 @@ function Painel() {
 
         <button
           type="button"
-          onClick={exportarPdf}
-          disabled={isLoading || exportando}
+          onClick={() => setPainelPdfAberto((v) => !v)}
+          disabled={isLoading}
+          aria-expanded={painelPdfAberto}
           className="mt-5 ml-0 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 sm:ml-3"
         >
           <Download className="size-4" />
-          {exportando ? t("Gerando PDF…", "Generating PDF…") : t("Exportar PDF", "Export PDF")}
+          {t("Exportar PDF", "Export PDF")}
         </button>
+
+        {painelPdfAberto && (
+          <div className="surface-card mt-4 max-w-2xl space-y-5 p-6">
+            <div>
+              <h2 className="font-display text-xl">
+                {t("O que entra no PDF?", "What goes into the PDF?")}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t(
+                  "Marque as partes que você quer no relatório.",
+                  "Check the parts you want in the report.",
+                )}
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {SECOES_PDF.map((s) => (
+                  <label
+                    key={s.chave}
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-base"
+                  >
+                    <input
+                      type="checkbox"
+                      className="size-5 accent-[var(--primary)]"
+                      checked={secoesPdf[s.chave]}
+                      onChange={(e) =>
+                        setSecoesPdf((atual) => ({ ...atual, [s.chave]: e.target.checked }))
+                      }
+                    />
+                    {s.rotulo}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("Idioma do PDF", "PDF language")}
+              </h3>
+              <div
+                className="mt-2 inline-flex items-center gap-1 rounded-full bg-secondary p-1"
+                role="group"
+                aria-label={t("Idioma do PDF", "PDF language")}
+              >
+                {[
+                  { valor: "pt" as const, rotulo: "Português (BR)" },
+                  { valor: "en" as const, rotulo: "English" },
+                ].map((op) => (
+                  <button
+                    key={op.valor}
+                    type="button"
+                    onClick={() => setIdiomaPdf(op.valor)}
+                    aria-pressed={idiomaPdf === op.valor}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      idiomaPdf === op.valor
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    {op.rotulo}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => exportarPdf("baixar")}
+                disabled={nenhumaSecao || exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+              >
+                <Download className="size-5" />
+                {exportando === "baixar"
+                  ? t("Gerando PDF…", "Generating PDF…")
+                  : t("Baixar PDF", "Download PDF")}
+              </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("compartilhar")}
+                disabled={nenhumaSecao || exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <Share2 className="size-5" />
+                {exportando === "compartilhar"
+                  ? t("Preparando…", "Preparing…")
+                  : t("Compartilhar", "Share")}
+              </button>
+            </div>
+
+            {nenhumaSecao && (
+              <p className="text-sm text-destructive">
+                {t(
+                  "Escolha pelo menos uma seção para gerar o PDF.",
+                  "Pick at least one section to generate the PDF.",
+                )}
+              </p>
+            )}
+            {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
+          </div>
+        )}
       </header>
 
       {isLoading && (

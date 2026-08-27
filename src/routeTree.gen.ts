@@ -17,6 +17,7 @@ import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/c
 import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
 import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
 import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
+import { Route as AutenticadoPainelRouteImport } from './routes/_autenticado/painel'
 import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +59,11 @@ const AutenticadoMetasRoute = AutenticadoMetasRouteImport.update({
   path: '/metas',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoPainelRoute = AutenticadoPainelRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 const AutenticadoResumoRoute = AutenticadoResumoRouteImport.update({
   id: '/resumo',
   path: '/resumo',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
+  '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesByTo {
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
+  '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesById {
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/_autenticado/insights': typeof AutenticadoInsightsRoute
   '/_autenticado/mercado': typeof AutenticadoMercadoRoute
   '/_autenticado/metas': typeof AutenticadoMetasRoute
+  '/_autenticado/painel': typeof AutenticadoPainelRoute
   '/_autenticado/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRouteTypes {
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/mercado'
     | '/metas'
+    | '/painel'
     | '/resumo'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/mercado'
     | '/metas'
+    | '/painel'
     | '/resumo'
   id:
     | '__root__'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/_autenticado/insights'
     | '/_autenticado/mercado'
     | '/_autenticado/metas'
+    | '/_autenticado/painel'
     | '/_autenticado/resumo'
   fileRoutesById: FileRoutesById
 }
@@ -195,6 +207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoMetasRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/painel': {
+      id: '/_autenticado/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof AutenticadoPainelRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
     '/_autenticado/resumo': {
       id: '/_autenticado/resumo'
       path: '/resumo'
@@ -210,6 +229,7 @@ interface AutenticadoRouteRouteChildren {
   AutenticadoInsightsRoute: typeof AutenticadoInsightsRoute
   AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
   AutenticadoMetasRoute: typeof AutenticadoMetasRoute
+  AutenticadoPainelRoute: typeof AutenticadoPainelRoute
   AutenticadoResumoRoute: typeof AutenticadoResumoRoute
 }
 
@@ -218,6 +238,7 @@ const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoInsightsRoute: AutenticadoInsightsRoute,
   AutenticadoMercadoRoute: AutenticadoMercadoRoute,
   AutenticadoMetasRoute: AutenticadoMetasRoute,
+  AutenticadoPainelRoute: AutenticadoPainelRoute,
   AutenticadoResumoRoute: AutenticadoResumoRoute,
 }
 

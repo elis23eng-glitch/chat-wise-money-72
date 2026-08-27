@@ -1,5 +1,4 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,6 +7,12 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
 
 export const Route = createFileRoute("/_autenticado")({
+  ssr: false,
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/entrar" });
+    return { user: data.user };
+  },
   component: AppLayout,
 });
 
@@ -26,10 +31,6 @@ function AppLayout() {
     { to: "/mercado", label: t("Mercado", "Market") },
     { to: "/insights", label: t("Insights", "Insights") },
   ] as const;
-
-  useEffect(() => {
-    if (!loading && !session) navigate({ to: "/entrar" });
-  }, [loading, session, navigate]);
 
   if (loading || !session) {
     return (

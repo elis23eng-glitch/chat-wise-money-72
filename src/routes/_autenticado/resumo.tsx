@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ import {
 } from "@/lib/finance.functions";
 import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
+import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
 
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
@@ -66,6 +67,11 @@ function Resumo() {
   const apagarEntrada = useServerFn(deleteIncome);
 
   const { data, isLoading } = useQuery({ queryKey: ["overview"], queryFn: () => overview() });
+
+  const [editando, setEditando] = useState<{
+    tipo: "gasto" | "entrada";
+    lancamento: LancamentoEditavel;
+  } | null>(null);
 
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<(typeof CATEGORIAS)[number]>("alimentação");
@@ -258,6 +264,18 @@ function Resumo() {
                 </div>
                 <span className="ml-auto font-display text-lg">{brl(Number(g.valor))}</span>
                 <button
+                  aria-label={t("Corrigir gasto", "Correct expense")}
+                  onClick={() =>
+                    setEditando({
+                      tipo: "gasto",
+                      lancamento: { ...g, valor: Number(g.valor), descricao: g.descricao ?? "" },
+                    })
+                  }
+                  className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  <Pencil className="size-4" />
+                </button>
+                <button
                   aria-label={t("Apagar gasto", "Delete expense")}
                   onClick={() => delMutation.mutate(g.id)}
                   className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -402,6 +420,22 @@ function Resumo() {
                       + {brl(Number(e.valor))}
                     </span>
                     <button
+                      aria-label={t("Corrigir entrada", "Correct income")}
+                      onClick={() =>
+                        setEditando({
+                          tipo: "entrada",
+                          lancamento: {
+                            ...e,
+                            valor: Number(e.valor),
+                            descricao: e.descricao ?? "",
+                          },
+                        })
+                      }
+                      className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Pencil className="size-4" />
+                    </button>
+                    <button
                       aria-label={t("Apagar entrada", "Delete income")}
                       onClick={() => delEntradaMutation.mutate(e.id)}
                       className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -415,6 +449,12 @@ function Resumo() {
           </div>
         </aside>
       </section>
+
+      <EditarLancamento
+        tipo={editando?.tipo ?? "gasto"}
+        lancamento={editando?.lancamento ?? null}
+        aoFechar={() => setEditando(null)}
+      />
     </div>
   );
 }

@@ -149,11 +149,13 @@ function Resumo() {
     mutationFn: (id: string) => apagar({ data: { id } }),
     onSuccess: () => {
       toast.success(t("Gasto apagado.", "Expense deleted."));
+      setConfirmando(null);
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
+
 
   const total = data?.totalMes ?? 0;
   const entradas = data?.totalEntradas ?? 0;

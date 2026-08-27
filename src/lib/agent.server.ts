@@ -203,11 +203,16 @@ function buildTools(supabase: Client, userId: string) {
           alvoId = ultimo.id;
         }
 
-        const patch: Record<string, unknown> = {};
-        if (valor !== null) patch["valor"] = valor;
-        if (categoria !== null) patch["categoria"] = categoria;
-        if (descricao !== null) patch["descricao"] = descricao;
-        if (data !== null) patch["data"] = data;
+        const patch: {
+          valor?: number;
+          categoria?: string;
+          descricao?: string;
+          data?: string;
+        } = {};
+        if (valor !== null) patch.valor = valor;
+        if (categoria !== null) patch.categoria = categoria;
+        if (descricao !== null) patch.descricao = descricao;
+        if (data !== null) patch.data = data;
         if (Object.keys(patch).length === 0) {
           return { ok: false, erro: "Nada para alterar: diga o que deve ser corrigido." };
         }

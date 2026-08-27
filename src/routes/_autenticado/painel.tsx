@@ -43,6 +43,7 @@ import {
 } from "@/lib/alerts.functions";
 import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
+import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({

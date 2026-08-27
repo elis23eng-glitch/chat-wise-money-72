@@ -510,6 +510,24 @@ function Resumo() {
         lancamento={editando?.lancamento ?? null}
         aoFechar={() => setEditando(null)}
       />
+
+      <ConfirmarExclusao
+        aberto={!!confirmando}
+        titulo={
+          confirmando?.tipo === "entrada"
+            ? t("Apagar esta entrada?", "Delete this income?")
+            : t("Apagar este gasto?", "Delete this expense?")
+        }
+        descricao={`${confirmando?.descricao ?? ""} — ${brl(confirmando?.valor ?? 0)}`}
+        carregando={delMutation.isPending || delEntradaMutation.isPending}
+        aoCancelar={() => setConfirmando(null)}
+        aoConfirmar={() => {
+          if (!confirmando) return;
+          if (confirmando.tipo === "gasto") delMutation.mutate(confirmando.id);
+          else delEntradaMutation.mutate(confirmando.id);
+        }}
+      />
+
     </div>
   );
 }

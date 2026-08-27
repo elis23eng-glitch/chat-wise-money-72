@@ -18,6 +18,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { PainelVoz } from "@/components/PainelVoz";
 import { ResumoEmAudio } from "@/components/ResumoEmAudio";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 

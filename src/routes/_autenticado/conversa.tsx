@@ -62,8 +62,22 @@ function Conversa() {
       exemplo: t("“Recebi 1.500 reais de aposentadoria”", '"I received $1,500 from retirement"'),
     },
     {
-      titulo: t("Corrigir lançamento", "Correct an entry"),
+      titulo: t("Corrigir valor", "Fix amount"),
       exemplo: t("“Corrigir o último gasto para 50 reais”", '"Change my last expense to $50"'),
+    },
+    {
+      titulo: t("Corrigir categoria", "Fix category"),
+      exemplo: t(
+        "“Corrigir a categoria do último gasto para mercado”",
+        '"Fix the category of my last expense to groceries"',
+      ),
+    },
+    {
+      titulo: t("Trocar data", "Change date"),
+      exemplo: t(
+        "“Trocar a data do último gasto para ontem”",
+        '"Change the date of my last expense to yesterday"',
+      ),
     },
     {
       titulo: t("Excluir lançamento", "Delete an entry"),

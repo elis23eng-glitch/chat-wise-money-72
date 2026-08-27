@@ -273,9 +273,18 @@ export const deleteIncome = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    await context.supabase.from("incomes").delete().eq("id", data.id).eq("user_id", context.userId);
+    const { data: row, error } = await context.supabase
+      .from("incomes")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Lançamento não encontrado.");
     return { ok: true };
   });
+
 
 export const updateExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

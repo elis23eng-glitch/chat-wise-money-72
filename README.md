@@ -121,6 +121,26 @@ Todas as tabelas possuem **Row Level Security (RLS)** ativa para proteger os dad
 
 ---
 
+## ✅ Integração contínua (CI)
+
+O repositório usa **GitHub Actions** (`.github/workflows/ci.yml`) para validar automaticamente cada push e pull request:
+
+- **Lint** — ESLint + Prettier.
+- **Verificação de tipos** — `tsc --noEmit`.
+- **Testes unitários** — Vitest (formatação de moeda, datas e traduções PT-BR/EN).
+- **Build de produção** — garante que o app compila de ponta a ponta.
+
+Para rodar as mesmas validações localmente:
+
+```bash
+bun run lint
+bun run typecheck
+bun run test
+bun run build
+```
+
+---
+
 ## 👩‍💻 Autora
 
 **Elisangela Vieira**

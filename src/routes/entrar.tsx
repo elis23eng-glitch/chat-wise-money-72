@@ -72,9 +72,9 @@ function Entrar() {
         }
 
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email,
-            password: senha,
-          });
+          email,
+          password: senha,
+        });
         if (signInError || !signInData.session) {
           throw new Error(
             t(
@@ -99,7 +99,8 @@ function Entrar() {
           }
           throw error;
         }
-        if (!data.session) throw new Error(t("A sessão não foi iniciada.", "Session did not start."));
+        if (!data.session)
+          throw new Error(t("A sessão não foi iniciada.", "Session did not start."));
         abrirConversa();
       }
     } catch (err) {
@@ -127,7 +128,10 @@ function Entrar() {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {
       toast.error(
-        t("O Google não concluiu o acesso. Tente novamente.", "Google did not complete sign-in. Try again."),
+        t(
+          "O Google não concluiu o acesso. Tente novamente.",
+          "Google did not complete sign-in. Try again.",
+        ),
       );
       return;
     }

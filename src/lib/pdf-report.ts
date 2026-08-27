@@ -202,6 +202,17 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
   );
   y += 8;
 
+  const nota = notaConversao(d.idioma);
+  if (nota) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    doc.text(nota, m, y + 10);
+    doc.setTextColor(35, 35, 35);
+    y += 16;
+  }
+
+
   if (d.secoes.resumo) {
     titulo(L.resumo);
 

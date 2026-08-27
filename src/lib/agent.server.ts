@@ -71,10 +71,7 @@ function buildTools(supabase: Client, userId: string) {
         valor: z.number().describe("Valor em reais, ex.: 35.5"),
         categoria: z.enum(CATEGORIAS),
         descricao: z.string().describe("Descrição curta, ex.: supermercado"),
-        data: z
-          .string()
-          .nullable()
-          .describe("Data no formato AAAA-MM-DD. Use null para hoje."),
+        data: z.string().nullable().describe("Data no formato AAAA-MM-DD. Use null para hoje."),
       }),
       execute: async ({ valor, categoria, descricao, data }) => {
         const { data: row, error } = await supabase
@@ -131,10 +128,7 @@ function buildTools(supabase: Client, userId: string) {
           .limit(1)
           .maybeSingle();
         if (!ultimo) return { ok: false, erro: "Nenhum gasto encontrado." };
-        const { error } = await supabase
-          .from("expenses")
-          .update({ categoria })
-          .eq("id", ultimo.id);
+        const { error } = await supabase.from("expenses").update({ categoria }).eq("id", ultimo.id);
         return error ? { ok: false, erro: error.message } : { ok: true, categoria };
       },
     }),

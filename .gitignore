@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variáveis de ambiente (nunca versionar chaves)
+.env
+.env.*

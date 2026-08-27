@@ -217,7 +217,11 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
       doc.setTextColor(positivo ? 20 : 190, positivo ? 90 : 40, positivo ? 70 : 50);
-      doc.text(`${s.label}: ${brl(s.valor, d.idioma)} (${positivo ? L.positivo : L.negativo})`, m, y);
+      doc.text(
+        `${s.label}: ${brl(s.valor, d.idioma)} (${positivo ? L.positivo : L.negativo})`,
+        m,
+        y,
+      );
       doc.setTextColor(35, 35, 35);
       y += 18;
     }
@@ -372,4 +376,3 @@ export async function gerarLinkRelatorioPdf(d: DadosRelatorio) {
 
   return data.signedUrl;
 }
-

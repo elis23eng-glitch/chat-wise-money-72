@@ -94,8 +94,7 @@ function Mercado() {
             <p
               className={`mt-1 text-sm font-semibold ${variacao >= 0 ? "text-destructive" : "text-primary"}`}
             >
-              {variacao >= 0 ? "▲" : "▼"} {Math.abs(variacao).toFixed(2)}%{" "}
-              {t("hoje", "today")}
+              {variacao >= 0 ? "▲" : "▼"} {Math.abs(variacao).toFixed(2)}% {t("hoje", "today")}
             </p>
           )}
         </div>

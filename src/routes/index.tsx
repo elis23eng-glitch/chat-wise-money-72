@@ -141,7 +141,9 @@ function BoasVindas() {
             <div className="surface-card p-5 shadow-soft">
               <div className="flex items-center gap-2 border-b border-primary/10 pb-3">
                 <span className="size-2.5 rounded-full bg-primary" />
-                <p className="text-sm font-semibold">{t("Conversa com o agente", "Chat with the agent")}</p>
+                <p className="text-sm font-semibold">
+                  {t("Conversa com o agente", "Chat with the agent")}
+                </p>
                 <span className="ml-auto text-xs text-muted-foreground">
                   {t("online agora", "online now")}
                 </span>
@@ -158,10 +160,11 @@ function BoasVindas() {
                   </span>
                   <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-secondary px-4 py-3 text-sm">
                     {t("Anotei! ", "Got it! ")}
-                    <strong>
-                      {t("Supermercado — R$ 35,00", "Supermarket — $35.00")}
-                    </strong>
-                    {t(" em Alimentação. Quer que eu guarde assim?", " under Food. Want me to save it this way?")}
+                    <strong>{t("Supermercado — R$ 35,00", "Supermarket — $35.00")}</strong>
+                    {t(
+                      " em Alimentação. Quer que eu guarde assim?",
+                      " under Food. Want me to save it this way?",
+                    )}
                   </div>
                 </div>
               </div>

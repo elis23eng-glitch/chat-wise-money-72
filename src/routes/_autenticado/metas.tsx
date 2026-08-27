@@ -59,7 +59,9 @@ function Metas() {
       qc.invalidateQueries({ queryKey: ["overview"] });
     },
     onError: () =>
-      toast.error(t("Confira os dados da meta e tente de novo.", "Check the goal details and try again.")),
+      toast.error(
+        t("Confira os dados da meta e tente de novo.", "Check the goal details and try again."),
+      ),
   });
 
   const guardarMutation = useMutation({
@@ -180,7 +182,9 @@ function Metas() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold">{t("Valor da meta (R$)", "Goal amount ($)")}</span>
+              <span className="text-sm font-semibold">
+                {t("Valor da meta (R$)", "Goal amount ($)")}
+              </span>
               <input
                 required
                 inputMode="decimal"
@@ -191,7 +195,9 @@ function Metas() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold">{t("Prazo (opcional)", "Deadline (optional)")}</span>
+              <span className="text-sm font-semibold">
+                {t("Prazo (opcional)", "Deadline (optional)")}
+              </span>
               <input
                 type="date"
                 value={prazo}

@@ -57,7 +57,8 @@ async function fromFrankfurter(): Promise<Partial<MarketSnapshot> | null> {
             rates?: Record<string, Record<string, number>>;
           };
           const dias = Object.keys(hist.rates ?? {}).sort();
-          const anterior = dias.length > 1 ? hist.rates![dias[dias.length - 2]!]!["USD"] : undefined;
+          const anterior =
+            dias.length > 1 ? hist.rates![dias[dias.length - 2]!]!["USD"] : undefined;
           if (anterior) {
             const dolarAnterior = 1 / anterior;
             variacaoPct = ((dolar - dolarAnterior) / dolarAnterior) * 100;

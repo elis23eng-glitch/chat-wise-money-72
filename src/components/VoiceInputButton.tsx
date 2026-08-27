@@ -7,14 +7,35 @@ type Props = {
   disabled?: boolean;
 };
 
+/** Tipos mínimos da Web Speech API (ainda não padronizada no TS). */
+type ResultadoVoz = {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+};
+
+type ReconhecimentoVoz = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((e: ResultadoVoz) => void) | null;
+  onerror: ((e: { error: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type JanelaComVoz = Window & {
+  SpeechRecognition?: new () => ReconhecimentoVoz;
+  webkitSpeechRecognition?: new () => ReconhecimentoVoz;
+};
+
 /** Botão de ditado por voz usando a Web Speech API (pt-BR). */
 export function VoiceInputButton({ onText, disabled }: Props) {
   const [gravando, setGravando] = useState(false);
   const [suportado, setSuportado] = useState(false);
-  const recRef = useRef<any>(null);
+  const recRef = useRef<ReconhecimentoVoz | null>(null);
 
   useEffect(() => {
-    const w = window as any;
+    const w = window as JanelaComVoz;
     const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) return;
     setSuportado(true);
@@ -22,14 +43,14 @@ export function VoiceInputButton({ onText, disabled }: Props) {
     rec.lang = "pt-BR";
     rec.continuous = false;
     rec.interimResults = false;
-    rec.onresult = (e: any) => {
+    rec.onresult = (e: ResultadoVoz) => {
       const texto = Array.from(e.results)
-        .map((r: any) => r[0].transcript)
+        .map((r) => r[0]?.transcript ?? "")
         .join(" ")
         .trim();
       if (texto) onText(texto);
     };
-    rec.onerror = (e: any) => {
+    rec.onerror = (e: { error: string }) => {
       setGravando(false);
       if (e.error === "not-allowed") {
         toast.error("Preciso da sua permissão para usar o microfone.");

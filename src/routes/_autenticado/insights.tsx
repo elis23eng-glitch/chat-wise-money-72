@@ -129,7 +129,10 @@ function gerarInsights(
   } else if (semProgresso.length > 0) {
     lista.push({
       tom: "neutro",
-      titulo: t(`“${semProgresso[0]!.titulo}” ainda não começou`, `“${semProgresso[0]!.titulo}” hasn't started yet`),
+      titulo: t(
+        `“${semProgresso[0]!.titulo}” ainda não começou`,
+        `“${semProgresso[0]!.titulo}” hasn't started yet`,
+      ),
       texto: t(
         "Comece com um valor pequeno, mesmo R$ 20. O importante é criar o hábito, não o tamanho do valor.",
         "Start with a small amount, even $20. What matters is building the habit, not the size of the amount.",
@@ -171,7 +174,9 @@ function Insights() {
       </header>
 
       {isLoading && (
-        <p className="text-muted-foreground">{t("Analisando seus gastos…", "Analyzing your spending…")}</p>
+        <p className="text-muted-foreground">
+          {t("Analisando seus gastos…", "Analyzing your spending…")}
+        </p>
       )}
 
       <div className="grid gap-4 md:grid-cols-2">

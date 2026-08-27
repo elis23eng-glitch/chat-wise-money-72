@@ -78,23 +78,29 @@ function Caixa({ children }: { children: React.ReactNode }) {
   return <div className="surface-card p-6">{children}</div>;
 }
 
-function DicaGrafico({ active, payload, label }: any) {
+type DicaProps = {
+  active?: boolean;
+  payload?: Array<{ value?: number | string; dataKey?: string | number }>;
+  label?: string;
+};
+
+function DicaGrafico({ active, payload, label }: DicaProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">
       <p className="font-semibold capitalize">{label}</p>
-      <p className="text-muted-foreground">{brl(Number(payload[0].value))}</p>
+      <p className="text-muted-foreground">{brl(Number(payload[0]?.value ?? 0))}</p>
     </div>
   );
 }
 
-function DicaComparativo({ active, payload, label }: any) {
+function DicaComparativo({ active, payload, label }: DicaProps) {
   const { t } = useIdioma();
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">
       <p className="font-semibold capitalize">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.dataKey} className="text-muted-foreground">
           {p.dataKey === "entrada" ? t("Entrou", "In") : t("Saiu", "Out")}: {brl(Number(p.value))}
         </p>
@@ -352,7 +358,6 @@ function Painel() {
     };
   }, [historicoFiltrado, idioma]);
 
-
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);
   const [exportando, setExportando] = useState<null | "baixar" | "compartilhar" | "link">(null);
@@ -411,7 +416,6 @@ function Painel() {
     setPreviaAberta(true);
   }
 
-
   async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
     const dados = dadosPdf();
     if (!dados || nenhumaSecao) return;
@@ -459,7 +463,6 @@ function Painel() {
       setExportando(null);
     }
   }
-
 
   const SECOES_PDF = [
     { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
@@ -677,7 +680,6 @@ function Painel() {
               </p>
             )}
             {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
-
           </div>
         )}
       </header>
@@ -743,7 +745,9 @@ function Painel() {
                         </span>
                         <span className={incluida ? "" : "text-muted-foreground"}>
                           {s.rotulo} —{" "}
-                          {incluida ? t("incluída", "included") : t("fora do PDF", "not in the PDF")}
+                          {incluida
+                            ? t("incluída", "included")
+                            : t("fora do PDF", "not in the PDF")}
                         </span>
                       </li>
                     );
@@ -823,8 +827,6 @@ function Painel() {
           </div>
         </div>
       )}
-
-
 
       {isLoading && (
         <p className="text-muted-foreground">
@@ -911,8 +913,7 @@ function Painel() {
               {
                 chave: "semana",
                 rotulo: t("Últimos 7 dias", "Last 7 days"),
-                detalhe:
-                  semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
+                detalhe: semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
                 entrada: semana?.entrada ?? 0,
                 gasto: semana?.gasto ?? 0,
                 saldo: semana?.saldo ?? 0,
@@ -969,8 +970,6 @@ function Painel() {
               );
             })}
           </div>
-
-
 
           {alertas.length > 0 && (
             <div className="grid gap-3 md:grid-cols-2">
@@ -1657,7 +1656,6 @@ function Painel() {
               </div>
             </>
           )}
-
 
           {!historico || historico.length === 0 ? (
             <p className="mt-4 text-muted-foreground">

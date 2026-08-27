@@ -155,6 +155,9 @@ function Resumo() {
         <h1 className="mt-2 font-display text-4xl tracking-tight">
           {t("Como está seu mês", "How your month is going")}
         </h1>
+        {notaConversao(idioma) && (
+          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+        )}
       </header>
 
       <div

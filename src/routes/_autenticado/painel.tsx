@@ -486,6 +486,9 @@ function Painel() {
             "Here you see everything together: how much you spent, on what, how it's evolving, and how much is left for your goals.",
           )}
         </p>
+        {notaConversao(idioma) && (
+          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+        )}
 
         <div
           className="mt-5 inline-flex items-center gap-1 rounded-full bg-secondary p-1"

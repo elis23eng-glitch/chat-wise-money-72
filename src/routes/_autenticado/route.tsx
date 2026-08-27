@@ -38,6 +38,7 @@ function BotaoAtualizar() {
             qc.refetchQueries({ queryKey: ["dashboard"], type: "all" }),
             qc.refetchQueries({ queryKey: ["mensagens"], type: "all" }),
             qc.refetchQueries({ queryKey: ["alertas-historico"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["ano"], type: "all" }),
           ]);
           toast.success(t("Dados atualizados!", "Data updated!"));
         } catch {
@@ -70,6 +71,7 @@ function AppLayout() {
     { to: "/conversa", label: t("Conversa", "Chat") },
     { to: "/painel", label: t("Painel", "Dashboard") },
     { to: "/resumo", label: t("Resumo", "Summary") },
+    { to: "/ano", label: t("Ano", "Year") },
 
     { to: "/metas", label: t("Metas", "Goals") },
     { to: "/mercado", label: t("Mercado", "Market") },

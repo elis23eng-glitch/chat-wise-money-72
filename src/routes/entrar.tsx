@@ -14,7 +14,8 @@ export const Route = createFileRoute("/entrar")({
       { title: "Entrar no mergulho — assistente financeiro" },
       {
         name: "description",
-        content: "Acesse sua conta para conversar com o agente financeiro e acompanhar seus gastos.",
+        content:
+          "Acesse sua conta para conversar com o agente financeiro e acompanhar seus gastos.",
       },
       { property: "og:title", content: "Entrar no mergulho" },
       {
@@ -55,7 +56,10 @@ function Entrar() {
         });
         if (error) throw error;
         toast.success(
-          t("Conta criada! Se pedirmos confirmação, olhe seu e-mail.", "Account created! If we ask for confirmation, check your email."),
+          t(
+            "Conta criada! Se pedirmos confirmação, olhe seu e-mail.",
+            "Account created! If we ask for confirmation, check your email.",
+          ),
         );
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
@@ -77,7 +81,9 @@ function Entrar() {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
-      toast.error(t("Não consegui entrar com o Google agora.", "I couldn't sign in with Google right now."));
+      toast.error(
+        t("Não consegui entrar com o Google agora.", "I couldn't sign in with Google right now."),
+      );
       return;
     }
     if (result.redirected) return;
@@ -118,13 +124,18 @@ function Entrar() {
           <p className="mt-2 text-muted-foreground">
             {modo === "entrar"
               ? t("Entre para continuar sua conversa.", "Sign in to continue your conversation.")
-              : t("Crie sua conta com e-mail e senha. É rapidinho.", "Create your account with email and password. It's quick.")}
+              : t(
+                  "Crie sua conta com e-mail e senha. É rapidinho.",
+                  "Create your account with email and password. It's quick.",
+                )}
           </p>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             {modo === "criar" && (
               <label className="block">
-                <span className="text-sm font-semibold">{t("Como posso te chamar?", "What should I call you?")}</span>
+                <span className="text-sm font-semibold">
+                  {t("Como posso te chamar?", "What should I call you?")}
+                </span>
                 <input
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}

@@ -134,7 +134,8 @@ export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
 
       <p className="mt-4 text-sm font-semibold">
         {L.periodo}: {dados.modo === "semana" ? L.semana : L.mes} (
-        {dataCurta(dados.periodoInicio, dados.idioma)} – {dataCurta(dados.periodoFim, dados.idioma)})
+        {dataCurta(dados.periodoInicio, dados.idioma)} – {dataCurta(dados.periodoFim, dados.idioma)}
+        )
       </p>
 
       {dados.secoes.resumo && (

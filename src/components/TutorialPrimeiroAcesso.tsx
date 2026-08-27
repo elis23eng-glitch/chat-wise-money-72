@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { BarChart3, FileDown, Languages, ListChecks, MessageCircle, Mic, Target } from "lucide-react";
+import {
+  BarChart3,
+  FileDown,
+  Languages,
+  ListChecks,
+  MessageCircle,
+  Mic,
+  Target,
+} from "lucide-react";
 
 import { useIdioma } from "@/lib/i18n";
 
@@ -35,7 +43,13 @@ export function useTutorial() {
   return { aberto, abrir: () => setAberto(true), fechar };
 }
 
-export function TutorialPrimeiroAcesso({ aberto, aoFechar }: { aberto: boolean; aoFechar: () => void }) {
+export function TutorialPrimeiroAcesso({
+  aberto,
+  aoFechar,
+}: {
+  aberto: boolean;
+  aoFechar: () => void;
+}) {
   const { t } = useIdioma();
   const [passo, setPasso] = useState(0);
 
@@ -76,7 +90,10 @@ export function TutorialPrimeiroAcesso({ aberto, aoFechar }: { aberto: boolean; 
         "Diga o que quer juntar e acompanhe o progresso em Metas. Pode guardar um pouquinho de cada vez.",
         "Say what you want to save for and follow the progress in Goals. You can put aside a little at a time.",
       ),
-      exemplo: t('Ex.: "quero juntar 500 reais até dezembro"', 'E.g.: "I want to save 500 by December"'),
+      exemplo: t(
+        'Ex.: "quero juntar 500 reais até dezembro"',
+        'E.g.: "I want to save 500 by December"',
+      ),
     },
     {
       icone: FileDown,

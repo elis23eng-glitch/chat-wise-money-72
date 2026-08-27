@@ -352,7 +352,6 @@ function Painel() {
     };
   }, [historicoFiltrado, idioma]);
 
-
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);
   const [exportando, setExportando] = useState<null | "baixar" | "compartilhar" | "link">(null);
@@ -411,7 +410,6 @@ function Painel() {
     setPreviaAberta(true);
   }
 
-
   async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
     const dados = dadosPdf();
     if (!dados || nenhumaSecao) return;
@@ -459,7 +457,6 @@ function Painel() {
       setExportando(null);
     }
   }
-
 
   const SECOES_PDF = [
     { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
@@ -677,7 +674,6 @@ function Painel() {
               </p>
             )}
             {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
-
           </div>
         )}
       </header>
@@ -743,7 +739,9 @@ function Painel() {
                         </span>
                         <span className={incluida ? "" : "text-muted-foreground"}>
                           {s.rotulo} —{" "}
-                          {incluida ? t("incluída", "included") : t("fora do PDF", "not in the PDF")}
+                          {incluida
+                            ? t("incluída", "included")
+                            : t("fora do PDF", "not in the PDF")}
                         </span>
                       </li>
                     );
@@ -823,8 +821,6 @@ function Painel() {
           </div>
         </div>
       )}
-
-
 
       {isLoading && (
         <p className="text-muted-foreground">
@@ -911,8 +907,7 @@ function Painel() {
               {
                 chave: "semana",
                 rotulo: t("Últimos 7 dias", "Last 7 days"),
-                detalhe:
-                  semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
+                detalhe: semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
                 entrada: semana?.entrada ?? 0,
                 gasto: semana?.gasto ?? 0,
                 saldo: semana?.saldo ?? 0,
@@ -969,8 +964,6 @@ function Painel() {
               );
             })}
           </div>
-
-
 
           {alertas.length > 0 && (
             <div className="grid gap-3 md:grid-cols-2">
@@ -1657,7 +1650,6 @@ function Painel() {
               </div>
             </>
           )}
-
 
           {!historico || historico.length === 0 ? (
             <p className="mt-4 text-muted-foreground">

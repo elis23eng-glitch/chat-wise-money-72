@@ -67,7 +67,10 @@ function Conversa() {
     },
     onError: () =>
       toast.error(
-        t("Não consegui responder agora. Tente de novo em instantes.", "I couldn't reply right now. Please try again in a moment."),
+        t(
+          "Não consegui responder agora. Tente de novo em instantes.",
+          "I couldn't reply right now. Please try again in a moment.",
+        ),
       ),
   });
 
@@ -115,7 +118,9 @@ function Conversa() {
             )}
             {!isLoading && mensagens.length === 0 && (
               <div className="mx-auto max-w-md py-10 text-center">
-                <p className="font-display text-2xl">{t("Oi! Vamos começar?", "Hi! Shall we begin?")}</p>
+                <p className="font-display text-2xl">
+                  {t("Oi! Vamos começar?", "Hi! Shall we begin?")}
+                </p>
                 <p className="mt-2 text-muted-foreground">
                   {t(
                     "Me conte um gasto recente ou faça uma pergunta sobre dinheiro. Eu explico com calma, sem termos complicados.",
@@ -157,7 +162,10 @@ function Conversa() {
             <PromptInputTextarea
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              placeholder={t("Ex.: gastei 42 reais com farmácia ontem", "E.g.: I spent $42 at the pharmacy yesterday")}
+              placeholder={t(
+                "Ex.: gastei 42 reais com farmácia ontem",
+                "E.g.: I spent $42 at the pharmacy yesterday",
+              )}
             />
             <PromptInputFooter className="justify-between">
               <VoiceInputButton
@@ -194,7 +202,7 @@ function Conversa() {
           <p className="mt-2 text-sm leading-relaxed opacity-85">
             {t(
               "Se eu classificar um gasto na categoria errada, é só me avisar: “na verdade isso foi transporte”.",
-              "If I categorize an expense wrong, just let me know: \"actually that was transportation\".",
+              'If I categorize an expense wrong, just let me know: "actually that was transportation".',
             )}
           </p>
         </div>

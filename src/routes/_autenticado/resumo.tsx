@@ -91,7 +91,8 @@ function Resumo() {
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
-    onError: () => toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
+    onError: () =>
+      toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
   });
 
   const delEntradaMutation = useMutation({
@@ -119,7 +120,8 @@ function Resumo() {
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
-    onError: () => toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
+    onError: () =>
+      toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
   });
 
   const delMutation = useMutation({
@@ -175,11 +177,15 @@ function Resumo() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="surface-card p-6 shadow-soft">
-          <p className="text-sm text-muted-foreground">{t("Entrou neste mês", "Income this month")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("Entrou neste mês", "Income this month")}
+          </p>
           <p className="mt-2 font-display text-4xl text-primary-deep">{brl(entradas)}</p>
         </div>
         <div className="surface-card p-6 shadow-soft">
-          <p className="text-sm text-muted-foreground">{t("Gasto neste mês", "Spent this month")}</p>
+          <p className="text-sm text-muted-foreground">
+            {t("Gasto neste mês", "Spent this month")}
+          </p>
           <p className="mt-2 font-display text-4xl">{brl(total)}</p>
         </div>
         <div className="surface-card p-6">
@@ -210,7 +216,9 @@ function Resumo() {
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="surface-card p-6">
           <h2 className="font-display text-2xl">{t("Por categoria", "By category")}</h2>
-          {isLoading && <p className="mt-4 text-sm text-muted-foreground">{t("Carregando…", "Loading…")}</p>}
+          {isLoading && (
+            <p className="mt-4 text-sm text-muted-foreground">{t("Carregando…", "Loading…")}</p>
+          )}
           {!isLoading && categorias.length === 0 && (
             <p className="mt-4 text-muted-foreground">
               {t(
@@ -236,7 +244,9 @@ function Resumo() {
             ))}
           </div>
 
-          <h3 className="mt-8 font-display text-xl">{t("Últimos lançamentos", "Latest entries")}</h3>
+          <h3 className="mt-8 font-display text-xl">
+            {t("Últimos lançamentos", "Latest entries")}
+          </h3>
           <ul className="mt-3 divide-y divide-primary/10">
             {(data?.recentes ?? []).map((g) => (
               <li key={g.id} className="flex items-center gap-3 py-3">
@@ -260,149 +270,149 @@ function Resumo() {
         </div>
 
         <aside className="space-y-6">
-        <div className="surface-card h-fit p-6">
-          <h2 className="font-display text-xl">{t("Anotar um gasto", "Add an expense")}</h2>
-          <form
-            className="mt-4 space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              addMutation.mutate();
-            }}
-          >
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Valor (R$)", "Amount (R$)")}</span>
-              <input
-                inputMode="decimal"
-                required
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
-                placeholder="35,00"
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Categoria", "Category")}</span>
-              <select
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value as (typeof CATEGORIAS)[number])}
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base capitalize outline-none focus:border-primary"
-              >
-                {CATEGORIAS.map((c) => (
-                  <option key={c} value={c} className="capitalize">
-                    {categoriaLabel(c, idioma)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Descrição", "Description")}</span>
-              <input
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                placeholder={t("Supermercado", "Groceries")}
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={addMutation.isPending}
-              className="w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
+          <div className="surface-card h-fit p-6">
+            <h2 className="font-display text-xl">{t("Anotar um gasto", "Add an expense")}</h2>
+            <form
+              className="mt-4 space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addMutation.mutate();
+              }}
             >
-              {t("Anotar gasto", "Add expense")}
-            </button>
-          </form>
-        </div>
-
-        <div className="surface-card h-fit p-6">
-          <h2 className="font-display text-xl">{t("Anotar uma entrada", "Add income")}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t(
-              "Dinheiro que você recebeu: salário, aposentadoria, pensão, um extra…",
-              "Money you received: salary, retirement, pension, extra work…",
-            )}
-          </p>
-          <form
-            className="mt-4 space-y-3"
-            onSubmit={(e) => {
-              e.preventDefault();
-              addEntradaMutation.mutate();
-            }}
-          >
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Valor (R$)", "Amount (R$)")}</span>
-              <input
-                inputMode="decimal"
-                required
-                value={valorE}
-                onChange={(e) => setValorE(e.target.value)}
-                placeholder="1.500,00"
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Tipo de entrada", "Income type")}</span>
-              <select
-                value={categoriaE}
-                onChange={(e) =>
-                  setCategoriaE(e.target.value as (typeof CATEGORIAS_ENTRADA)[number])
-                }
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base capitalize outline-none focus:border-primary"
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Valor (R$)", "Amount (R$)")}</span>
+                <input
+                  inputMode="decimal"
+                  required
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                  placeholder="35,00"
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Categoria", "Category")}</span>
+                <select
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value as (typeof CATEGORIAS)[number])}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base capitalize outline-none focus:border-primary"
+                >
+                  {CATEGORIAS.map((c) => (
+                    <option key={c} value={c} className="capitalize">
+                      {categoriaLabel(c, idioma)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Descrição", "Description")}</span>
+                <input
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  placeholder={t("Supermercado", "Groceries")}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={addMutation.isPending}
+                className="w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
               >
-                {CATEGORIAS_ENTRADA.map((c) => (
-                  <option key={c} value={c} className="capitalize">
-                    {categoriaLabel(c, idioma)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-sm font-semibold">{t("Descrição", "Description")}</span>
-              <input
-                value={descricaoE}
-                onChange={(e) => setDescricaoE(e.target.value)}
-                placeholder={t("Salário de agosto", "August salary")}
-                className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={addEntradaMutation.isPending}
-              className="w-full rounded-full bg-primary-deep px-6 py-3.5 text-base font-semibold text-primary-deep-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
-            >
-              {t("Anotar entrada", "Add income")}
-            </button>
-          </form>
+                {t("Anotar gasto", "Add expense")}
+              </button>
+            </form>
+          </div>
 
-          <h3 className="mt-8 font-display text-lg">{t("Últimas entradas", "Latest income")}</h3>
-          {(data?.entradasRecentes ?? []).length === 0 ? (
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("Nenhuma entrada anotada ainda.", "No income recorded yet.")}
+          <div className="surface-card h-fit p-6">
+            <h2 className="font-display text-xl">{t("Anotar uma entrada", "Add income")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t(
+                "Dinheiro que você recebeu: salário, aposentadoria, pensão, um extra…",
+                "Money you received: salary, retirement, pension, extra work…",
+              )}
             </p>
-          ) : (
-            <ul className="mt-2 divide-y divide-primary/10">
-              {(data?.entradasRecentes ?? []).map((e) => (
-                <li key={e.id} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">{e.descricao}</p>
-                    <p className="text-xs capitalize text-muted-foreground">
-                      {categoriaLabel(e.categoria, idioma)} · {dataCurta(e.data)}
-                    </p>
-                  </div>
-                  <span className="ml-auto font-display text-base text-primary-deep">
-                    + {brl(Number(e.valor))}
-                  </span>
-                  <button
-                    aria-label={t("Apagar entrada", "Delete income")}
-                    onClick={() => delEntradaMutation.mutate(e.id)}
-                    className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+            <form
+              className="mt-4 space-y-3"
+              onSubmit={(e) => {
+                e.preventDefault();
+                addEntradaMutation.mutate();
+              }}
+            >
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Valor (R$)", "Amount (R$)")}</span>
+                <input
+                  inputMode="decimal"
+                  required
+                  value={valorE}
+                  onChange={(e) => setValorE(e.target.value)}
+                  placeholder="1.500,00"
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Tipo de entrada", "Income type")}</span>
+                <select
+                  value={categoriaE}
+                  onChange={(e) =>
+                    setCategoriaE(e.target.value as (typeof CATEGORIAS_ENTRADA)[number])
+                  }
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base capitalize outline-none focus:border-primary"
+                >
+                  {CATEGORIAS_ENTRADA.map((c) => (
+                    <option key={c} value={c} className="capitalize">
+                      {categoriaLabel(c, idioma)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Descrição", "Description")}</span>
+                <input
+                  value={descricaoE}
+                  onChange={(e) => setDescricaoE(e.target.value)}
+                  placeholder={t("Salário de agosto", "August salary")}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={addEntradaMutation.isPending}
+                className="w-full rounded-full bg-primary-deep px-6 py-3.5 text-base font-semibold text-primary-deep-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+              >
+                {t("Anotar entrada", "Add income")}
+              </button>
+            </form>
+
+            <h3 className="mt-8 font-display text-lg">{t("Últimas entradas", "Latest income")}</h3>
+            {(data?.entradasRecentes ?? []).length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t("Nenhuma entrada anotada ainda.", "No income recorded yet.")}
+              </p>
+            ) : (
+              <ul className="mt-2 divide-y divide-primary/10">
+                {(data?.entradasRecentes ?? []).map((e) => (
+                  <li key={e.id} className="flex items-center gap-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{e.descricao}</p>
+                      <p className="text-xs capitalize text-muted-foreground">
+                        {categoriaLabel(e.categoria, idioma)} · {dataCurta(e.data)}
+                      </p>
+                    </div>
+                    <span className="ml-auto font-display text-base text-primary-deep">
+                      + {brl(Number(e.valor))}
+                    </span>
+                    <button
+                      aria-label={t("Apagar entrada", "Delete income")}
+                      onClick={() => delEntradaMutation.mutate(e.id)}
+                      className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </aside>
       </section>
     </div>

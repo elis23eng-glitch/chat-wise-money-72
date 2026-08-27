@@ -80,7 +80,9 @@ export const getOverview = createServerFn({ method: "GET" })
 
     const linhasEntrada = (entradas ?? []).map((e) => ({ ...e, valor: Number(e.valor) }));
     const entradasMes = linhasEntrada.filter((l) => l.data >= mesAtual);
-    const entradasAnterior = linhasEntrada.filter((l) => l.data >= mesAnterior && l.data < mesAtual);
+    const entradasAnterior = linhasEntrada.filter(
+      (l) => l.data >= mesAnterior && l.data < mesAtual,
+    );
     const totalEntradas = entradasMes.reduce((s, l) => s + l.valor, 0);
     const totalEntradasAnterior = entradasAnterior.reduce((s, l) => s + l.valor, 0);
 
@@ -116,12 +118,14 @@ export const getMessages = createServerFn({ method: "GET" })
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z
+  .inputValidator((data: unknown) =>
+    z
       .object({
         message: z.string().min(1).max(2000),
         idioma: z.enum(["pt", "en"]).optional(),
       })
-      .parse(data))
+      .parse(data),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 

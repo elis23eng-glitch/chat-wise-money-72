@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validar:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Verificação de tipos
+        run: bun run typecheck
+
+      - name: Testes unitários
+        run: bun run test
+
+      - name: Build de produção
+        run: bun run build
+        env:
+          # Valores fictícios apenas para validar a compilação no CI.
+          # Nenhum dado real é acessado durante o build.
+          VITE_SUPABASE_URL: https://exemplo-ci.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
+          VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci

@@ -832,6 +832,80 @@ function Painel() {
             </p>
           </div>
 
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                chave: "dia",
+                rotulo: t("Hoje", "Today"),
+                detalhe: dataLonga(data?.dia?.iso ?? hoje),
+                entrada: data?.dia?.entrada ?? 0,
+                gasto: data?.dia?.gasto ?? 0,
+                saldo: data?.dia?.saldo ?? 0,
+              },
+              {
+                chave: "semana",
+                rotulo: t("Últimos 7 dias", "Last 7 days"),
+                detalhe:
+                  semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
+                entrada: semana?.entrada ?? 0,
+                gasto: semana?.gasto ?? 0,
+                saldo: semana?.saldo ?? 0,
+              },
+              {
+                chave: "mes",
+                rotulo: t("Este mês", "This month"),
+                detalhe: `${dataCurta(inicioMes)} – ${dataCurta(hoje)}`,
+                entrada: entradas,
+                gasto: total,
+                saldo: saldo,
+              },
+            ].map((p) => {
+              const positivo = p.saldo >= 0;
+              return (
+                <div
+                  key={p.chave}
+                  className={`rounded-2xl border p-5 ${
+                    positivo
+                      ? "border-primary/25 bg-primary/5"
+                      : "border-destructive/30 bg-destructive/10"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-base font-semibold">{p.rotulo}</p>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        positivo
+                          ? "bg-primary/15 text-primary-deep"
+                          : "bg-destructive/20 text-destructive"
+                      }`}
+                    >
+                      {positivo ? (
+                        <TrendingUp className="size-3.5" />
+                      ) : (
+                        <TrendingDown className="size-3.5" />
+                      )}
+                      {positivo ? t("positivo", "positive") : t("negativo", "negative")}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-2 font-display text-3xl ${
+                      positivo ? "text-primary-deep" : "text-destructive"
+                    }`}
+                  >
+                    {brl(p.saldo)}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("Entradas", "Income")} {brl(p.entrada)} · {t("Saídas", "Expenses")}{" "}
+                    {brl(p.gasto)}
+                  </p>
+                  {p.detalhe && <p className="mt-1 text-xs text-muted-foreground">{p.detalhe}</p>}
+                </div>
+              );
+            })}
+          </div>
+
+
+
           {alertas.length > 0 && (
             <div className="grid gap-3 md:grid-cols-2">
               {alertas.map((a) => (

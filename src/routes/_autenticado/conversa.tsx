@@ -147,7 +147,63 @@ function Conversa() {
           >
             {t("Limpar conversa", "Clear conversation")}
           </button>
+          <button
+            onClick={() => setAjudaAberta(true)}
+            aria-label={t("Ajuda: comandos de voz", "Help: voice commands")}
+            className="grid size-9 place-items-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+          >
+            <CircleHelp className="size-5" />
+          </button>
         </div>
+
+        {ajudaAberta && (
+          <div
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+            onClick={() => setAjudaAberta(false)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={t("Comandos de voz", "Voice commands")}
+              className="surface-card max-h-[80vh] w-full max-w-md overflow-y-auto p-6 shadow-soft"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <p className="flex items-center gap-2 font-display text-xl">
+                  <Mic className="size-5 text-primary" />
+                  {t("Fale comigo assim", "Talk to me like this")}
+                </p>
+                <button
+                  onClick={() => setAjudaAberta(false)}
+                  aria-label={t("Fechar ajuda", "Close help")}
+                  className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t(
+                  "Toque no botão Falar e diga uma frase como estas:",
+                  "Tap the Speak button and say a phrase like these:",
+                )}
+              </p>
+              <div className="mt-4 space-y-3">
+                {COMANDOS_VOZ.map((c) => (
+                  <div key={c.titulo} className="rounded-2xl bg-secondary px-4 py-3">
+                    <p className="text-sm font-semibold">{c.titulo}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{c.exemplo}</p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setAjudaAberta(false)}
+                className="mt-5 w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-deep"
+              >
+                {t("Entendi", "Got it")}
+              </button>
+            </div>
+          </div>
+        )}
 
         <Conversation className="flex-1">
           <ConversationContent className="gap-4">

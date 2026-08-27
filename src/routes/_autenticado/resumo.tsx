@@ -18,7 +18,7 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
     meta: [
-      { title: "Resumo dos gastos — mergulho" },
+      { title: "Resumo dos gastos — Wise Money" },
       {
         name: "description",
         content: "Veja quanto você gastou no mês, por categoria, e compare com o mês anterior.",

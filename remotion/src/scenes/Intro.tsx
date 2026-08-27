@@ -19,7 +19,9 @@ export const Intro: React.FC<{ display: string; sans: string }> = ({ display, sa
         color: C.text,
       }}
     >
-      <div style={{ opacity: sub, letterSpacing: 6, fontSize: 16, color: C.accent, fontWeight: 700 }}>
+      <div
+        style={{ opacity: sub, letterSpacing: 6, fontSize: 16, color: C.accent, fontWeight: 700 }}
+      >
         MINI TUTORIAL
       </div>
       <div

@@ -9,7 +9,7 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/_autenticado/insights")({
   head: () => ({
     meta: [
-      { title: "Insights do seu dinheiro — mergulho" },
+      { title: "Insights do seu dinheiro — Wise Money" },
       {
         name: "description",
         content:

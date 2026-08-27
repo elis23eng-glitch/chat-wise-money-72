@@ -24,7 +24,7 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({
     meta: [
-      { title: "Conversa — mergulho" },
+      { title: "Conversa — Wise Money" },
       {
         name: "description",
         content: "Converse com seu agente financeiro para registrar gastos e tirar dúvidas.",

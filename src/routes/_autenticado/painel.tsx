@@ -50,7 +50,7 @@ import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({
     meta: [
-      { title: "Painel financeiro — mergulho" },
+      { title: "Painel financeiro — Wise Money" },
       {
         name: "description",
         content:

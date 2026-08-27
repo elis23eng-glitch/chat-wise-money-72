@@ -1,4 +1,5 @@
 import React from "react";
+import { staticFile } from "remotion";
 import { C } from "../theme";
 
 export const Phone: React.FC<{
@@ -38,15 +39,18 @@ export const Phone: React.FC<{
           background: "rgba(247,243,232,0.18)",
           display: "grid",
           placeItems: "center",
-          fontFamily: "var(--display)",
-          fontSize: 20,
+          overflow: "hidden",
         }}
       >
-        m
+        <img
+          src={staticFile("icons/icon-192.png")}
+          alt="Wise Money"
+          style={{ width: 28, height: 28, objectFit: "cover" }}
+        />
       </div>
       <div>
         <div style={{ fontSize: 20, fontWeight: 600 }}>{title}</div>
-        <div style={{ fontSize: 13, opacity: 0.75 }}>mergulho · Nina online</div>
+        <div style={{ fontSize: 13, opacity: 0.75 }}>Wise Money · Nina online</div>
       </div>
     </div>
     <div style={{ flex: 1, padding: 22, background: C.bg }}>{children}</div>

@@ -40,7 +40,7 @@ export const Fecho: React.FC<{ display: string; sans: string }> = ({ display, sa
             fontWeight: 700,
           }}
         >
-          mergulho
+          Wise Money
         </div>
       </div>
     </AbsoluteFill>

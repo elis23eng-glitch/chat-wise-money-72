@@ -8,7 +8,7 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/_autenticado/mercado")({
   head: () => ({
     meta: [
-      { title: "Mercado em linguagem simples — mergulho" },
+      { title: "Mercado em linguagem simples — Wise Money" },
       {
         name: "description",
         content:

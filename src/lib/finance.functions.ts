@@ -218,9 +218,7 @@ export const createGoal = createServerFn({ method: "POST" })
 
 export const addToGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
-    z.object({ id: z.string().uuid(), valor: z.number() }).parse(data),
-  )
+  .validator((data: unknown) => z.object({ id: z.string().uuid(), valor: z.number() }).parse(data))
   .handler(async ({ data, context }) => {
     const { data: meta } = await context.supabase
       .from("goals")

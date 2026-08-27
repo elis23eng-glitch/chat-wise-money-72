@@ -4,7 +4,7 @@ import type { DadosRelatorio } from "@/lib/pdf-report";
 const TXT = {
   pt: {
     titulo: "Relatório financeiro",
-    app: "mergulho — assistente financeiro",
+    app: "Wise Money — assistente financeiro",
     periodo: "Período",
     mes: "Este mês",
     semana: "Últimos 7 dias",
@@ -30,7 +30,7 @@ const TXT = {
   },
   en: {
     titulo: "Financial report",
-    app: "mergulho — financial assistant",
+    app: "Wise Money — financial assistant",
     periodo: "Period",
     mes: "This month",
     semana: "Last 7 days",

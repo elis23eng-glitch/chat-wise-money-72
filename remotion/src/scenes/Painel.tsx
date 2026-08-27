@@ -54,15 +54,33 @@ export const Painel: React.FC<{ display: string; sans: string }> = ({ display, s
       }}
     >
       <div style={{ opacity: head }}>
-        <div style={{ fontSize: 15, letterSpacing: 5, color: C.accent, fontWeight: 700 }}>PASSO 2</div>
+        <div style={{ fontSize: 15, letterSpacing: 5, color: C.accent, fontWeight: 700 }}>
+          PASSO 2
+        </div>
         <div style={{ fontFamily: display, fontSize: 54, marginTop: 10 }}>
           Abra o Painel e veja o mês
         </div>
       </div>
 
       <div style={{ display: "flex", gap: 22, marginTop: 34 }}>
-        <Cartao titulo="Entradas" valor="R$ 3.200,00" cor={C.primary} fundo={C.card} delay={14} sans={sans} display={display} />
-        <Cartao titulo="Saídas" valor="R$ 950,00" cor={C.danger} fundo={C.card} delay={24} sans={sans} display={display} />
+        <Cartao
+          titulo="Entradas"
+          valor="R$ 3.200,00"
+          cor={C.primary}
+          fundo={C.card}
+          delay={14}
+          sans={sans}
+          display={display}
+        />
+        <Cartao
+          titulo="Saídas"
+          valor="R$ 950,00"
+          cor={C.danger}
+          fundo={C.card}
+          delay={24}
+          sans={sans}
+          display={display}
+        />
         <Cartao
           titulo="Saldo do mês · positivo"
           valor="R$ 2.250,00"
@@ -84,7 +102,9 @@ export const Painel: React.FC<{ display: string; sans: string }> = ({ display, s
           flex: 1,
         }}
       >
-        <div style={{ fontSize: 20, fontWeight: 700, color: C.primaryDeep }}>Gastos por categoria</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: C.primaryDeep }}>
+          Gastos por categoria
+        </div>
         <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 16 }}>
           {BARRAS.map((b, i) => {
             const g = spring({ frame: frame - 55 - i * 9, fps, config: { damping: 200 } });

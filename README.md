@@ -39,7 +39,7 @@ A assistente virtual **Nina** interpreta mensagens em linguagem natural, registr
 O projeto foi pensado para ser usado por pessoas de todas as idades, com foco especial em **idosos**:
 
 - Tipografia em tamanhos legíveis.
-- Contraste de cores suave e calmante (tema *Mint Ledger Calm*).
+- Contraste de cores suave e calmante (tema _Mint Ledger Calm_).
 - Botão de **entrada por voz** para quem prefere falar a digitar.
 - Linguagem simples, acolhedora e sem termos técnicos desnecessários.
 - Interface com poucos passos e feedbacks claros.
@@ -99,11 +99,13 @@ Todas as tabelas possuem **Row Level Security (RLS)** ativa para proteger os dad
 ## 📱 Instalação no celular (PWA)
 
 ### Android (Chrome)
+
 1. Acesse o app no navegador.
 2. Toque em **"Adicionar à tela inicial"** no menu.
 3. Pronto! O ícone aparece como um app nativo.
 
 ### iOS (Safari)
+
 1. Acesse o app no Safari.
 2. Toque no ícone de **compartilhar**.
 3. Escolha **"Adicionar à Tela de Início"**.
@@ -116,7 +118,7 @@ Todas as tabelas possuem **Row Level Security (RLS)** ativa para proteger os dad
 1. Acesse o link publicado.
 2. Crie uma conta com e-mail e senha.
 3. Siga o tutorial de primeiro acesso.
-4. Converse com a Nina: *"Gastei 45 reais no mercado"* ou *"Recebi 2000 de salário"*.
+4. Converse com a Nina: _"Gastei 45 reais no mercado"_ ou _"Recebi 2000 de salário"_.
 5. Explore o painel, metas, cotações e exporte um relatório em PDF.
 
 ---
@@ -145,7 +147,7 @@ bun run build
 
 O **Chat Wise Money** nasceu da ideia de que organizar dinheiro não precisa ser complicado. Muitas pessoas, especialmente idosas ou quem nunca usou uma planilha, sentem dificuldade com apps financeiros cheios de formulários e termos técnicos.
 
-A proposta é simples: **conversar com a Nina como se estivesse falando com uma amiga paciente**. Dizendo *"gastei 25 reais no mercado"* ou *"recebi minha aposentadoria"*, o app entende, registra e mostra o resultado de forma clara. O painel traz gráficos, alertas e metas para que o usuário veja sua evolução sem precisar entender de finanças.
+A proposta é simples: **conversar com a Nina como se estivesse falando com uma amiga paciente**. Dizendo _"gastei 25 reais no mercado"_ ou _"recebi minha aposentadoria"_, o app entende, registra e mostra o resultado de forma clara. O painel traz gráficos, alertas e metas para que o usuário veja sua evolução sem precisar entender de finanças.
 
 O diferencial está na combinação de **acessibilidade**, **educação financeira** e **inteligência artificial**: a Nina não apenas registra, ela explica, incentiva e ajuda a criar hábitos saudáveis — sempre sem recomendar investimentos específicos.
 
@@ -198,13 +200,13 @@ Abaixo estão os locais onde você pode adicionar capturas de tela e vídeos das
 
 ### Capturas de tela do app
 
-| Tela | Descrição | Onde colocar |
-|------|-----------|--------------|
-| Chat com a Nina | Conversa registrando um gasto | `docs/screenshots/chat-nina.png` |
-| Painel financeiro | Gráficos, saldo e alertas | `docs/screenshots/painel.png` |
-| Metas | Acompanhamento de metas | `docs/screenshots/metas.png` |
-| Cotações de mercado | Dólar, euro e educação financeira | `docs/screenshots/mercado.png` |
-| Prévia do PDF | Seleção de seções e idioma | `docs/screenshots/previa-pdf.png` |
+| Tela                | Descrição                         | Onde colocar                      |
+| ------------------- | --------------------------------- | --------------------------------- |
+| Chat com a Nina     | Conversa registrando um gasto     | `docs/screenshots/chat-nina.png`  |
+| Painel financeiro   | Gráficos, saldo e alertas         | `docs/screenshots/painel.png`     |
+| Metas               | Acompanhamento de metas           | `docs/screenshots/metas.png`      |
+| Cotações de mercado | Dólar, euro e educação financeira | `docs/screenshots/mercado.png`    |
+| Prévia do PDF       | Seleção de seções e idioma        | `docs/screenshots/previa-pdf.png` |
 
 ### Vídeos demonstrativos
 
@@ -248,4 +250,4 @@ Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICEN
 
 ## 🤝 Contribuições
 
-Sugestões, melhorias e feedbacks são bem-vindos! Sinta-se à vontade para abrir uma *issue* ou enviar um *pull request*.
+Sugestões, melhorias e feedbacks são bem-vindos! Sinta-se à vontade para abrir uma _issue_ ou enviar um _pull request_.

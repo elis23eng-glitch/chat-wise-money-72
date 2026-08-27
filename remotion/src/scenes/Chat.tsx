@@ -9,7 +9,10 @@ export const Chat: React.FC<{ display: string; sans: string }> = ({ display, san
   const { fps } = useVideoConfig();
 
   const chars = Math.round(
-    interpolate(frame, [10, 80], [0, TEXTO.length], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+    interpolate(frame, [10, 80], [0, TEXTO.length], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    }),
   );
   const enviado = frame > 92;
   const bubbleIn = spring({ frame: frame - 92, fps, config: { damping: 16, stiffness: 160 } });
@@ -30,14 +33,24 @@ export const Chat: React.FC<{ display: string; sans: string }> = ({ display, san
         gap: 70,
       }}
     >
-      <div style={{ flex: 1, opacity: stepIn, transform: `translateX(${interpolate(stepIn, [0, 1], [-40, 0])}px)` }}>
-        <div style={{ fontSize: 15, letterSpacing: 5, color: C.accent, fontWeight: 700 }}>PASSO 1</div>
+      <div
+        style={{
+          flex: 1,
+          opacity: stepIn,
+          transform: `translateX(${interpolate(stepIn, [0, 1], [-40, 0])}px)`,
+        }}
+      >
+        <div style={{ fontSize: 15, letterSpacing: 5, color: C.accent, fontWeight: 700 }}>
+          PASSO 1
+        </div>
         <div style={{ fontFamily: display, fontSize: 58, lineHeight: 1.05, marginTop: 14 }}>
           Fale do seu jeito
         </div>
-        <div style={{ fontSize: 25, color: C.muted, marginTop: 20, maxWidth: 430, lineHeight: 1.45 }}>
-          Escreva ou toque em <strong style={{ color: C.primary }}>Falar</strong>. A Nina entende, classifica
-          e guarda o gasto pra você.
+        <div
+          style={{ fontSize: 25, color: C.muted, marginTop: 20, maxWidth: 430, lineHeight: 1.45 }}
+        >
+          Escreva ou toque em <strong style={{ color: C.primary }}>Falar</strong>. A Nina entende,
+          classifica e guarda o gasto pra você.
         </div>
       </div>
 

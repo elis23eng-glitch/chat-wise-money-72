@@ -12,7 +12,7 @@ import {
 
 import { useIdioma } from "@/lib/i18n";
 
-const CHAVE = "mergulho:tutorial-visto-v3";
+const CHAVE = "wise-money:tutorial-visto-v3";
 
 type Passo = {
   icone: typeof MessageCircle;
@@ -165,7 +165,7 @@ export function TutorialPrimeiroAcesso({
             {atual.video && (
               <video
                 className="mt-4 w-full rounded-2xl border border-border shadow-sm"
-                src="/videos/tutorial-mergulho.mp4"
+                src="/videos/tutorial-wise-money.mp4"
                 poster="/videos/tutorial-poster.jpg"
                 controls
                 playsInline

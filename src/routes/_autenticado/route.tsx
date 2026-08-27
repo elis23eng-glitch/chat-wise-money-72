@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIdioma } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
 
 export const Route = createFileRoute("/_autenticado")({
   component: AppLayout,
@@ -14,6 +15,7 @@ function AppLayout() {
   const { session, user, loading } = useAuth();
   const navigate = useNavigate();
   const { t } = useIdioma();
+  const tutorial = useTutorial();
 
   const NAV = [
     { to: "/conversa", label: t("Conversa", "Chat") },
@@ -85,6 +87,12 @@ function AppLayout() {
           <div className="order-2 flex items-center gap-3 md:order-3">
             <LanguageSwitcher />
             <button
+              onClick={tutorial.abrir}
+              className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary-deep transition-colors hover:bg-primary/15"
+            >
+              {t("Como usar", "How to use")}
+            </button>
+            <button
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate({ to: "/" });
@@ -103,6 +111,8 @@ function AppLayout() {
           <Outlet />
         </div>
       </div>
+
+      <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />
     </div>
   );
 }

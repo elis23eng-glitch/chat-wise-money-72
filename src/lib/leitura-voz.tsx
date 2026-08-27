@@ -101,9 +101,9 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
         const fala = new SpeechSynthesisUtterance(frase.trim());
         fala.lang = idioma === "en" ? "en-US" : "pt-BR";
         if (voz) fala.voice = voz;
-        fala.rate = 0.88; // fala calma, boa para idosos
-        fala.pitch = 1.12; // tom mais suave e acolhedor
-        fala.volume = 1;
+        fala.rate = 0.85; // fala mais calma e natural
+        fala.pitch = 1.05; // tom suave, próximo de uma conversa real
+        fala.volume = 0.95; // levemente mais suave, sem perder clareza
         if (i === frases.length - 1) {
           fala.onend = () => setFalandoId(null);
           fala.onerror = () => setFalandoId(null);

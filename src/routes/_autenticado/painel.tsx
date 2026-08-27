@@ -376,6 +376,11 @@ function Painel() {
           entradas: periodoEntradas,
           gastos: periodoGastos,
           saldo: periodoSaldo,
+          saldos: {
+            dia: data.dia?.saldo ?? 0,
+            semana: semana?.saldo ?? 0,
+            mes: data.saldo ?? 0,
+          },
           mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
           projecaoMes: data.projecaoMes,
           porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),

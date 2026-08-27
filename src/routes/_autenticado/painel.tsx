@@ -384,35 +384,19 @@ function Painel() {
   const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
 
   // Prévia do relatório
-  const [previaUrl, setPreviaUrl] = useState<string | null>(null);
-  const [gerandoPrevia, setGerandoPrevia] = useState(false);
+  const [previaAberta, setPreviaAberta] = useState(false);
   const [linkRelatorio, setLinkRelatorio] = useState("");
   const [linkCopiado, setLinkCopiado] = useState(false);
 
-  function fecharPrevia() {
-    setPreviaUrl((url) => {
-      if (url) URL.revokeObjectURL(url);
-      return null;
-    });
-  }
+  const fecharPrevia = () => setPreviaAberta(false);
 
-  useEffect(() => () => fecharPrevia(), []);
-
-  async function abrirPrevia() {
-    const dados = dadosPdf();
-    if (!dados || nenhumaSecao) return;
+  function abrirPrevia() {
+    if (!dadosPdf() || nenhumaSecao) return;
     setAvisoPdf("");
     setLinkRelatorio("");
-    setGerandoPrevia(true);
-    try {
-      const mod = await import("@/lib/pdf-report");
-      const { blob } = await mod.gerarRelatorioPdf(dados);
-      fecharPrevia();
-      setPreviaUrl(URL.createObjectURL(blob));
-    } finally {
-      setGerandoPrevia(false);
-    }
+    setPreviaAberta(true);
   }
+
 
   async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
     const dados = dadosPdf();

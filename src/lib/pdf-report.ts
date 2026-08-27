@@ -13,8 +13,16 @@ type Alerta = {
   criadoEm: string;
 };
 
+export type SecoesRelatorio = {
+  resumo: boolean;
+  categorias: boolean;
+  metas: boolean;
+  alertas: boolean;
+};
+
 export type DadosRelatorio = {
   idioma: IdiomaFormato;
+  secoes: SecoesRelatorio;
   modo: "mes" | "semana";
   periodoInicio: string;
   periodoFim: string;
@@ -26,7 +34,23 @@ export type DadosRelatorio = {
   porCategoria: Record<string, number>;
   metas: Meta[];
   historico: Alerta[];
-  tituloAlerta: (tipo: string) => string;
+};
+
+const TITULOS_ALERTA: Record<IdiomaFormato, Record<string, string>> = {
+  pt: {
+    saldo_negativo: "Saldo negativo",
+    saldo_apertado: "Saldo apertado",
+    sobra: "Sobrou dinheiro",
+    projecao_vermelho: "Projeção no vermelho",
+    gasto_acima_semana: "Semana mais cara que a anterior",
+  },
+  en: {
+    saldo_negativo: "Negative balance",
+    saldo_apertado: "Tight balance",
+    sobra: "Money left over",
+    projecao_vermelho: "Projected to end in the red",
+    gasto_acima_semana: "Pricier week than the previous one",
+  },
 };
 
 const T = {

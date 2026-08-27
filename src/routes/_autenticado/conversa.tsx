@@ -435,6 +435,7 @@ function Conversa() {
 
       <aside className="space-y-4">
         <ResumoEmAudio voz={voz} />
+        <PainelVoz prefs={voz.prefs} salvarPrefs={voz.salvarPrefs} testar={voz.falar} />
         <div className="surface-card p-5">
           <p className="font-display text-lg">{t("Experimente dizer", "Try saying")}</p>
           <div className="mt-3 space-y-2">

@@ -35,16 +35,42 @@ function Entrar() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [lembrar, setLembrar] = useState(true);
+  const [entrandoSozinho, setEntrandoSozinho] = useState(false);
 
-  // Lembra o e-mail para facilitar o próximo acesso no celular.
+  // Lembra o e-mail e, se autorizado, a senha para entrar direto no aparelho.
   useEffect(() => {
     const salvo = window.localStorage.getItem("wise-money-email");
     if (salvo) setEmail(salvo);
+    const senhaSalva = lerSenhaSalva();
+    if (senhaSalva) setSenha(senhaSalva);
+    setLembrar(window.localStorage.getItem("wise-money-lembrar") !== "0");
   }, []);
 
   useEffect(() => {
     if (!loading && session) window.location.replace("/conversa");
   }, [loading, session]);
+
+  // Acesso automático: com senha salva, abre o app sem digitar nada.
+  useEffect(() => {
+    if (loading || session || entrandoSozinho) return;
+    const emailSalvo = window.localStorage.getItem("wise-money-email");
+    const senhaSalva = lerSenhaSalva();
+    if (!emailSalvo || !senhaSalva) return;
+    setEntrandoSozinho(true);
+    supabase.auth
+      .signInWithPassword({ email: emailSalvo, password: senhaSalva })
+      .then(({ data, error }) => {
+        if (error || !data.session) {
+          limparSenhaSalva();
+          setEntrandoSozinho(false);
+          return;
+        }
+        window.location.replace("/conversa");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, session]);
+
 
   function abrirConversa() {
     window.location.replace("/conversa");

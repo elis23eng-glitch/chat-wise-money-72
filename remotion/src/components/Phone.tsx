@@ -1,4 +1,5 @@
 import React from "react";
+import { staticFile } from "remotion";
 import { C } from "../theme";
 
 export const Phone: React.FC<{
@@ -42,7 +43,7 @@ export const Phone: React.FC<{
         }}
       >
         <img
-          src="/icons/icon-192.png"
+          src={staticFile("icons/icon-192.png")}
           alt="Wise Money"
           style={{ width: 28, height: 28, objectFit: "cover" }}
         />

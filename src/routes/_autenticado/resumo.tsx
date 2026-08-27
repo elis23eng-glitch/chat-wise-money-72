@@ -420,6 +420,25 @@ function Resumo() {
                   className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
                 />
               </label>
+              <label className="block">
+                <span className="text-sm font-semibold">
+                  {t("Data da entrada", "Income date")}
+                </span>
+                <input
+                  type="date"
+                  required
+                  value={dataE}
+                  onChange={(e) => setDataE(e.target.value)}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {t(
+                    "Pode escolher um mês passado para lançar o que ficou para trás.",
+                    "You can pick a past month to record older entries.",
+                  )}
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={addEntradaMutation.isPending}

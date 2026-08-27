@@ -87,6 +87,12 @@ function AppLayout() {
           <div className="order-2 flex items-center gap-3 md:order-3">
             <LanguageSwitcher />
             <button
+              onClick={tutorial.abrir}
+              className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-primary-deep transition-colors hover:bg-primary/15"
+            >
+              {t("Como usar", "How to use")}
+            </button>
+            <button
               onClick={async () => {
                 await supabase.auth.signOut();
                 navigate({ to: "/" });

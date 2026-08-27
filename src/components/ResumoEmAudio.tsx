@@ -23,20 +23,57 @@ export function ResumoEmAudio({ voz }: { voz: Voz }) {
 
   const fmt = (v: number) => brl(v, idioma === "en" ? "en" : "pt");
 
+  /** Resumo curto e bem simples: entradas, saídas, saldo e metas (~15 segundos). */
   function textoResumo() {
     if (!data) return t("Ainda estou carregando seus dados.", "I'm still loading your data.");
-    const { totalEntradas, totalMes, saldo } = data;
+    const { totalEntradas, totalMes, saldo, metas } = data;
     const positivo = saldo >= 0;
-    return t(
-      `Aqui vai o seu resumo do mês. Você recebeu ${fmt(totalEntradas)} e gastou ${fmt(totalMes)}. ` +
-        (positivo
-          ? `Seu saldo está positivo em ${fmt(saldo)}. Muito bem, continue assim.`
-          : `Seu saldo está negativo em ${fmt(Math.abs(saldo))}. Vamos com calma ajustar isso juntas.`),
-      `Here is your summary for the month. You received ${fmt(totalEntradas)} and spent ${fmt(totalMes)}. ` +
-        (positivo
-          ? `Your balance is positive by ${fmt(saldo)}. Well done, keep it up.`
-          : `Your balance is negative by ${fmt(Math.abs(saldo))}. Let's calmly adjust this together.`),
-    );
+    const partes: string[] = [
+      t(
+        `Resumo rapidinho do seu mês. Entraram ${fmt(totalEntradas)}. Saíram ${fmt(totalMes)}.`,
+        `Quick summary of your month. You received ${fmt(totalEntradas)}. You spent ${fmt(totalMes)}.`,
+      ),
+      positivo
+        ? t(
+            `Sobrou ${fmt(saldo)}. Saldo positivo, parabéns!`,
+            `You have ${fmt(saldo)} left. Positive balance, well done!`,
+          )
+        : t(
+            `Faltaram ${fmt(Math.abs(saldo))}. Saldo negativo, mas vamos ajustar juntas.`,
+            `You're short ${fmt(Math.abs(saldo))}. Negative balance, but we'll fix it together.`,
+          ),
+    ];
+
+    if (metas.length === 0) {
+      partes.push(
+        t(
+          "Você ainda não tem metas. Me diga uma, tipo: quero juntar mil reais.",
+          "You don't have goals yet. Tell me one, like: I want to save a thousand reais.",
+        ),
+      );
+    } else {
+      for (const meta of metas.slice(0, 2)) {
+        const alvo = meta.valor_alvo;
+        const atual = meta.valor_atual;
+        const pct = alvo > 0 ? Math.min(100, Math.round((atual / alvo) * 100)) : 0;
+        if (atual >= alvo) {
+          partes.push(
+            t(
+              `Sua meta ${meta.titulo} já foi alcançada. Uhu!`,
+              `Your goal ${meta.titulo} is done. Yay!`,
+            ),
+          );
+        } else {
+          partes.push(
+            t(
+              `Na meta ${meta.titulo}, você já tem ${pct} por cento. Falta ${fmt(alvo - atual)}.`,
+              `On your goal ${meta.titulo}, you're at ${pct} percent. ${fmt(alvo - atual)} to go.`,
+            ),
+          );
+        }
+      }
+    }
+    return partes.join(" ");
   }
 
   function textoInsight() {

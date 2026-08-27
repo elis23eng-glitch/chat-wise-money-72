@@ -23,7 +23,7 @@ export function ConfirmarExclusao({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 p-4"
+      className="fixed inset-0 z-[100] grid place-items-center bg-foreground/40 p-4"
       role="dialog"
       aria-modal="true"
     >

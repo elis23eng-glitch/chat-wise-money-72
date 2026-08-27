@@ -668,7 +668,7 @@ function Painel() {
         )}
       </header>
 
-      {previaUrl && (
+      {previaAberta && dadosPdf() && (
         <div
           className="fixed inset-0 z-50 flex flex-col bg-foreground/60 p-3 backdrop-blur-sm sm:p-6"
           role="dialog"

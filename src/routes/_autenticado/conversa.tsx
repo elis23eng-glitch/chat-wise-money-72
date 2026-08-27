@@ -363,7 +363,7 @@ function Conversa() {
         <div className="border-t border-primary/10 p-4">
           <div className="mb-3">
             <p className="mb-2 text-xs font-semibold text-muted-foreground">
-              {t("Comandos prontos — é só tocar", "Ready-made commands — just tap")}
+              {t("Comandos prontos — toque ou fale", "Ready-made commands — tap or say them")}
             </p>
             <div className="flex gap-2 overflow-x-auto pb-1">
               {COMANDOS_RAPIDOS.map((c) => (
@@ -413,6 +413,12 @@ function Conversa() {
               />
             </PromptInputFooter>
           </PromptInput>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t(
+              "Toque em Falar e diga: “gastei 35 no mercado”, “mostre meu resumo” ou “minhas metas”. A Nina executa sem você digitar.",
+              'Tap Speak and say: "I spent 35 at the market", "show my summary" or "my goals". Nina runs it without typing.',
+            )}
+          </p>
         </div>
       </section>
 

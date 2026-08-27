@@ -111,6 +111,10 @@ function AppLayout() {
           <Outlet />
         </div>
       </div>
+
+      <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />
+    </div>
+
     </div>
   );
 }

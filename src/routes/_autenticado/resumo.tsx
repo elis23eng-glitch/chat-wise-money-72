@@ -118,11 +118,13 @@ function Resumo() {
     mutationFn: (id: string) => apagarEntrada({ data: { id } }),
     onSuccess: () => {
       toast.success(t("Entrada apagada.", "Income deleted."));
+      setConfirmando(null);
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
+
 
   const addMutation = useMutation({
     mutationFn: () =>

@@ -84,10 +84,13 @@ function Resumo() {
     valor: number;
   } | null>(null);
 
+  const hojeIso = new Date().toISOString().slice(0, 10);
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<(typeof CATEGORIAS)[number]>("alimentação");
   const [descricao, setDescricao] = useState("");
+  const [dataG, setDataG] = useState(hojeIso);
   const [valorE, setValorE] = useState("");
+
   const [categoriaE, setCategoriaE] = useState<(typeof CATEGORIAS_ENTRADA)[number]>("salário");
   const [descricaoE, setDescricaoE] = useState("");
 

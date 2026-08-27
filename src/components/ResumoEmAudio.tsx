@@ -114,8 +114,18 @@ export function ResumoEmAudio({ voz }: { voz: Voz }) {
         {t("Sem precisar ler a tela.", "No need to read the screen.")}
       </p>
       <div className="mt-3 space-y-2">
-        {botao("audio-resumo", t("Ouvir resumo do mês", "Listen to monthly summary"), textoResumo, Headphones)}
-        {botao("audio-insight", t("Ouvir uma dica para mim", "Listen to a tip for me"), textoInsight, Lightbulb)}
+        {botao(
+          "audio-resumo",
+          t("Ouvir resumo do mês", "Listen to monthly summary"),
+          textoResumo,
+          Headphones,
+        )}
+        {botao(
+          "audio-insight",
+          t("Ouvir uma dica para mim", "Listen to a tip for me"),
+          textoInsight,
+          Lightbulb,
+        )}
       </div>
     </div>
   );

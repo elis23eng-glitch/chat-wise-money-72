@@ -57,10 +57,9 @@ export function VoiceInputButton({ onText, onAutoSubmit, disabled, idioma = "pt"
       const { onText: aoTexto, onAutoSubmit: aoEnviar } = cbRef.current;
       if (aoEnviar) {
         aoEnviar(texto);
-        toast.success(
-          idioma === "en" ? `Sending: "${texto}"` : `Enviando: “${texto}”`,
-          { duration: 2500 },
-        );
+        toast.success(idioma === "en" ? `Sending: "${texto}"` : `Enviando: “${texto}”`, {
+          duration: 2500,
+        });
         return;
       }
       aoTexto(texto);

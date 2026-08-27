@@ -9,7 +9,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { definirIdiomaFormato } from "./format";
+import { getMarket } from "./finance.functions";
+import { definirCotacaoUsd, definirIdiomaFormato } from "./format";
 
 export type Idioma = "pt" | "en";
 
@@ -21,7 +22,10 @@ type Contexto = {
   /** t("texto em português", "text in english") */
   t: (pt: string, en: string) => string;
   locale: string;
+  /** Quantos reais valem 1 dólar; null quando indisponível ou idioma pt. */
+  cotacaoUsd: number | null;
 };
+
 
 const IdiomaContext = createContext<Contexto | null>(null);
 

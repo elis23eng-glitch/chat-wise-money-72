@@ -24,10 +24,11 @@ A assistente virtual **Nina** interpreta mensagens em linguagem natural, registr
 
 - 💬 **Chat conversacional com Nina** — registre gastos e receitas falando ou digitando naturalmente.
 - 📊 **Painel financeiro completo** — visualize saldo, entradas, saídas e gráficos por categoria.
+- 📈 **Dashboard anual** — acompanhe entradas, gastos e saldo mês a mês ao longo do ano, com gráfico e tabela detalhada.
 - 🎯 **Metas financeiras** — crie metas e acompanhe o progresso.
 - 🔔 **Alertas de saldo** — notificações automáticas quando o saldo está negativo ou o orçamento está apertado.
 - 📅 **Visão semanal e mensal** — alterne entre períodos para entender melhor seus hábitos.
-- 🌍 **Multilíngue** — suporte a **Português (BR)** e **Inglês**.
+- 🌍 **Multilíngue** — suporte a **Português (BR)** e **Inglês**, com formatação de moeda e datas localizadas.
 - 📄 **Exportação de relatórios em PDF** — prévia interativa, seleção de seções, escolha de idioma e compartilhamento por link temporário.
 - 📱 **PWA (Progressive Web App)** — instale diretamente na tela inicial do celular, sem precisar de loja de aplicativos.
 - 🎓 **Tutorial interativo de primeiro acesso** — guia passo a passo para quem nunca usou um app financeiro.

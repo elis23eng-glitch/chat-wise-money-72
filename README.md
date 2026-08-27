@@ -34,6 +34,24 @@ A assistente virtual **Nina** interpreta mensagens em linguagem natural, registr
 
 ---
 
+## 🆕 Últimas melhorias e correções
+
+Esta versão traz vários ajustes baseados em testes reais com usuários, especialmente para tornar o app mais acessível no celular:
+
+- 🎤 **Comandos de voz prontos no chat** — toque ou fale: _"gastei"_, _"recebi"_, _"mostre meu resumo"_, _"minhas metas"_, _"corrigir valor"_, _"corrigir categoria"_, _"trocar data"_ ou _"apagar último"_.
+- 🔧 **Correção do fluxo de autenticação** — login, cadastro e login com Google agora redirecionam corretamente para o app; e-mail de confirmação automática ativado.
+- 🔐 **Acesso automático no celular** — opção "Entrar sozinho neste aparelho" lembra o e-mail e a senha localmente (com aviso de segurança), ideal para quem usa o app todos os dias.
+- 🔊 **Leitura em voz alta das mensagens da Nina** — botão individual "Ouvir" em cada resposta e alternância global "Voz ligada/desligada".
+- 🎙️ **Resumo e insights em áudio** — ouça entradas, saídas, saldo positivo/negativo e progresso das metas em cerca de 15 segundos.
+- ✏️ **Correção e exclusão de lançamentos** — edite valor, categoria ou data por voz ou manualmente, e apague registros errados com confirmação.
+- 💱 **Moeda conforme o idioma** — Português exibe valores em **R$ (BRL)**; Inglês converte automaticamente para **US$ (USD)** usando cotação do dólar.
+- 📱 **PWA otimizado para Android moderno** — ícones _maskable_, manifesto atualizado, atalhos e página `/instalar` com instruções de reinstalação para evitar avisos de versão antiga do Android.
+- ❓ **Botão de ajuda fixo no chat** — exemplos bilíngues de comandos de voz (registrar, corrigir, excluir, consultar resumo e cancelar).
+- 🎬 **Tutorial em vídeo** — demonstração de como registrar um gasto e ver o resumo do mês no primeiro acesso.
+- ✅ **CI/CD com GitHub Actions** — lint, typecheck, testes e build validados automaticamente a cada alteração.
+
+---
+
 ## ♿ Acessibilidade
 
 O projeto foi pensado para ser usado por pessoas de todas as idades, com foco especial em **idosos**:

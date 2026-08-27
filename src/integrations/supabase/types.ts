@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      balance_alerts: {
+        Row: {
+          created_at: string
+          entradas: number
+          extra: number | null
+          gastos: number
+          id: string
+          periodo: string
+          periodo_fim: string
+          periodo_inicio: string
+          saldo: number
+          tipo: string
+          tom: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entradas?: number
+          extra?: number | null
+          gastos?: number
+          id?: string
+          periodo?: string
+          periodo_fim: string
+          periodo_inicio: string
+          saldo?: number
+          tipo: string
+          tom?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entradas?: number
+          extra?: number | null
+          gastos?: number
+          id?: string
+          periodo?: string
+          periodo_fim?: string
+          periodo_inicio?: string
+          saldo?: number
+          tipo?: string
+          tom?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string

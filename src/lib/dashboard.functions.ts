@@ -9,6 +9,12 @@ function primeiroDia(offset = 0) {
     .slice(0, 10);
 }
 
+function isoDiaAtras(dias: number) {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - dias);
+  return d.toISOString().slice(0, 10);
+}
+
 export const getDashboard = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -109,7 +115,69 @@ export const getDashboard = createServerFn({ method: "GET" })
     for (const l of entradasMes)
       porCategoriaEntrada[l.categoria] = (porCategoriaEntrada[l.categoria] ?? 0) + l.valor;
 
+    // ---- Resumo semanal: últimos 7 dias x 7 dias anteriores ----
+    const inicioSemana = isoDiaAtras(6);
+    const inicioSemanaAnterior = isoDiaAtras(13);
+
+    const gastosSemana = linhas.filter((l) => l.data >= inicioSemana);
+    const entradasSemana = linhasEntrada.filter((l) => l.data >= inicioSemana);
+    const gastosSemanaAnterior = linhas.filter(
+      (l) => l.data >= inicioSemanaAnterior && l.data < inicioSemana,
+    );
+    const entradasSemanaAnterior = linhasEntrada.filter(
+      (l) => l.data >= inicioSemanaAnterior && l.data < inicioSemana,
+    );
+
+    const diasSemana: { iso: string; total: number; entrada: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const iso = isoDiaAtras(i);
+      diasSemana.push({
+        iso,
+        total:
+          Math.round(
+            gastosSemana.filter((l) => l.data === iso).reduce((s, l) => s + l.valor, 0) * 100,
+          ) / 100,
+        entrada:
+          Math.round(
+            entradasSemana.filter((l) => l.data === iso).reduce((s, l) => s + l.valor, 0) * 100,
+          ) / 100,
+      });
+    }
+
+    const porCategoriaSemana: Record<string, number> = {};
+    for (const l of gastosSemana)
+      porCategoriaSemana[l.categoria] = (porCategoriaSemana[l.categoria] ?? 0) + l.valor;
+
+    const gastoSemana = gastosSemana.reduce((s, l) => s + l.valor, 0);
+    const entradaSemana = entradasSemana.reduce((s, l) => s + l.valor, 0);
+    const gastoSemanaAnterior = gastosSemanaAnterior.reduce((s, l) => s + l.valor, 0);
+    const entradaSemanaAnterior = entradasSemanaAnterior.reduce((s, l) => s + l.valor, 0);
+
+    const diaMaisCaro = diasSemana.reduce(
+      (maior, d) => (d.total > maior.total ? d : maior),
+      diasSemana[0] ?? { iso: inicioSemana, total: 0, entrada: 0 },
+    );
+
+    const semana = {
+      inicio: inicioSemana,
+      fim: isoDiaAtras(0),
+      dias: diasSemana,
+      gasto: gastoSemana,
+      entrada: entradaSemana,
+      saldo: entradaSemana - gastoSemana,
+      gastoAnterior: gastoSemanaAnterior,
+      entradaAnterior: entradaSemanaAnterior,
+      mediaDiaria: gastoSemana / 7,
+      quantidadeGastos: gastosSemana.length,
+      quantidadeEntradas: entradasSemana.length,
+      porCategoria: porCategoriaSemana,
+      diaMaisCaro,
+      recentes: gastosSemana.slice(0, 6),
+      entradasRecentes: entradasSemana.slice(0, 6),
+    };
+
     return {
+      semana,
       totalEntradas,
       totalEntradasAnterior,
       saldo: totalEntradas - totalMes,

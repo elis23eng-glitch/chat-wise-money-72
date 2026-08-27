@@ -193,7 +193,18 @@ function Entrar() {
     abrirConversa();
   }
 
+  if (loading || entrandoSozinho) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-background px-6 text-center">
+        <p className="text-lg font-semibold text-muted-foreground">
+          {t("Entrando no seu Wise Money…", "Signing in to your Wise Money…")}
+        </p>
+      </main>
+    );
+  }
+
   return (
+
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0">
         <div

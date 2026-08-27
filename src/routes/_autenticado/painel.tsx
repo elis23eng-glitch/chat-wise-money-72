@@ -686,6 +686,80 @@ function Painel() {
         )}
       </header>
 
+      {previaUrl && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-foreground/60 p-3 backdrop-blur-sm sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("Prévia do relatório", "Report preview")}
+        >
+          <div className="surface-card mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden p-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+              <div>
+                <h2 className="font-display text-xl leading-none">
+                  {t("Prévia do relatório", "Report preview")}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {(idiomaPdf === "pt" ? "Português (BR)" : "English") +
+                    " · " +
+                    SECOES_PDF.filter((s) => secoesPdf[s.chave])
+                      .map((s) => s.rotulo)
+                      .join(", ")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fecharPrevia}
+                className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-primary-deep hover:bg-primary/15"
+              >
+                <X className="size-4" />
+                {t("Fechar", "Close")}
+              </button>
+            </div>
+
+            <iframe
+              src={previaUrl}
+              title={t("Prévia do relatório em PDF", "PDF report preview")}
+              className="min-h-0 flex-1 w-full bg-muted"
+            />
+
+            <div className="flex flex-wrap gap-3 border-t border-border p-4">
+              <button
+                type="button"
+                onClick={() => exportarPdf("baixar")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+              >
+                <Download className="size-5" />
+                {t("Baixar PDF", "Download PDF")}
+              </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("compartilhar")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <Share2 className="size-5" />
+                {t("Compartilhar", "Share")}
+              </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("link")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <LinkIcon className="size-5" />
+                {exportando === "link"
+                  ? t("Criando link…", "Creating link…")
+                  : t("Compartilhar por link", "Share by link")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
       {isLoading && (
         <p className="text-muted-foreground">
           {t("Carregando seus números…", "Loading your numbers…")}

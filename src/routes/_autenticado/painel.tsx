@@ -89,18 +89,18 @@ function DicaGrafico({ active, payload, label }: DicaProps) {
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">
       <p className="font-semibold capitalize">{label}</p>
-      <p className="text-muted-foreground">{brl(Number(payload[0].value))}</p>
+      <p className="text-muted-foreground">{brl(Number(payload[0]?.value ?? 0))}</p>
     </div>
   );
 }
 
-function DicaComparativo({ active, payload, label }: any) {
+function DicaComparativo({ active, payload, label }: DicaProps) {
   const { t } = useIdioma();
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">
       <p className="font-semibold capitalize">{label}</p>
-      {payload.map((p: any) => (
+      {payload.map((p) => (
         <p key={p.dataKey} className="text-muted-foreground">
           {p.dataKey === "entrada" ? t("Entrou", "In") : t("Saiu", "Out")}: {brl(Number(p.value))}
         </p>

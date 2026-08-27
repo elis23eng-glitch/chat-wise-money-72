@@ -139,16 +139,24 @@ export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
 
       {dados.secoes.resumo && (
         <Secao titulo={L.resumo}>
-          <Linha esquerda={L.entradas} direita={brl(dados.entradas, dados.idioma)} />
-          <Linha esquerda={L.gastos} direita={brl(dados.gastos, dados.idioma)} />
-          <Linha
-            esquerda={`${L.saldo} (${dados.saldo >= 0 ? L.positivo : L.negativo})`}
-            direita={brl(dados.saldo, dados.idioma)}
-          />
-          <Linha esquerda={L.mediaDiaria} direita={brl(dados.mediaDiaria, dados.idioma)} />
-          {dados.modo === "mes" && typeof dados.projecaoMes === "number" && (
-            <Linha esquerda={L.projecao} direita={brl(dados.projecaoMes, dados.idioma)} />
-          )}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <CartaoSaldo label={L.hoje} valor={dados.saldos.dia} idioma={dados.idioma} />
+            <CartaoSaldo label={L.semanaLabel} valor={dados.saldos.semana} idioma={dados.idioma} />
+            <CartaoSaldo label={L.mesLabel} valor={dados.saldos.mes} idioma={dados.idioma} />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <Linha esquerda={L.entradas} direita={brl(dados.entradas, dados.idioma)} />
+            <Linha esquerda={L.gastos} direita={brl(dados.gastos, dados.idioma)} />
+            <Linha
+              esquerda={`${L.saldo} (${dados.saldo >= 0 ? L.positivo : L.negativo})`}
+              direita={brl(dados.saldo, dados.idioma)}
+            />
+            <Linha esquerda={L.mediaDiaria} direita={brl(dados.mediaDiaria, dados.idioma)} />
+            {dados.modo === "mes" && typeof dados.projecaoMes === "number" && (
+              <Linha esquerda={L.projecao} direita={brl(dados.projecaoMes, dados.idioma)} />
+            )}
+          </div>
         </Secao>
       )}
 

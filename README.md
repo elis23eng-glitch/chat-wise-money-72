@@ -1,5 +1,11 @@
 # 💰 Chat Wise Money — Assistente Financeiro Conversacional
 
+[![CI](https://github.com/elis23eng-glitch/Dio-lab-vibe-coding-app-financas/actions/workflows/ci.yml/badge.svg)](https://github.com/elis23eng-glitch/Dio-lab-vibe-coding-app-financas/actions/workflows/ci.yml)
+[![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-green.svg)](LICENSE)
+![React 19](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
+![TanStack Start](https://img.shields.io/badge/TanStack-Start-ff4154?logo=reactquery&logoColor=white)
+![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss&logoColor=white)
+
 > Um aplicativo de controle financeiro pessoal baseado em conversas naturais, desenvolvido como projeto de conclusão para a **DIO (Digital Innovation One)**.
 
 Acesse em: **[https://chat-wise-money-72.lovable.app](https://chat-wise-money-72.lovable.app)**

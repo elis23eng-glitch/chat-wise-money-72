@@ -261,6 +261,8 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   useEffect(() => () => parar(), [parar]);
 
   return {
+    prefs,
+    salvarPrefs,
     disponivel,
     falandoId,
     falar,

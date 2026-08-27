@@ -268,6 +268,8 @@ function Entrar() {
               <input
                 type="email"
                 required
+                autoComplete="username"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
@@ -280,6 +282,7 @@ function Entrar() {
                 type="password"
                 required
                 minLength={6}
+                autoComplete={modo === "criar" ? "new-password" : "current-password"}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
@@ -287,11 +290,30 @@ function Entrar() {
               />
             </label>
 
+            <label className="flex items-start gap-3 rounded-2xl bg-secondary/60 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+                className="mt-1 size-5 accent-[hsl(var(--primary))]"
+              />
+              <span className="text-sm font-semibold leading-snug">
+                {t("Entrar sozinho neste aparelho", "Sign in automatically on this device")}
+                <span className="block text-xs font-normal text-muted-foreground">
+                  {t(
+                    "Salvamos sua senha só neste celular para você não digitar toda vez.",
+                    "We save your password on this phone only, so you don't type it every time.",
+                  )}
+                </span>
+              </span>
+            </label>
+
             <button
               type="submit"
               disabled={enviando}
               className="w-full rounded-full bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
             >
+
               {enviando
                 ? t("Um instante…", "One moment…")
                 : modo === "entrar"

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CircleHelp, Mic, X } from "lucide-react";
-import { useState } from "react";
+import { CircleHelp, Mic, Square, Volume2, VolumeX, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -21,6 +21,7 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
+import { useLeituraEmVozAlta } from "@/lib/leitura-voz";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({
@@ -113,8 +114,19 @@ function Conversa() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mensagens"] }),
   });
 
+  const voz = useLeituraEmVozAlta(idioma === "en" ? "en" : "pt");
+
+  useEffect(() => {
+    if (!voz.autoLeitura || !voz.disponivel) return;
+    const ultima = [...mensagens].reverse().find((m) => m.role !== "user");
+    if (!ultima || voz.foiLido(ultima.id)) return;
+    voz.marcarComoLido(ultima.id);
+    voz.falar(ultima.content, ultima.id);
+  }, [mensagens, voz]);
+
   function submeter(valor: string) {
     const limpo = valor.trim();
+
     if (!limpo || mutation.isPending) return;
     setTexto("");
     mutation.mutate(limpo);
@@ -135,12 +147,28 @@ function Conversa() {
               {t("Fale como quiser, eu entendo.", "Speak however you like, I'll understand.")}
             </p>
           </div>
+          {voz.disponivel && (
+            <button
+              onClick={voz.alternarAuto}
+              aria-pressed={voz.autoLeitura}
+              aria-label={t("Ler respostas em voz alta", "Read replies aloud")}
+              className={`ml-auto inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+                voz.autoLeitura
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary/10 text-primary hover:bg-primary/20"
+              }`}
+            >
+              {voz.autoLeitura ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              {voz.autoLeitura ? t("Voz ligada", "Voice on") : t("Voz desligada", "Voice off")}
+            </button>
+          )}
           <button
             onClick={() => limparMutation.mutate()}
-            className="ml-auto rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary"
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary ${voz.disponivel ? "" : "ml-auto"}`}
           >
             {t("Limpar conversa", "Clear conversation")}
           </button>
+
           <button
             onClick={() => setAjudaAberta(true)}
             aria-label={t("Ajuda: comandos de voz", "Help: voice commands")}
@@ -227,9 +255,35 @@ function Conversa() {
                   }
                 >
                   <MessageResponse>{m.content}</MessageResponse>
+                  {m.role !== "user" && voz.disponivel && (
+                    <button
+                      onClick={() =>
+                        voz.falandoId === m.id ? voz.parar() : voz.falar(m.content, m.id)
+                      }
+                      aria-label={
+                        voz.falandoId === m.id
+                          ? t("Parar leitura", "Stop reading")
+                          : t("Ouvir esta mensagem", "Listen to this message")
+                      }
+                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                    >
+                      {voz.falandoId === m.id ? (
+                        <>
+                          <Square className="size-4" />
+                          {t("Parar", "Stop")}
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="size-4" />
+                          {t("Ouvir", "Listen")}
+                        </>
+                      )}
+                    </button>
+                  )}
                 </MessageContent>
               </Message>
             ))}
+
             {mutation.isPending && (
               <div className="flex items-center gap-2 px-1">
                 <span className="grid size-7 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">

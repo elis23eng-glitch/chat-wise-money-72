@@ -15,6 +15,7 @@ function AppLayout() {
   const { session, user, loading } = useAuth();
   const navigate = useNavigate();
   const { t } = useIdioma();
+  const tutorial = useTutorial();
 
   const NAV = [
     { to: "/conversa", label: t("Conversa", "Chat") },

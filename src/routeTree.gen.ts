@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SplatRouteImport } from './routes/$'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
@@ -21,6 +22,11 @@ import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/res
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SplatRoute = SplatRouteImport.update({
+  id: '/$',
+  path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AutenticadoRouteRoute = AutenticadoRouteRouteImport.update({
@@ -60,6 +66,7 @@ const AutenticadoResumoRoute = AutenticadoResumoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_autenticado': typeof AutenticadoRouteRouteWithChildren
+  '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
   '/_autenticado/insights': typeof AutenticadoInsightsRoute
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$'
     | '/entrar'
     | '/conversa'
     | '/insights'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$'
     | '/entrar'
     | '/conversa'
     | '/insights'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_autenticado'
+    | '/$'
     | '/entrar'
     | '/_autenticado/conversa'
     | '/_autenticado/insights'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AutenticadoRouteRoute: typeof AutenticadoRouteRouteWithChildren
+  SplatRoute: typeof SplatRoute
   EntrarRoute: typeof EntrarRoute
 }
 
@@ -131,6 +144,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$': {
+      id: '/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_autenticado': {
@@ -207,6 +227,7 @@ const AutenticadoRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AutenticadoRouteRoute: AutenticadoRouteRouteWithChildren,
+  SplatRoute: SplatRoute,
   EntrarRoute: EntrarRoute,
 }
 export const routeTree = rootRouteImport

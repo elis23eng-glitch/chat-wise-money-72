@@ -99,7 +99,10 @@ function Painel() {
     .map(([nome, valor]) => ({ nome, valor: Math.round(valor * 100) / 100 }))
     .sort((a, b) => b.valor - a.valor);
 
-  const semDados = !isLoading && (data?.quantidadeLancamentos ?? 0) === 0;
+  const semDados =
+    !isLoading &&
+    (data?.quantidadeLancamentos ?? 0) === 0 &&
+    (data?.quantidadeEntradas ?? 0) === 0;
 
   return (
     <div className="space-y-8">

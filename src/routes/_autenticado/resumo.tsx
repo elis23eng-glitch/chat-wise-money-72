@@ -115,13 +115,17 @@ function Resumo() {
       setDescricao("");
       toast.success("Gasto anotado!");
       qc.invalidateQueries({ queryKey: ["overview"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: () => toast.error("Confira o valor e tente de novo."),
   });
 
   const delMutation = useMutation({
     mutationFn: (id: string) => apagar({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["overview"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["overview"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+    },
   });
 
   const total = data?.totalMes ?? 0;

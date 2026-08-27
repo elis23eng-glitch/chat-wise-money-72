@@ -18,7 +18,9 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { ResumoEmAudio } from "@/components/ResumoEmAudio";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
 import { useLeituraEmVozAlta } from "@/lib/leitura-voz";
@@ -313,9 +315,12 @@ function Conversa() {
             />
             <PromptInputFooter className="justify-between">
               <VoiceInputButton
+                idioma={idioma === "en" ? "en" : "pt"}
                 onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
+                onAutoSubmit={(txt) => submeter(txt)}
                 disabled={mutation.isPending}
               />
+
               <PromptInputSubmit
                 status={mutation.isPending ? "submitted" : "ready"}
                 disabled={!texto.trim() || mutation.isPending}
@@ -326,6 +331,7 @@ function Conversa() {
       </section>
 
       <aside className="space-y-4">
+        <ResumoEmAudio voz={voz} />
         <div className="surface-card p-5">
           <p className="font-display text-lg">{t("Experimente dizer", "Try saying")}</p>
           <div className="mt-3 space-y-2">

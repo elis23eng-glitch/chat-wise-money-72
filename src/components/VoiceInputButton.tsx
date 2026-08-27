@@ -4,7 +4,10 @@ import { toast } from "sonner";
 
 type Props = {
   onText: (text: string) => void;
+  /** Quando informado, o texto reconhecido é enviado direto para a Nina. */
+  onAutoSubmit?: (text: string) => void;
   disabled?: boolean;
+  idioma?: "pt" | "en";
 };
 
 /** Tipos mínimos da Web Speech API (ainda não padronizada no TS). */
@@ -28,11 +31,13 @@ type JanelaComVoz = Window & {
   webkitSpeechRecognition?: new () => ReconhecimentoVoz;
 };
 
-/** Botão de ditado por voz usando a Web Speech API (pt-BR). */
-export function VoiceInputButton({ onText, disabled }: Props) {
+/** Botão de ditado por voz usando a Web Speech API (pt-BR / en-US). */
+export function VoiceInputButton({ onText, onAutoSubmit, disabled, idioma = "pt" }: Props) {
   const [gravando, setGravando] = useState(false);
   const [suportado, setSuportado] = useState(false);
   const recRef = useRef<ReconhecimentoVoz | null>(null);
+  const cbRef = useRef({ onText, onAutoSubmit });
+  cbRef.current = { onText, onAutoSubmit };
 
   useEffect(() => {
     const w = window as JanelaComVoz;
@@ -40,7 +45,7 @@ export function VoiceInputButton({ onText, disabled }: Props) {
     if (!SR) return;
     setSuportado(true);
     const rec = new SR();
-    rec.lang = "pt-BR";
+    rec.lang = idioma === "en" ? "en-US" : "pt-BR";
     rec.continuous = false;
     rec.interimResults = false;
     rec.onresult = (e: ResultadoVoz) => {
@@ -48,12 +53,29 @@ export function VoiceInputButton({ onText, disabled }: Props) {
         .map((r) => r[0]?.transcript ?? "")
         .join(" ")
         .trim();
-      if (texto) onText(texto);
+      if (!texto) return;
+      const { onText: aoTexto, onAutoSubmit: aoEnviar } = cbRef.current;
+      if (aoEnviar) {
+        aoEnviar(texto);
+        toast.success(idioma === "en" ? `Sending: "${texto}"` : `Enviando: “${texto}”`, {
+          duration: 2500,
+        });
+        return;
+      }
+      aoTexto(texto);
     };
     rec.onerror = (e: { error: string }) => {
       setGravando(false);
       if (e.error === "not-allowed") {
-        toast.error("Preciso da sua permissão para usar o microfone.");
+        toast.error(
+          idioma === "en"
+            ? "I need your permission to use the microphone."
+            : "Preciso da sua permissão para usar o microfone.",
+        );
+      } else if (e.error === "no-speech") {
+        toast.info(
+          idioma === "en" ? "I didn't hear anything. Try again." : "Não ouvi nada. Tente de novo.",
+        );
       }
     };
     rec.onend = () => setGravando(false);
@@ -65,7 +87,7 @@ export function VoiceInputButton({ onText, disabled }: Props) {
         /* ignora */
       }
     };
-  }, [onText]);
+  }, [idioma]);
 
   if (!suportado) return null;
 
@@ -78,6 +100,10 @@ export function VoiceInputButton({ onText, disabled }: Props) {
       return;
     }
     try {
+      // Evita que a voz da Nina seja captada pelo microfone.
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
       rec.start();
       setGravando(true);
     } catch {
@@ -85,20 +111,36 @@ export function VoiceInputButton({ onText, disabled }: Props) {
     }
   }
 
+  const rotulo = gravando
+    ? idioma === "en"
+      ? "Listening…"
+      : "Ouvindo…"
+    : idioma === "en"
+      ? "Speak"
+      : "Falar";
+
   return (
     <button
       type="button"
       onClick={alternar}
       disabled={disabled}
-      aria-label={gravando ? "Parar de falar" : "Falar em vez de digitar"}
-      className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 ${
+      aria-label={
         gravando
-          ? "bg-destructive text-destructive-foreground"
+          ? idioma === "en"
+            ? "Stop speaking"
+            : "Parar de falar"
+          : idioma === "en"
+            ? "Speak instead of typing"
+            : "Falar em vez de digitar"
+      }
+      className={`flex items-center gap-2 rounded-full px-5 py-3 text-base font-semibold transition-colors disabled:opacity-50 ${
+        gravando
+          ? "animate-pulse bg-destructive text-destructive-foreground"
           : "bg-secondary text-secondary-foreground hover:bg-primary/10"
       }`}
     >
-      {gravando ? <MicOff className="size-4" /> : <Mic className="size-4" />}
-      {gravando ? "Ouvindo…" : "Falar"}
+      {gravando ? <MicOff className="size-5" /> : <Mic className="size-5" />}
+      {rotulo}
     </button>
   );
 }

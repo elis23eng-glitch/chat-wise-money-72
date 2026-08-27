@@ -126,6 +126,7 @@ function AppLayout() {
                 {item.label}
               </Link>
             ))}
+            <BotaoAtualizar />
           </nav>
 
           <div className="order-2 flex items-center gap-3 md:order-3">

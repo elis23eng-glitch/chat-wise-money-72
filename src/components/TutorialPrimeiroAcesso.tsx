@@ -46,10 +46,10 @@ export function TutorialPrimeiroAcesso({ aberto, aoFechar }: { aberto: boolean; 
   const passos: Passo[] = [
     {
       icone: MessageCircle,
-      titulo: t("Fale como se fosse um recado", "Talk like you're leaving a note"),
+      titulo: t("Converse com a Nina", "Chat with Nina"),
       texto: t(
-        "Na tela Conversa você escreve do seu jeito. A Mia entende e anota tudo pra você.",
-        "On the Chat screen you write your own way. Mia understands and records everything for you.",
+        "Na tela Conversa você escreve do seu jeito. A Nina, sua assistente, entende e anota tudo pra você.",
+        "On the Chat screen you write your own way. Nina, your assistant, understands and records everything for you.",
       ),
       exemplo: t('Ex.: "gastei 40 reais no mercado hoje"', 'E.g.: "spent 40 on groceries today"'),
     },

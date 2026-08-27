@@ -37,6 +37,12 @@ function Entrar() {
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  // Lembra o e-mail para facilitar o próximo acesso no celular.
+  useEffect(() => {
+    const salvo = window.localStorage.getItem("wise-money-email");
+    if (salvo) setEmail(salvo);
+  }, []);
+
   useEffect(() => {
     if (!loading && session) navigate({ to: "/conversa" });
   }, [loading, session, navigate]);
@@ -44,6 +50,7 @@ function Entrar() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEnviando(true);
+    window.localStorage.setItem("wise-money-email", email);
     try {
       if (modo === "criar") {
         const { data, error } = await supabase.auth.signUp({
@@ -152,7 +159,23 @@ function Entrar() {
                 )}
           </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          {modo === "entrar" && (
+            <>
+              <button
+                onClick={entrarComGoogle}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary-deep"
+              >
+                {t("Entrar com o Google (1 toque)", "Sign in with Google (1 tap)")}
+              </button>
+              <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                {t("ou use e-mail e senha", "or use email and password")}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={onSubmit} className={modo === "criar" ? "mt-6 space-y-4" : "space-y-4"}>
             {modo === "criar" && (
               <label className="block">
                 <span className="text-sm font-semibold">
@@ -203,12 +226,14 @@ function Entrar() {
             </button>
           </form>
 
-          <button
-            onClick={entrarComGoogle}
-            className="mt-3 w-full rounded-full border border-input bg-card px-6 py-3.5 text-base font-semibold transition-colors hover:bg-secondary"
-          >
-            {t("Continuar com o Google", "Continue with Google")}
-          </button>
+          {modo === "criar" && (
+            <button
+              onClick={entrarComGoogle}
+              className="mt-3 w-full rounded-full border border-input bg-card px-6 py-3.5 text-base font-semibold transition-colors hover:bg-secondary"
+            >
+              {t("Continuar com o Google", "Continue with Google")}
+            </button>
+          )}
 
           <button
             onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}

@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   CalendarDays,
   PiggyBank,
+  Share2,
   Target,
   TrendingDown,
   TrendingUp,

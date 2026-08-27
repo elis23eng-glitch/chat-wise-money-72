@@ -52,7 +52,6 @@ function limparSenhaSalva() {
 }
 
 function Entrar() {
-
   const { session, loading } = useAuth();
   const { t } = useIdioma();
   const [modo, setModo] = useState<"entrar" | "criar">("entrar");
@@ -95,7 +94,6 @@ function Entrar() {
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session]);
-
 
   function abrirConversa() {
     window.location.replace("/conversa");
@@ -204,7 +202,6 @@ function Entrar() {
   }
 
   return (
-
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0">
         <div
@@ -324,7 +321,6 @@ function Entrar() {
               disabled={enviando}
               className="w-full rounded-full bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
             >
-
               {enviando
                 ? t("Um instante…", "One moment…")
                 : modo === "entrar"

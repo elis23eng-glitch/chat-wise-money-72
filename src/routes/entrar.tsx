@@ -74,13 +74,13 @@ function Entrar() {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password: senha,
-        });
+          });
         if (signInError || !signInData.session) {
           throw new Error(
             t(
               "A conta foi criada, mas o acesso não foi iniciado. Tente entrar com o Google usando o mesmo e-mail.",
               "The account was created, but sign-in did not start. Try Google with the same email.",
-            );
+            ),
           );
         }
         toast.success(t("Conta criada! Bem-vinda.", "Account created! Welcome."));

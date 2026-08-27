@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
+import { definirIdiomaFormato } from "./format";
+
 export type Idioma = "pt" | "en";
 
 const CHAVE = "mergulho:idioma";
@@ -24,6 +26,9 @@ const IdiomaContext = createContext<Contexto | null>(null);
 
 export function IdiomaProvider({ children }: { children: ReactNode }) {
   const [idioma, setIdioma] = useState<Idioma>("pt");
+
+  // Mantém os formatadores de moeda/data alinhados ao idioma antes de renderizar os filhos.
+  definirIdiomaFormato(idioma);
 
   useEffect(() => {
     const salvo = window.localStorage.getItem(CHAVE);

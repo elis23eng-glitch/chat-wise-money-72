@@ -55,8 +55,8 @@ const T = {
     parte: "% do total",
     data: "Data",
     tipo: "Tipo",
-    positivo: "Saldo positivo",
-    negativo: "Saldo negativo",
+    positivo: "positivo",
+    negativo: "negativo",
   },
   en: {
     titulo: "Financial report",
@@ -83,8 +83,8 @@ const T = {
     parte: "% of total",
     data: "Date",
     tipo: "Type",
-    positivo: "Positive balance",
-    negativo: "Negative balance",
+    positivo: "positive",
+    negativo: "negative",
   },
 };
 

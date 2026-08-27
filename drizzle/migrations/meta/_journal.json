@@ -15,6 +15,13 @@
       "when": 1787798035050,
       "tag": "0001_create_incomes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787799073349,
+      "tag": "0002_create_balance_alerts",
+      "breakpoints": true
     }
   ]
 }

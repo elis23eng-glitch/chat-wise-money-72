@@ -10,33 +10,118 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
+import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
+import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
+import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
+import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AutenticadoRouteRoute = AutenticadoRouteRouteImport.update({
+  id: '/_autenticado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
+  id: '/conversa',
+  path: '/conversa',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
+const AutenticadoInsightsRoute = AutenticadoInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
+const AutenticadoMercadoRoute = AutenticadoMercadoRouteImport.update({
+  id: '/mercado',
+  path: '/mercado',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
+const AutenticadoMetasRoute = AutenticadoMetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
+const AutenticadoResumoRoute = AutenticadoResumoRouteImport.update({
+  id: '/resumo',
+  path: '/resumo',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
+  '/conversa': typeof AutenticadoConversaRoute
+  '/insights': typeof AutenticadoInsightsRoute
+  '/mercado': typeof AutenticadoMercadoRoute
+  '/metas': typeof AutenticadoMetasRoute
+  '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/entrar': typeof EntrarRoute
+  '/conversa': typeof AutenticadoConversaRoute
+  '/insights': typeof AutenticadoInsightsRoute
+  '/mercado': typeof AutenticadoMercadoRoute
+  '/metas': typeof AutenticadoMetasRoute
+  '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_autenticado': typeof AutenticadoRouteRouteWithChildren
+  '/entrar': typeof EntrarRoute
+  '/_autenticado/conversa': typeof AutenticadoConversaRoute
+  '/_autenticado/insights': typeof AutenticadoInsightsRoute
+  '/_autenticado/mercado': typeof AutenticadoMercadoRoute
+  '/_autenticado/metas': typeof AutenticadoMetasRoute
+  '/_autenticado/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/entrar'
+    | '/conversa'
+    | '/insights'
+    | '/mercado'
+    | '/metas'
+    | '/resumo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/entrar'
+    | '/conversa'
+    | '/insights'
+    | '/mercado'
+    | '/metas'
+    | '/resumo'
+  id:
+    | '__root__'
+    | '/'
+    | '/_autenticado'
+    | '/entrar'
+    | '/_autenticado/conversa'
+    | '/_autenticado/insights'
+    | '/_autenticado/mercado'
+    | '/_autenticado/metas'
+    | '/_autenticado/resumo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AutenticadoRouteRoute: typeof AutenticadoRouteRouteWithChildren
+  EntrarRoute: typeof EntrarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +133,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_autenticado': {
+      id: '/_autenticado'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AutenticadoRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_autenticado/conversa': {
+      id: '/_autenticado/conversa'
+      path: '/conversa'
+      fullPath: '/conversa'
+      preLoaderRoute: typeof AutenticadoConversaRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
+    '/_autenticado/insights': {
+      id: '/_autenticado/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AutenticadoInsightsRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
+    '/_autenticado/mercado': {
+      id: '/_autenticado/mercado'
+      path: '/mercado'
+      fullPath: '/mercado'
+      preLoaderRoute: typeof AutenticadoMercadoRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
+    '/_autenticado/metas': {
+      id: '/_autenticado/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof AutenticadoMetasRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
+    '/_autenticado/resumo': {
+      id: '/_autenticado/resumo'
+      path: '/resumo'
+      fullPath: '/resumo'
+      preLoaderRoute: typeof AutenticadoResumoRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
   }
 }
 
+interface AutenticadoRouteRouteChildren {
+  AutenticadoConversaRoute: typeof AutenticadoConversaRoute
+  AutenticadoInsightsRoute: typeof AutenticadoInsightsRoute
+  AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
+  AutenticadoMetasRoute: typeof AutenticadoMetasRoute
+  AutenticadoResumoRoute: typeof AutenticadoResumoRoute
+}
+
+const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
+  AutenticadoConversaRoute: AutenticadoConversaRoute,
+  AutenticadoInsightsRoute: AutenticadoInsightsRoute,
+  AutenticadoMercadoRoute: AutenticadoMercadoRoute,
+  AutenticadoMetasRoute: AutenticadoMetasRoute,
+  AutenticadoResumoRoute: AutenticadoResumoRoute,
+}
+
+const AutenticadoRouteRouteWithChildren =
+  AutenticadoRouteRoute._addFileChildren(AutenticadoRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AutenticadoRouteRoute: AutenticadoRouteRouteWithChildren,
+  EntrarRoute: EntrarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

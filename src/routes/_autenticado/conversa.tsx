@@ -18,7 +18,9 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { ResumoEmAudio } from "@/components/ResumoEmAudio";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
+
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
 import { useLeituraEmVozAlta } from "@/lib/leitura-voz";

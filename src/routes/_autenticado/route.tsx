@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIdioma } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
+import { AutoAtualizacao } from "@/components/AutoAtualizacao";
 
 export const Route = createFileRoute("/_autenticado")({
   ssr: false,
@@ -116,6 +117,7 @@ function AppLayout() {
         </div>
       </div>
 
+      <AutoAtualizacao />
       <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />
     </div>
   );

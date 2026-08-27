@@ -147,12 +147,28 @@ function Conversa() {
               {t("Fale como quiser, eu entendo.", "Speak however you like, I'll understand.")}
             </p>
           </div>
+          {voz.disponivel && (
+            <button
+              onClick={voz.alternarAuto}
+              aria-pressed={voz.autoLeitura}
+              aria-label={t("Ler respostas em voz alta", "Read replies aloud")}
+              className={`ml-auto inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
+                voz.autoLeitura
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary/10 text-primary hover:bg-primary/20"
+              }`}
+            >
+              {voz.autoLeitura ? <Volume2 className="size-4" /> : <VolumeX className="size-4" />}
+              {voz.autoLeitura ? t("Voz ligada", "Voice on") : t("Voz desligada", "Voice off")}
+            </button>
+          )}
           <button
             onClick={() => limparMutation.mutate()}
-            className="ml-auto rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary"
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary ${voz.disponivel ? "" : "ml-auto"}`}
           >
             {t("Limpar conversa", "Clear conversation")}
           </button>
+
           <button
             onClick={() => setAjudaAberta(true)}
             aria-label={t("Ajuda: comandos de voz", "Help: voice commands")}

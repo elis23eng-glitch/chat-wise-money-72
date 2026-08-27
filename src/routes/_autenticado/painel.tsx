@@ -911,6 +911,104 @@ function Painel() {
             )}
           </p>
 
+          {estatAlertas && (
+            <>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl bg-primary/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {t("Alertas registrados", "Alerts recorded")}
+                  </p>
+                  <p className="mt-1 font-display text-2xl">{estatAlertas.total}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Tipo mais comum:", "Most common:")} {tituloAlerta(estatAlertas.maisComum)}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-primary/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {t("Saldo médio nos alertas", "Average balance on alerts")}
+                  </p>
+                  <p
+                    className={`mt-1 font-display text-2xl ${
+                      estatAlertas.saldoMedio < 0 ? "text-destructive" : "text-primary-deep"
+                    }`}
+                  >
+                    {brl(estatAlertas.saldoMedio)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("Entradas", "Income")} {brl(estatAlertas.entradasMedia)} ·{" "}
+                    {t("Gastos", "Spending")} {brl(estatAlertas.gastosMedia)}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-primary/5 p-4">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                    {t("Pior saldo", "Worst balance")}
+                  </p>
+                  <p className="mt-1 font-display text-2xl text-destructive">
+                    {brl(estatAlertas.pior.saldo)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {dataCurta(estatAlertas.pior.inicio)} – {dataCurta(estatAlertas.pior.fim)}
+                  </p>
+                </div>
+              </div>
+
+              <h3 className="mt-8 font-display text-xl">
+                {t("Alertas por mês", "Alerts per month")}
+              </h3>
+              <div className="mt-3 h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={estatAlertas.porMes}>
+                    <XAxis dataKey="rotulo" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
+                    <Tooltip
+                      cursor={{ fill: "var(--color-primary)", fillOpacity: 0.06 }}
+                      formatter={(v: number) => [
+                        `${v}`,
+                        t("Alertas no mês", "Alerts in the month"),
+                      ]}
+                    />
+                    <Bar
+                      dataKey="quantidade"
+                      fill="var(--color-accent)"
+                      radius={[8, 8, 0, 0]}
+                      maxBarSize={44}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <h3 className="mt-8 font-display text-xl">
+                {t("Saldo médio por mês", "Average balance per month")}
+              </h3>
+              <div className="mt-3 h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={estatAlertas.porMes}>
+                    <XAxis dataKey="rotulo" tickLine={false} axisLine={false} fontSize={12} />
+                    <YAxis tickFormatter={(v) => brl(Number(v))} width={80} fontSize={11} />
+                    <Tooltip
+                      cursor={{ fill: "var(--color-primary)", fillOpacity: 0.06 }}
+                      formatter={(v: number) => [
+                        brl(Number(v)),
+                        t("Saldo médio", "Average balance"),
+                      ]}
+                    />
+                    <Bar dataKey="saldoMedio" radius={[8, 8, 0, 0]} maxBarSize={44}>
+                      {estatAlertas.porMes.map((m) => (
+                        <Cell
+                          key={m.chave}
+                          fill={
+                            m.saldoMedio < 0 ? "var(--color-destructive)" : "var(--color-primary)"
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+
+
           {!historico || historico.length === 0 ? (
             <p className="mt-4 text-muted-foreground">
               {t(

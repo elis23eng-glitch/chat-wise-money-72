@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,7 +28,6 @@ export const Route = createFileRoute("/entrar")({
 });
 
 function Entrar() {
-  const navigate = useNavigate();
   const { session, loading } = useAuth();
   const { t } = useIdioma();
   const [modo, setModo] = useState<"entrar" | "criar">("entrar");
@@ -44,8 +43,12 @@ function Entrar() {
   }, []);
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/conversa" });
-  }, [loading, session, navigate]);
+    if (!loading && session) window.location.replace("/conversa");
+  }, [loading, session]);
+
+  function abrirConversa() {
+    window.location.replace("/conversa");
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,30 +61,33 @@ function Entrar() {
           password: senha,
           options: {
             data: { nome },
-            emailRedirectTo: `${window.location.origin}/conversa`,
+            emailRedirectTo: `${window.location.origin}/entrar`,
           },
         });
         if (error) throw error;
-        if (!data.session) {
-          // Sem sessão imediata: tenta entrar direto com as mesmas credenciais.
-          const { error: signInError } = await supabase.auth.signInWithPassword({
+        if (data.session) {
+          toast.success(t("Conta criada! Bem-vinda.", "Account created! Welcome."));
+          abrirConversa();
+          return;
+        }
+
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password: senha,
-          });
-          if (signInError) {
-            toast.success(
-              t(
-                "Conta criada! Confirme pelo e-mail e depois entre.",
-                "Account created! Confirm via email, then sign in.",
-              ),
+        });
+        if (signInError || !signInData.session) {
+          throw new Error(
+            t(
+              "A conta foi criada, mas o acesso não foi iniciado. Tente entrar com o Google usando o mesmo e-mail.",
+              "The account was created, but sign-in did not start. Try Google with the same email.",
             );
-            setModo("entrar");
-            return;
-          }
+          );
         }
         toast.success(t("Conta criada! Bem-vinda.", "Account created! Welcome."));
+        abrirConversa();
+        return;
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) {
           if (/invalid login credentials/i.test(error.message)) {
             throw new Error(
@@ -93,6 +99,8 @@ function Entrar() {
           }
           throw error;
         }
+        if (!data.session) throw new Error(t("A sessão não foi iniciada.", "Session did not start."));
+        abrirConversa();
       }
     } catch (err) {
       toast.error(
@@ -107,7 +115,7 @@ function Entrar() {
 
   async function entrarComGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/entrar`,
     });
     if (result.error) {
       toast.error(
@@ -116,7 +124,14 @@ function Entrar() {
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/conversa" });
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
+      toast.error(
+        t("O Google não concluiu o acesso. Tente novamente.", "Google did not complete sign-in. Try again."),
+      );
+      return;
+    }
+    abrirConversa();
   }
 
   return (

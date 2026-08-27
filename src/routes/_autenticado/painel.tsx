@@ -238,6 +238,11 @@ function Painel() {
     queryKey: ["alertas-historico"],
     queryFn: () => carregarHistorico(),
   });
+
+  // ---- Filtros do histórico (período + intervalo de datas) ----
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
+  const [filtroInicio, setFiltroInicio] = useState("");
+  const [filtroFim, setFiltroFim] = useState("");
   const gravar = useMutation({
     mutationFn: (alertas: AlertaRegistro[]) => gravarAlertas({ data: { alertas } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["alertas-historico"] }),
@@ -286,8 +291,21 @@ function Painel() {
             ? t("Projeção no vermelho", "Projected to end in the red")
             : t("Semana mais cara que a anterior", "Pricier week than the previous one");
 
+  const historicoFiltrado = useMemo(
+    () =>
+      (historico ?? []).filter((h) => {
+        if (filtroPeriodo !== "todos" && h.periodo !== filtroPeriodo) return false;
+        if (filtroInicio && h.inicio < filtroInicio) return false;
+        if (filtroFim && h.inicio > filtroFim) return false;
+        return true;
+      }),
+    [historico, filtroPeriodo, filtroInicio, filtroFim],
+  );
+
+  const filtrosAtivos = filtroPeriodo !== "todos" || filtroInicio !== "" || filtroFim !== "";
+
   const estatAlertas = useMemo(() => {
-    const itens = historico ?? [];
+    const itens = historicoFiltrado;
     if (itens.length === 0) return null;
 
     const media = (nums: number[]) => nums.reduce((s, n) => s + n, 0) / nums.length;
@@ -324,7 +342,7 @@ function Painel() {
       pior,
       porMes,
     };
-  }, [historico, idioma]);
+  }, [historicoFiltrado, idioma]);
 
 
   return (
@@ -952,6 +970,84 @@ function Painel() {
             )}
           </p>
 
+          {historico && historico.length > 0 && (
+            <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-3">
+              <div
+                className="inline-flex items-center gap-1 rounded-full bg-secondary p-1"
+                role="group"
+                aria-label={t("Filtrar por tipo de período", "Filter by period type")}
+              >
+                {[
+                  { valor: "todos" as const, rotulo: t("Todos", "All") },
+                  { valor: "semana" as const, rotulo: t("Semana", "Week") },
+                  { valor: "mes" as const, rotulo: t("Mês", "Month") },
+                ].map((op) => (
+                  <button
+                    key={op.valor}
+                    type="button"
+                    onClick={() => setFiltroPeriodo(op.valor)}
+                    aria-pressed={filtroPeriodo === op.valor}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      filtroPeriodo === op.valor
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-primary"
+                    }`}
+                  >
+                    {op.rotulo}
+                  </button>
+                ))}
+              </div>
+
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("De", "From")}
+                </span>
+                <input
+                  type="date"
+                  value={filtroInicio}
+                  max={filtroFim || undefined}
+                  onChange={(e) => setFiltroInicio(e.target.value)}
+                  className="mt-1 block rounded-2xl border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </label>
+              <label className="block">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("Até", "To")}
+                </span>
+                <input
+                  type="date"
+                  value={filtroFim}
+                  min={filtroInicio || undefined}
+                  onChange={(e) => setFiltroFim(e.target.value)}
+                  className="mt-1 block rounded-2xl border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+                />
+              </label>
+
+              {filtrosAtivos && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFiltroPeriodo("todos");
+                    setFiltroInicio("");
+                    setFiltroFim("");
+                  }}
+                  className="rounded-full border border-primary/30 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
+                >
+                  {t("Limpar filtros", "Clear filters")}
+                </button>
+              )}
+            </div>
+          )}
+
+          {historico && historico.length > 0 && filtrosAtivos && (
+            <p className="mt-3 text-sm text-muted-foreground" role="status">
+              {t(
+                `Mostrando ${historicoFiltrado.length} de ${historico.length} alertas`,
+                `Showing ${historicoFiltrado.length} of ${historico.length} alerts`,
+              )}
+            </p>
+          )}
+
           {estatAlertas && (
             <>
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -1057,9 +1153,16 @@ function Painel() {
                 "No alerts recorded yet. They show up here as soon as they are triggered.",
               )}
             </p>
+          ) : historicoFiltrado.length === 0 ? (
+            <p className="mt-4 text-muted-foreground">
+              {t(
+                "Nenhum alerta encontrado com esses filtros. Tente outro período ou intervalo de datas.",
+                "No alerts found with these filters. Try another period or date range.",
+              )}
+            </p>
           ) : (
             <ul className="mt-4 divide-y divide-primary/10">
-              {historico.map((h) => (
+              {historicoFiltrado.map((h) => (
                 <li key={h.id} className="flex flex-wrap items-start gap-x-4 gap-y-2 py-4">
                   <span
                     className={`mt-1 size-2.5 shrink-0 rounded-full ${

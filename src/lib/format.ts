@@ -1,24 +1,53 @@
 export type IdiomaFormato = "pt" | "en";
 
 let idiomaAtual: IdiomaFormato = "pt";
+/** Quantos reais valem 1 dólar (ex.: 5.42). null = cotação indisponível. */
+let cotacaoUsd: number | null = null;
 
 /** Chamado pelo IdiomaProvider para que os formatadores sigam o idioma escolhido. */
 export function definirIdiomaFormato(idioma: IdiomaFormato) {
   idiomaAtual = idioma;
 }
 
+/** Define a cotação USD/BRL usada para exibir valores em dólar no idioma inglês. */
+export function definirCotacaoUsd(valor: number | null) {
+  cotacaoUsd = valor && Number.isFinite(valor) && valor > 0 ? valor : null;
+}
+
+export function obterCotacaoUsd() {
+  return cotacaoUsd;
+}
+
 function loc(idioma?: IdiomaFormato) {
   return (idioma ?? idiomaAtual) === "en" ? "en-US" : "pt-BR";
 }
 
-/** Valores sempre em reais (a conta da pessoa é no Brasil), formatados no idioma escolhido. */
+/**
+ * Valores guardados em reais. Em português exibe R$; em inglês converte pela
+ * cotação do dia e exibe US$ ($). Sem cotação, mantém reais (nunca inventa número).
+ */
 export function brl(valor: number, idioma?: IdiomaFormato) {
+  const emIngles = (idioma ?? idiomaAtual) === "en";
+  if (emIngles && cotacaoUsd) {
+    return (valor / cotacaoUsd).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    });
+  }
   return valor.toLocaleString(loc(idioma), {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: 2,
   });
 }
+
+/** Nota de rodapé explicando a conversão (só faz sentido em inglês com cotação). */
+export function notaConversao(idioma?: IdiomaFormato) {
+  if ((idioma ?? idiomaAtual) !== "en" || !cotacaoUsd) return null;
+  return `Converted from BRL at today's rate (1 USD = R$ ${cotacaoUsd.toFixed(2)})`;
+}
+
 
 export const moeda = brl;
 

@@ -68,12 +68,23 @@ function Resumo() {
   const criarEntrada = useServerFn(addIncome);
   const apagarEntrada = useServerFn(deleteIncome);
 
-  const { data, isLoading } = useQuery({ queryKey: ["overview"], queryFn: () => overview() });
+  const { data, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["overview"],
+    queryFn: () => overview(),
+  });
 
   const [editando, setEditando] = useState<{
     tipo: "gasto" | "entrada";
     lancamento: LancamentoEditavel;
   } | null>(null);
+
+  const [confirmando, setConfirmando] = useState<{
+    tipo: "gasto" | "entrada";
+    id: string;
+    descricao: string;
+    valor: number;
+  } | null>(null);
+
 
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<(typeof CATEGORIAS)[number]>("alimentação");

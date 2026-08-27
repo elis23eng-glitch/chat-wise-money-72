@@ -78,7 +78,13 @@ function Caixa({ children }: { children: React.ReactNode }) {
   return <div className="surface-card p-6">{children}</div>;
 }
 
-function DicaGrafico({ active, payload, label }: any) {
+type DicaProps = {
+  active?: boolean;
+  payload?: Array<{ value?: number | string; dataKey?: string | number }>;
+  label?: string;
+};
+
+function DicaGrafico({ active, payload, label }: DicaProps) {
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">

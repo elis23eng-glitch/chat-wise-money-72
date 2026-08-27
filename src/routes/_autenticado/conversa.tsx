@@ -23,7 +23,7 @@ import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
-import { useLeituraEmVozAlta } from "@/lib/leitura-voz";
+import { saudacaoNina, useLeituraEmVozAlta } from "@/lib/leitura-voz";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({
@@ -312,13 +312,7 @@ function Conversa() {
                 {voz.disponivel && (
                   <button
                     onClick={() =>
-                      voz.falar(
-                        t(
-                          "Oi! Eu sou a Nina, sua companheira financeira no Wise Money. Estou aqui para ouvir você, anotar seus gastos e entradas, e explicar as coisas do dinheiro com calma. Pode me contar um gasto recente ou pedir um resumo. Vamos juntos, no seu ritmo.",
-                          "Hi! I'm Nina, your financial companion at Wise Money. I'm here to listen, log your expenses and income, and explain money matters calmly. Tell me about a recent expense or ask for a summary. Let's go at your pace.",
-                        ),
-                        "saudacao-inicial",
-                      )
+                      voz.falar(saudacaoNina(idioma === "en" ? "en" : "pt"), "saudacao-inicial")
                     }
                     className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
                   >

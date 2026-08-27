@@ -58,7 +58,10 @@ export function ResumoEmAudio({ voz }: { voz: Voz }) {
         const pct = alvo > 0 ? Math.min(100, Math.round((atual / alvo) * 100)) : 0;
         if (atual >= alvo) {
           partes.push(
-            t(`Sua meta ${meta.titulo} já foi alcançada. Uhu!`, `Your goal ${meta.titulo} is done. Yay!`),
+            t(
+              `Sua meta ${meta.titulo} já foi alcançada. Uhu!`,
+              `Your goal ${meta.titulo} is done. Yay!`,
+            ),
           );
         } else {
           partes.push(

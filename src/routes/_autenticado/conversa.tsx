@@ -55,7 +55,6 @@ function Conversa() {
     t("Quero juntar R$ 1.200 até dezembro", "I want to save $1,200 by December"),
   ];
 
-
   const { data: mensagens = [], isLoading } = useQuery({
     queryKey: ["mensagens"],
     queryFn: () => fetchMessages(),

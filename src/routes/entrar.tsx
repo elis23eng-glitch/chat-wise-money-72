@@ -11,13 +11,13 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/entrar")({
   head: () => ({
     meta: [
-      { title: "Entrar no mergulho — assistente financeiro" },
+      { title: "Entrar no Wise Money — assistente financeiro" },
       {
         name: "description",
         content:
           "Acesse sua conta para conversar com o agente financeiro e acompanhar seus gastos.",
       },
-      { property: "og:title", content: "Entrar no mergulho" },
+      { property: "og:title", content: "Entrar no Wise Money" },
       {
         property: "og:description",
         content: "Acesse sua conta e continue organizando seu dinheiro por conversa.",
@@ -102,11 +102,11 @@ function Entrar() {
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-2xl bg-primary text-primary-foreground">
-              <span className="font-display text-xl">m</span>
+            <div className="size-11 overflow-hidden rounded-2xl shadow-sm">
+              <img src="/icons/icon-192.png" alt="Wise Money" className="size-full object-cover" />
             </div>
             <div>
-              <p className="font-display text-xl leading-none">mergulho</p>
+              <p className="font-display text-xl leading-none">Wise Money</p>
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/70">
                 {t("assessor financeiro", "financial advisor")}
               </p>

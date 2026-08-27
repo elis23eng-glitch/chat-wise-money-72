@@ -1,6 +1,6 @@
 {
-  "name": "mergulho — assistente financeiro",
-  "short_name": "mergulho",
+  "name": "Wise Money — assistente financeiro",
+  "short_name": "Wise Money",
   "description": "Registre gastos conversando, acompanhe metas e entenda suas finanças com uma linguagem simples.",
   "start_url": "/conversa",
   "display": "standalone",

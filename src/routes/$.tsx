@@ -25,10 +25,10 @@ export const Route = createFileRoute("/$")({
   },
   head: () => ({
     meta: [
-      { title: "Página não encontrada — mergulho" },
+      { title: "Página não encontrada — Wise Money" },
       {
         name: "description",
-        content: "Este endereço não existe no mergulho. Volte para a conversa com seu agente.",
+        content: "Este endereço não existe no Wise Money. Volte para a conversa com seu agente.",
       },
       { name: "robots", content: "noindex" },
     ],

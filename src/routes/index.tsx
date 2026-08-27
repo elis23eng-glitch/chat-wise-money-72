@@ -7,13 +7,13 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "mergulho — organize seu dinheiro conversando" },
+      { title: "Wise Money — organize seu dinheiro conversando" },
       {
         name: "description",
         content:
           "Um assistente financeiro que anota seus gastos por conversa, explica sem jargão e acompanha suas metas.",
       },
-      { property: "og:title", content: "mergulho — organize seu dinheiro conversando" },
+      { property: "og:title", content: "Wise Money — organize seu dinheiro conversando" },
       {
         property: "og:description",
         content:
@@ -73,11 +73,11 @@ function BoasVindas() {
       <div className="relative mx-auto max-w-6xl px-6 py-10">
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <span className="font-display text-xl">m</span>
+            <div className="size-11 overflow-hidden rounded-2xl shadow-sm">
+              <img src="/icons/icon-192.png" alt="Wise Money" className="size-full object-cover" />
             </div>
             <div>
-              <p className="font-display text-xl leading-none">mergulho</p>
+              <p className="font-display text-xl leading-none">Wise Money</p>
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/70">
                 {t("assessor financeiro", "financial advisor")}
               </p>
@@ -155,8 +155,8 @@ function BoasVindas() {
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
-                  <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">
-                    m
+                  <span className="mt-1 flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10">
+                    <img src="/icons/icon-192.png" alt="Nina" className="size-5 object-cover" />
                   </span>
                   <div className="max-w-[82%] rounded-2xl rounded-tl-md bg-secondary px-4 py-3 text-sm">
                     {t("Anotei! ", "Got it! ")}

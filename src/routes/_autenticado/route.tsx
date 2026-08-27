@@ -60,11 +60,11 @@ function AppLayout() {
       <div className="relative mx-auto max-w-6xl px-6 py-10">
         <header className="flex flex-wrap items-center justify-between gap-4">
           <Link to="/conversa" className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <span className="font-display text-xl">m</span>
+            <div className="size-11 overflow-hidden rounded-2xl shadow-sm">
+              <img src="/icons/icon-192.png" alt="Wise Money" className="size-full object-cover" />
             </div>
             <div>
-              <p className="font-display text-xl leading-none">mergulho</p>
+              <p className="font-display text-xl leading-none">Wise Money</p>
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/70">
                 {t("assessor financeiro", "financial advisor")}
               </p>

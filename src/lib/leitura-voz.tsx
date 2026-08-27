@@ -174,7 +174,6 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     [idioma, parar, falarLocal],
   );
 
-
   const alternarAuto = useCallback(() => {
     setAutoLeitura((atual) => {
       const proximo = !atual;

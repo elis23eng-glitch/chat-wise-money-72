@@ -93,6 +93,33 @@ function Linha({ esquerda, direita }: { esquerda: string; direita?: string }) {
   );
 }
 
+function CartaoSaldo({
+  label,
+  valor,
+  idioma,
+}: {
+  label: string;
+  valor: number;
+  idioma: "pt" | "en";
+}) {
+  const positivo = valor >= 0;
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${
+        positivo
+          ? "border-primary/30 bg-primary/10 text-primary-deep"
+          : "border-destructive/40 bg-destructive/10 text-destructive"
+      }`}
+    >
+      <p className="text-sm font-semibold opacity-90">{label}</p>
+      <p className="mt-1 font-display text-2xl">{brl(valor, idioma)}</p>
+      <p className="mt-1 text-sm font-medium opacity-90">
+        {positivo ? TXT[idioma].positivo : TXT[idioma].negativo}
+      </p>
+    </div>
+  );
+}
+
 export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
   const L = TXT[dados.idioma];
   const cats = Object.entries(dados.porCategoria).sort((a, b) => b[1] - a[1]);

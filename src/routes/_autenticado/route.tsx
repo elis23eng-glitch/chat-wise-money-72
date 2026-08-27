@@ -10,6 +10,7 @@ import { useIdioma } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
 import { AutoAtualizacao } from "@/components/AutoAtualizacao";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 export const Route = createFileRoute("/_autenticado")({
   ssr: false,
@@ -161,6 +162,7 @@ function AppLayout() {
       </div>
 
       <AutoAtualizacao />
+      <PullToRefresh />
       <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />
     </div>
   );

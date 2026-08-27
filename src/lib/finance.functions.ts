@@ -17,6 +17,17 @@ const CATEGORIAS = [
   "outros",
 ] as const;
 
+export const CATEGORIAS_ENTRADA = [
+  "salário",
+  "aposentadoria",
+  "pensão",
+  "trabalho extra",
+  "aluguel recebido",
+  "venda",
+  "presente",
+  "outros",
+] as const;
+
 function inicioDoMes(offset = 0) {
   const agora = new Date();
   return new Date(Date.UTC(agora.getUTCFullYear(), agora.getUTCMonth() + offset, 1))
@@ -30,9 +41,15 @@ export const getOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const [{ data: gastos }, { data: metas }] = await Promise.all([
+    const [{ data: gastos }, { data: entradas }, { data: metas }] = await Promise.all([
       supabase
         .from("expenses")
+        .select("id, valor, categoria, descricao, data, created_at")
+        .eq("user_id", userId)
+        .gte("data", inicioDoMes(-3))
+        .order("data", { ascending: false }),
+      supabase
+        .from("incomes")
         .select("id, valor, categoria, descricao, data, created_at")
         .eq("user_id", userId)
         .gte("data", inicioDoMes(-3))
@@ -61,9 +78,19 @@ export const getOverview = createServerFn({ method: "GET" })
     const totalMes = doMes.reduce((s, l) => s + l.valor, 0);
     const totalAnterior = doAnterior.reduce((s, l) => s + l.valor, 0);
 
+    const linhasEntrada = (entradas ?? []).map((e) => ({ ...e, valor: Number(e.valor) }));
+    const entradasMes = linhasEntrada.filter((l) => l.data >= mesAtual);
+    const entradasAnterior = linhasEntrada.filter((l) => l.data >= mesAnterior && l.data < mesAtual);
+    const totalEntradas = entradasMes.reduce((s, l) => s + l.valor, 0);
+    const totalEntradasAnterior = entradasAnterior.reduce((s, l) => s + l.valor, 0);
+
     return {
       totalMes,
       totalAnterior,
+      totalEntradas,
+      totalEntradasAnterior,
+      saldo: totalEntradas - totalMes,
+      entradasRecentes: linhasEntrada.slice(0, 12),
       porCategoria,
       porCategoriaAnterior,
       recentes: linhas.slice(0, 12),
@@ -206,5 +233,33 @@ export const deleteGoal = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     await context.supabase.from("goals").delete().eq("id", data.id).eq("user_id", context.userId);
+    return { ok: true };
+  });
+
+export const addIncome = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        valor: z.number().positive(),
+        categoria: z.enum(CATEGORIAS_ENTRADA),
+        descricao: z.string().max(120),
+        data: z.string(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("incomes")
+      .insert({ ...data, user_id: context.userId });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteIncome = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    await context.supabase.from("incomes").delete().eq("id", data.id).eq("user_id", context.userId);
     return { ok: true };
   });

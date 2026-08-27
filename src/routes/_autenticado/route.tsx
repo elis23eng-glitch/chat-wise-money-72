@@ -21,6 +21,44 @@ export const Route = createFileRoute("/_autenticado")({
   component: AppLayout,
 });
 
+function BotaoAtualizar() {
+  const qc = useQueryClient();
+  const { t } = useIdioma();
+  const [isFetching, setIsFetching] = useState(false);
+
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        setIsFetching(true);
+        try {
+          await Promise.all([
+            qc.refetchQueries({ queryKey: ["overview"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["dashboard"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["mensagens"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["alertas-historico"], type: "all" }),
+          ]);
+          toast.success(t("Dados atualizados!", "Data updated!"));
+        } catch {
+          toast.error(
+            t(
+              "Não consegui atualizar agora. Verifique sua internet e tente de novo.",
+              "Could not refresh now. Check your connection and try again.",
+            ),
+          );
+        } finally {
+          setIsFetching(false);
+        }
+      }}
+      disabled={isFetching}
+      className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 disabled:opacity-60"
+    >
+      <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
+      {t("Atualizar", "Refresh")}
+    </button>
+  );
+}
+
 function AppLayout() {
   const { session, user, loading } = useAuth();
   const navigate = useNavigate();

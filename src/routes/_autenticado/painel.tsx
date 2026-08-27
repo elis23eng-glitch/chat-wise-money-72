@@ -43,7 +43,15 @@ import {
   type AlertaRegistro,
   type TipoAlerta,
 } from "@/lib/alerts.functions";
-import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto } from "@/lib/format";
+import {
+  brl,
+  dataCurta,
+  dataLonga,
+  categoriaLabel,
+  diaSemanaCurto,
+  mesCurto,
+  notaConversao,
+} from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 
@@ -486,6 +494,9 @@ function Painel() {
             "Here you see everything together: how much you spent, on what, how it's evolving, and how much is left for your goals.",
           )}
         </p>
+        {notaConversao(idioma) && (
+          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+        )}
 
         <div
           className="mt-5 inline-flex items-center gap-1 rounded-full bg-secondary p-1"

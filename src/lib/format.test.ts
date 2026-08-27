@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   brl,
+  definirCotacaoUsd,
+  notaConversao,
   CATEGORIA_LABEL,
   categoriaLabel,
   CORES_CATEGORIA,
@@ -35,6 +37,28 @@ describe("brl — formatação de moeda", () => {
   it("formata valores negativos mantendo o valor absoluto correto", () => {
     expect(brl(-45.9, "pt")).toContain("45,90");
     expect(brl(-45.9, "en")).toContain("45.90");
+  });
+});
+
+describe("conversão para dólar no idioma inglês", () => {
+  it("sem cotação, mantém reais em inglês", () => {
+    definirCotacaoUsd(null);
+    expect(normalizar(brl(1234.5, "en"))).toBe("R$1,234.50");
+    expect(notaConversao("en")).toBeNull();
+  });
+
+  it("com cotação, converte e exibe em dólar", () => {
+    definirCotacaoUsd(5);
+    expect(normalizar(brl(100, "en"))).toBe("$20.00");
+    expect(notaConversao("en")).toContain("1 USD = R$ 5.00");
+    definirCotacaoUsd(null);
+  });
+
+  it("em português continua em reais mesmo com cotação definida", () => {
+    definirCotacaoUsd(5);
+    expect(normalizar(brl(100, "pt"))).toBe("R$ 100,00");
+    expect(notaConversao("pt")).toBeNull();
+    definirCotacaoUsd(null);
   });
 });
 

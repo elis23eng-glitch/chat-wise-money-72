@@ -1,4 +1,4 @@
-import { brl, categoriaLabel, dataCurta, type IdiomaFormato } from "./format";
+import { brl, categoriaLabel, dataCurta, notaConversao, type IdiomaFormato } from "./format";
 
 type Meta = { titulo: string; valor_alvo: number; valor_atual: number; prazo: string | null };
 
@@ -201,6 +201,16 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
     y,
   );
   y += 8;
+
+  const nota = notaConversao(d.idioma);
+  if (nota) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(110, 110, 110);
+    doc.text(nota, m, y + 10);
+    doc.setTextColor(35, 35, 35);
+    y += 16;
+  }
 
   if (d.secoes.resumo) {
     titulo(L.resumo);

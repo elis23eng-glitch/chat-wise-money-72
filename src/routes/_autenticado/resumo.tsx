@@ -12,7 +12,7 @@ import {
   deleteIncome,
   getOverview,
 } from "@/lib/finance.functions";
-import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel } from "@/lib/format";
+import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel, notaConversao } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
 
@@ -155,6 +155,9 @@ function Resumo() {
         <h1 className="mt-2 font-display text-4xl tracking-tight">
           {t("Como está seu mês", "How your month is going")}
         </h1>
+        {notaConversao(idioma) && (
+          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+        )}
       </header>
 
       <div

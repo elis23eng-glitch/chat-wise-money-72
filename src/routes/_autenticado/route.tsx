@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useIdioma } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
 
 export const Route = createFileRoute("/_autenticado")({
   component: AppLayout,

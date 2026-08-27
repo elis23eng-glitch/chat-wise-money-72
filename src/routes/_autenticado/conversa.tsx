@@ -239,9 +239,35 @@ function Conversa() {
                   }
                 >
                   <MessageResponse>{m.content}</MessageResponse>
+                  {m.role !== "user" && voz.disponivel && (
+                    <button
+                      onClick={() =>
+                        voz.falandoId === m.id ? voz.parar() : voz.falar(m.content, m.id)
+                      }
+                      aria-label={
+                        voz.falandoId === m.id
+                          ? t("Parar leitura", "Stop reading")
+                          : t("Ouvir esta mensagem", "Listen to this message")
+                      }
+                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
+                    >
+                      {voz.falandoId === m.id ? (
+                        <>
+                          <Square className="size-4" />
+                          {t("Parar", "Stop")}
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="size-4" />
+                          {t("Ouvir", "Listen")}
+                        </>
+                      )}
+                    </button>
+                  )}
                 </MessageContent>
               </Message>
             ))}
+
             {mutation.isPending && (
               <div className="flex items-center gap-2 px-1">
                 <span className="grid size-7 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">

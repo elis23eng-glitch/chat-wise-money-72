@@ -388,6 +388,11 @@ function Painel() {
   const [previaAberta, setPreviaAberta] = useState(false);
   const [linkRelatorio, setLinkRelatorio] = useState("");
   const [linkCopiado, setLinkCopiado] = useState(false);
+  const [conferido, setConferido] = useState(false);
+
+  useEffect(() => {
+    setConferido(false);
+  }, [idiomaPdf, secoesPdf]);
 
   const fecharPrevia = () => setPreviaAberta(false);
 
@@ -395,6 +400,7 @@ function Painel() {
     if (!dadosPdf() || nenhumaSecao) return;
     setAvisoPdf("");
     setLinkRelatorio("");
+    setConferido(false);
     setPreviaAberta(true);
   }
 
@@ -701,6 +707,56 @@ function Painel() {
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto bg-muted/40 p-4">
+              <div className="mx-auto mb-4 max-w-2xl rounded-2xl border border-border bg-card p-5">
+                <h3 className="font-display text-lg">
+                  {t("Confira antes de exportar", "Check before exporting")}
+                </h3>
+                <ul className="mt-3 space-y-2 text-base">
+                  <li className="flex items-center gap-3">
+                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+                      <Check className="size-4" />
+                    </span>
+                    <span>
+                      {t("Idioma do relatório:", "Report language:")}{" "}
+                      <strong>{idiomaPdf === "pt" ? "Português (BR)" : "English"}</strong>
+                    </span>
+                  </li>
+                  {SECOES_PDF.map((s) => {
+                    const incluida = secoesPdf[s.chave];
+                    return (
+                      <li key={s.chave} className="flex items-center gap-3">
+                        <span
+                          className={`grid size-6 shrink-0 place-items-center rounded-full ${
+                            incluida
+                              ? "bg-primary/15 text-primary"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {incluida ? <Check className="size-4" /> : <Minus className="size-4" />}
+                        </span>
+                        <span className={incluida ? "" : "text-muted-foreground"}>
+                          {s.rotulo} —{" "}
+                          {incluida ? t("incluída", "included") : t("fora do PDF", "not in the PDF")}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-base font-semibold text-primary-deep">
+                  <input
+                    type="checkbox"
+                    checked={conferido}
+                    onChange={(e) => setConferido(e.target.checked)}
+                    className="size-5 accent-[hsl(var(--primary))]"
+                  />
+                  {t(
+                    "Conferi o idioma e as seções, pode exportar",
+                    "I checked the language and sections, ready to export",
+                  )}
+                </label>
+              </div>
+
               <PreviaRelatorio dados={dadosPdf()!} />
             </div>
 

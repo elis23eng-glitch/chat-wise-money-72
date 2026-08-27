@@ -95,9 +95,12 @@ function AppLayout() {
             </button>
             <button
               onClick={async () => {
+                window.localStorage.removeItem("wise-money-senha");
+                window.localStorage.setItem("wise-money-lembrar", "0");
                 await supabase.auth.signOut();
                 navigate({ to: "/" });
               }}
+
               className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
             >
               {t("Sair", "Sign out")}

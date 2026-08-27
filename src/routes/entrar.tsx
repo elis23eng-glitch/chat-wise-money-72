@@ -27,6 +27,30 @@ export const Route = createFileRoute("/entrar")({
   component: Entrar,
 });
 
+const CHAVE_SENHA = "wise-money-senha";
+
+/** Guarda a senha no próprio aparelho (codificada) para acesso rápido. */
+function salvarSenha(senha: string) {
+  try {
+    window.localStorage.setItem(CHAVE_SENHA, window.btoa(encodeURIComponent(senha)));
+  } catch {
+    /* ignora */
+  }
+}
+
+function lerSenhaSalva(): string | null {
+  try {
+    const bruto = window.localStorage.getItem(CHAVE_SENHA);
+    return bruto ? decodeURIComponent(window.atob(bruto)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function limparSenhaSalva() {
+  window.localStorage.removeItem(CHAVE_SENHA);
+}
+
 function Entrar() {
   const { session, loading } = useAuth();
   const { t } = useIdioma();
@@ -35,15 +59,40 @@ function Entrar() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [lembrar, setLembrar] = useState(true);
+  const [entrandoSozinho, setEntrandoSozinho] = useState(false);
 
-  // Lembra o e-mail para facilitar o próximo acesso no celular.
+  // Lembra o e-mail e, se autorizado, a senha para entrar direto no aparelho.
   useEffect(() => {
     const salvo = window.localStorage.getItem("wise-money-email");
     if (salvo) setEmail(salvo);
+    const senhaSalva = lerSenhaSalva();
+    if (senhaSalva) setSenha(senhaSalva);
+    setLembrar(window.localStorage.getItem("wise-money-lembrar") !== "0");
   }, []);
 
   useEffect(() => {
     if (!loading && session) window.location.replace("/conversa");
+  }, [loading, session]);
+
+  // Acesso automático: com senha salva, abre o app sem digitar nada.
+  useEffect(() => {
+    if (loading || session || entrandoSozinho) return;
+    const emailSalvo = window.localStorage.getItem("wise-money-email");
+    const senhaSalva = lerSenhaSalva();
+    if (!emailSalvo || !senhaSalva) return;
+    setEntrandoSozinho(true);
+    supabase.auth
+      .signInWithPassword({ email: emailSalvo, password: senhaSalva })
+      .then(({ data, error }) => {
+        if (error || !data.session) {
+          limparSenhaSalva();
+          setEntrandoSozinho(false);
+          return;
+        }
+        window.location.replace("/conversa");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session]);
 
   function abrirConversa() {
@@ -54,6 +103,10 @@ function Entrar() {
     e.preventDefault();
     setEnviando(true);
     window.localStorage.setItem("wise-money-email", email);
+    window.localStorage.setItem("wise-money-lembrar", lembrar ? "1" : "0");
+    if (lembrar) salvarSenha(senha);
+    else limparSenhaSalva();
+
     try {
       if (modo === "criar") {
         const { data, error } = await supabase.auth.signUp({
@@ -138,6 +191,16 @@ function Entrar() {
     abrirConversa();
   }
 
+  if (loading || entrandoSozinho) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-background px-6 text-center">
+        <p className="text-lg font-semibold text-muted-foreground">
+          {t("Entrando no seu Wise Money…", "Signing in to your Wise Money…")}
+        </p>
+      </main>
+    );
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-6 py-12">
       <div className="pointer-events-none absolute inset-0">
@@ -213,6 +276,8 @@ function Entrar() {
               <input
                 type="email"
                 required
+                autoComplete="username"
+                inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
@@ -225,11 +290,30 @@ function Entrar() {
                 type="password"
                 required
                 minLength={6}
+                autoComplete={modo === "criar" ? "new-password" : "current-password"}
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
                 placeholder={t("pelo menos 6 letras ou números", "at least 6 letters or numbers")}
               />
+            </label>
+
+            <label className="flex items-start gap-3 rounded-2xl bg-secondary/60 px-4 py-3">
+              <input
+                type="checkbox"
+                checked={lembrar}
+                onChange={(e) => setLembrar(e.target.checked)}
+                className="mt-1 size-5 accent-[hsl(var(--primary))]"
+              />
+              <span className="text-sm font-semibold leading-snug">
+                {t("Entrar sozinho neste aparelho", "Sign in automatically on this device")}
+                <span className="block text-xs font-normal text-muted-foreground">
+                  {t(
+                    "Salvamos sua senha só neste celular para você não digitar toda vez.",
+                    "We save your password on this phone only, so you don't type it every time.",
+                  )}
+                </span>
+              </span>
             </label>
 
             <button

@@ -201,7 +201,6 @@ export const deleteExpense = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 export const createGoal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) =>
@@ -284,7 +283,6 @@ export const deleteIncome = createServerFn({ method: "POST" })
     if (!row) throw new Error("Lançamento não encontrado.");
     return { ok: true };
   });
-
 
 export const updateExpense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

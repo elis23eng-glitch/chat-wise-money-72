@@ -17,7 +17,6 @@ import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 
-
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
     meta: [
@@ -85,7 +84,6 @@ function Resumo() {
     valor: number;
   } | null>(null);
 
-
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<(typeof CATEGORIAS)[number]>("alimentação");
   const [descricao, setDescricao] = useState("");
@@ -125,7 +123,6 @@ function Resumo() {
     onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
 
-
   const addMutation = useMutation({
     mutationFn: () =>
       criar({
@@ -157,7 +154,6 @@ function Resumo() {
     },
     onError: () => toast.error(t("Não consegui apagar.", "Could not delete.")),
   });
-
 
   const total = data?.totalMes ?? 0;
   const entradas = data?.totalEntradas ?? 0;
@@ -194,7 +190,6 @@ function Resumo() {
           {t("Atualizar", "Refresh")}
         </button>
       </header>
-
 
       <div
         className={`rounded-3xl p-6 ${
@@ -527,7 +522,6 @@ function Resumo() {
           else delEntradaMutation.mutate(confirmando.id);
         }}
       />
-
     </div>
   );
 }

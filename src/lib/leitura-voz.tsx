@@ -164,9 +164,9 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
         const fala = new SpeechSynthesisUtterance(frase.trim());
         fala.lang = idioma === "en" ? "en-US" : "pt-BR";
         if (voz) fala.voice = voz;
-        fala.rate = 0.9;
+        fala.rate = prefsRef.current.velocidade;
         fala.pitch = 1.05;
-        fala.volume = 0.95;
+        fala.volume = prefsRef.current.volume;
         if (i === frases.length - 1) {
           fala.onend = () => setFalandoId(null);
           fala.onerror = () => setFalandoId(null);
@@ -184,19 +184,31 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
       parar();
       const pedido = pedidoRef.current;
       setFalandoId(id);
+      const atuais = prefsRef.current;
+
+      if (atuais.motor === "aparelho") {
+        falarLocal(conteudo, id);
+        return;
+      }
 
       void (async () => {
         try {
           const res = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: conteudo, idioma }),
+            body: JSON.stringify({
+              text: conteudo,
+              idioma,
+              voice: atuais.timbre,
+              speed: atuais.velocidade,
+            }),
           });
           if (!res.ok) throw new Error(`TTS ${res.status}`);
           const blob = await res.blob();
           if (pedido !== pedidoRef.current) return;
           const url = URL.createObjectURL(blob);
           const audio = new Audio(url);
+          audio.volume = atuais.volume;
           audioRef.current = audio;
           const encerrar = () => {
             URL.revokeObjectURL(url);
@@ -213,6 +225,19 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     },
     [idioma, parar, falarLocal],
   );
+
+  const salvarPrefs = useCallback((novas: Partial<PrefsVoz>) => {
+    definirPrefs((atual) => {
+      const proximas = { ...atual, ...novas };
+      try {
+        localStorage.setItem(CHAVE_PREFS, JSON.stringify(proximas));
+      } catch {
+        /* ignore */
+      }
+      return proximas;
+    });
+  }, []);
+
 
   const alternarAuto = useCallback(() => {
     setAutoLeitura((atual) => {

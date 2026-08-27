@@ -6,6 +6,7 @@ import {
   ListChecks,
   MessageCircle,
   Mic,
+  PlayCircle,
   Target,
 } from "lucide-react";
 

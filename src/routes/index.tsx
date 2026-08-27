@@ -130,7 +130,6 @@ function BoasVindas() {
               <p className="text-sm text-muted-foreground">
                 {t("Leva menos de um minuto.", "It takes less than a minute.")}
               </p>
-
             </div>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-3">

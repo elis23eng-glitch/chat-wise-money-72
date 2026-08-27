@@ -32,13 +32,22 @@ function ComoInstalar() {
       "Toque nos três pontinhos no canto superior direito.",
       "Tap the three dots in the top right corner.",
     ),
-    t('Escolha "Instalar app" ou "Adicionar à tela inicial".', 'Choose "Install app" or "Add to Home screen".'),
-    t("Confirme. O porquinho aparece na sua tela inicial.", "Confirm. The piggy icon appears on your home screen."),
+    t(
+      'Escolha "Instalar app" ou "Adicionar à tela inicial".',
+      'Choose "Install app" or "Add to Home screen".',
+    ),
+    t(
+      "Confirme. O porquinho aparece na sua tela inicial.",
+      "Confirm. The piggy icon appears on your home screen.",
+    ),
   ];
 
   const iphone = [
     t("Abra este site no Safari.", "Open this site in Safari."),
-    t("Toque no botão de compartilhar (quadrado com seta).", "Tap the share button (square with an arrow)."),
+    t(
+      "Toque no botão de compartilhar (quadrado com seta).",
+      "Tap the share button (square with an arrow).",
+    ),
     t('Escolha "Adicionar à Tela de Início".', 'Choose "Add to Home Screen".'),
     t("Toque em Adicionar.", "Tap Add."),
   ];

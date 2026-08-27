@@ -50,6 +50,7 @@ function Entrar() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEnviando(true);
+    window.localStorage.setItem("wise-money-email", email);
     try {
       if (modo === "criar") {
         const { data, error } = await supabase.auth.signUp({

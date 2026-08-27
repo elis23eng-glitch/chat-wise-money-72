@@ -105,6 +105,10 @@ function Entrar() {
     e.preventDefault();
     setEnviando(true);
     window.localStorage.setItem("wise-money-email", email);
+    window.localStorage.setItem("wise-money-lembrar", lembrar ? "1" : "0");
+    if (lembrar) salvarSenha(senha);
+    else limparSenhaSalva();
+
     try {
       if (modo === "criar") {
         const { data, error } = await supabase.auth.signUp({

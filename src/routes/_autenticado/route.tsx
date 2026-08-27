@@ -3,24 +3,27 @@ import { useEffect } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useIdioma } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Route = createFileRoute("/_autenticado")({
   component: AppLayout,
 });
 
-const NAV = [
-  { to: "/conversa", label: "Conversa" },
-  { to: "/painel", label: "Painel" },
-  { to: "/resumo", label: "Resumo" },
-
-  { to: "/metas", label: "Metas" },
-  { to: "/mercado", label: "Mercado" },
-  { to: "/insights", label: "Insights" },
-] as const;
-
 function AppLayout() {
   const { session, user, loading } = useAuth();
   const navigate = useNavigate();
+  const { t } = useIdioma();
+
+  const NAV = [
+    { to: "/conversa", label: t("Conversa", "Chat") },
+    { to: "/painel", label: t("Painel", "Dashboard") },
+    { to: "/resumo", label: t("Resumo", "Summary") },
+
+    { to: "/metas", label: t("Metas", "Goals") },
+    { to: "/mercado", label: t("Mercado", "Market") },
+    { to: "/insights", label: t("Insights", "Insights") },
+  ] as const;
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/entrar" });
@@ -29,7 +32,7 @@ function AppLayout() {
   if (loading || !session) {
     return (
       <div className="grid min-h-screen place-items-center bg-background text-muted-foreground">
-        Um instante…
+        {t("Um instante…", "Just a moment…")}
       </div>
     );
   }
@@ -61,7 +64,7 @@ function AppLayout() {
             <div>
               <p className="font-display text-xl leading-none">mergulho</p>
               <p className="text-[11px] uppercase tracking-[0.22em] text-primary/70">
-                assessor financeiro
+                {t("assessor financeiro", "financial advisor")}
               </p>
             </div>
           </Link>
@@ -80,6 +83,7 @@ function AppLayout() {
           </nav>
 
           <div className="order-2 flex items-center gap-3 md:order-3">
+            <LanguageSwitcher />
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
@@ -87,7 +91,7 @@ function AppLayout() {
               }}
               className="rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/15"
             >
-              Sair
+              {t("Sair", "Sign out")}
             </button>
             <div className="grid size-10 place-items-center rounded-full bg-secondary font-display text-primary-deep">
               {inicial}

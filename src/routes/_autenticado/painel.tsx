@@ -380,7 +380,38 @@ function Painel() {
 
   const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
 
-  async function exportarPdf(acao: "baixar" | "compartilhar") {
+  // Prévia do relatório
+  const [previaUrl, setPreviaUrl] = useState<string | null>(null);
+  const [gerandoPrevia, setGerandoPrevia] = useState(false);
+  const [linkRelatorio, setLinkRelatorio] = useState("");
+  const [linkCopiado, setLinkCopiado] = useState(false);
+
+  function fecharPrevia() {
+    setPreviaUrl((url) => {
+      if (url) URL.revokeObjectURL(url);
+      return null;
+    });
+  }
+
+  useEffect(() => () => fecharPrevia(), []);
+
+  async function abrirPrevia() {
+    const dados = dadosPdf();
+    if (!dados || nenhumaSecao) return;
+    setAvisoPdf("");
+    setLinkRelatorio("");
+    setGerandoPrevia(true);
+    try {
+      const mod = await import("@/lib/pdf-report");
+      const { blob } = await mod.gerarRelatorioPdf(dados);
+      fecharPrevia();
+      setPreviaUrl(URL.createObjectURL(blob));
+    } finally {
+      setGerandoPrevia(false);
+    }
+  }
+
+  async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
     const dados = dadosPdf();
     if (!dados || nenhumaSecao) return;
     setAvisoPdf("");
@@ -389,6 +420,25 @@ function Painel() {
       const mod = await import("@/lib/pdf-report");
       if (acao === "baixar") {
         await mod.baixarRelatorioPdf(dados);
+      } else if (acao === "link") {
+        try {
+          const url = await mod.gerarLinkRelatorioPdf(dados);
+          setLinkRelatorio(url);
+          setLinkCopiado(false);
+          try {
+            await navigator.clipboard.writeText(url);
+            setLinkCopiado(true);
+          } catch {
+            /* sem permissão de área de transferência */
+          }
+        } catch {
+          setAvisoPdf(
+            t(
+              "Não consegui criar o link agora. Tente de novo em instantes.",
+              "I couldn't create the link right now. Please try again shortly.",
+            ),
+          );
+        }
       } else {
         const ok = await mod.compartilharRelatorioPdf(
           dados,
@@ -408,6 +458,7 @@ function Painel() {
       setExportando(null);
     }
   }
+
 
   const SECOES_PDF = [
     { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },

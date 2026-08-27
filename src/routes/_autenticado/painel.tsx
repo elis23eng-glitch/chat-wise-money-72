@@ -584,9 +584,20 @@ function Painel() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={abrirPrevia}
+                disabled={nenhumaSecao || gerandoPrevia}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+              >
+                <Eye className="size-5" />
+                {gerandoPrevia
+                  ? t("Montando a prévia…", "Building the preview…")
+                  : t("Ver prévia", "Preview report")}
+              </button>
+              <button
+                type="button"
                 onClick={() => exportarPdf("baixar")}
                 disabled={nenhumaSecao || exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
               >
                 <Download className="size-5" />
                 {exportando === "baixar"
@@ -604,7 +615,59 @@ function Painel() {
                   ? t("Preparando…", "Preparing…")
                   : t("Compartilhar", "Share")}
               </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("link")}
+                disabled={nenhumaSecao || exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <LinkIcon className="size-5" />
+                {exportando === "link"
+                  ? t("Criando link…", "Creating link…")
+                  : t("Compartilhar por link", "Share by link")}
+              </button>
             </div>
+
+            {linkRelatorio && (
+              <div className="rounded-2xl border border-primary/20 bg-secondary p-4">
+                <p className="text-base font-semibold text-primary-deep">
+                  {linkCopiado
+                    ? t("Link copiado! Vale por 7 dias.", "Link copied! Valid for 7 days.")
+                    : t("Link pronto — vale por 7 dias.", "Link ready — valid for 7 days.")}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input
+                    readOnly
+                    value={linkRelatorio}
+                    onFocus={(e) => e.currentTarget.select()}
+                    aria-label={t("Link do relatório", "Report link")}
+                    className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(linkRelatorio);
+                        setLinkCopiado(true);
+                      } catch {
+                        /* ignora */
+                      }
+                    }}
+                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-deep"
+                  >
+                    {t("Copiar", "Copy")}
+                  </button>
+                  <a
+                    href={linkRelatorio}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full border border-primary/30 bg-card px-5 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
+                  >
+                    {t("Abrir", "Open")}
+                  </a>
+                </div>
+              </div>
+            )}
 
             {nenhumaSecao && (
               <p className="text-sm text-destructive">
@@ -615,6 +678,7 @@ function Painel() {
               </p>
             )}
             {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
+
           </div>
         )}
       </header>

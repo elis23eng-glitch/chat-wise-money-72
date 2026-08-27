@@ -3,7 +3,7 @@ import { BarChart3, FileDown, Languages, ListChecks, MessageCircle, Mic, Target 
 
 import { useIdioma } from "@/lib/i18n";
 
-const CHAVE = "mergulho:tutorial-visto";
+const CHAVE = "mergulho:tutorial-visto-v2";
 
 type Passo = {
   icone: typeof MessageCircle;

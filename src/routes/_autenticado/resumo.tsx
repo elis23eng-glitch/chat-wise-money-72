@@ -179,9 +179,10 @@ function Resumo() {
         </div>
         <button
           type="button"
-          onClick={() => {
-            qc.invalidateQueries({ queryKey: ["dashboard"] });
-            refetch();
+          onClick={async () => {
+            await qc.invalidateQueries({ refetchType: "all" });
+            await refetch();
+            toast.success(t("Dados atualizados!", "Data updated!"));
           }}
           disabled={isFetching}
           className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-base font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-60"

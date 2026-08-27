@@ -56,17 +56,11 @@ function Conversa() {
     },
     {
       titulo: t("Registrar entrada", "Log income"),
-      exemplo: t(
-        "“Recebi 1.500 reais de aposentadoria”",
-        '"I received $1,500 from retirement"',
-      ),
+      exemplo: t("“Recebi 1.500 reais de aposentadoria”", '"I received $1,500 from retirement"'),
     },
     {
       titulo: t("Corrigir lançamento", "Correct an entry"),
-      exemplo: t(
-        "“Corrigir o último gasto para 50 reais”",
-        '"Change my last expense to $50"',
-      ),
+      exemplo: t("“Corrigir o último gasto para 50 reais”", '"Change my last expense to $50"'),
     },
     {
       titulo: t("Excluir lançamento", "Delete an entry"),

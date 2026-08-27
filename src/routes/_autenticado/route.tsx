@@ -114,7 +114,5 @@ function AppLayout() {
 
       <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />
     </div>
-
-    </div>
   );
 }

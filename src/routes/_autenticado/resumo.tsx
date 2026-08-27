@@ -84,12 +84,16 @@ function Resumo() {
     valor: number;
   } | null>(null);
 
+  const hojeIso = new Date().toISOString().slice(0, 10);
   const [valor, setValor] = useState("");
   const [categoria, setCategoria] = useState<(typeof CATEGORIAS)[number]>("alimentação");
   const [descricao, setDescricao] = useState("");
+  const [dataG, setDataG] = useState(hojeIso);
   const [valorE, setValorE] = useState("");
+
   const [categoriaE, setCategoriaE] = useState<(typeof CATEGORIAS_ENTRADA)[number]>("salário");
   const [descricaoE, setDescricaoE] = useState("");
+  const [dataE, setDataE] = useState(hojeIso);
 
   const addEntradaMutation = useMutation({
     mutationFn: () =>
@@ -98,7 +102,7 @@ function Resumo() {
           valor: Number(valorE.replace(",", ".")),
           categoria: categoriaE,
           descricao: descricaoE || categoriaE,
-          data: new Date().toISOString().slice(0, 10),
+          data: dataE,
         },
       }),
     onSuccess: () => {
@@ -107,7 +111,9 @@ function Resumo() {
       toast.success(t("Entrada anotada!", "Income recorded!"));
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["ano"] });
     },
+
     onError: () =>
       toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
   });
@@ -130,7 +136,7 @@ function Resumo() {
           valor: Number(valor.replace(",", ".")),
           categoria,
           descricao: descricao || categoria,
-          data: new Date().toISOString().slice(0, 10),
+          data: dataG,
         },
       }),
     onSuccess: () => {
@@ -139,7 +145,9 @@ function Resumo() {
       toast.success(t("Gasto anotado!", "Expense recorded!"));
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["ano"] });
     },
+
     onError: () =>
       toast.error(t("Confira o valor e tente de novo.", "Check the amount and try again.")),
   });
@@ -359,6 +367,23 @@ function Resumo() {
                   className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
                 />
               </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Data do gasto", "Expense date")}</span>
+                <input
+                  type="date"
+                  required
+                  value={dataG}
+                  onChange={(e) => setDataG(e.target.value)}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {t(
+                    "Pode escolher um mês passado para lançar contas antigas.",
+                    "You can pick a past month to record older bills.",
+                  )}
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={addMutation.isPending}
@@ -420,6 +445,23 @@ function Resumo() {
                   className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
                 />
               </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Data da entrada", "Income date")}</span>
+                <input
+                  type="date"
+                  required
+                  value={dataE}
+                  onChange={(e) => setDataE(e.target.value)}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {t(
+                    "Pode escolher um mês passado para lançar o que ficou para trás.",
+                    "You can pick a past month to record older entries.",
+                  )}
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={addEntradaMutation.isPending}

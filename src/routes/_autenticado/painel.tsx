@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowDownRight,
+  Download,
   History,
   ArrowUpRight,
   CalendarDays,
@@ -345,6 +346,33 @@ function Painel() {
   }, [historicoFiltrado, idioma]);
 
 
+  // ---- Exportar o painel em PDF ----
+  const [exportando, setExportando] = useState(false);
+  async function exportarPdf() {
+    if (!data) return;
+    setExportando(true);
+    try {
+      const { gerarRelatorioPdf } = await import("@/lib/pdf-report");
+      await gerarRelatorioPdf({
+        idioma,
+        modo: semanal ? "semana" : "mes",
+        periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
+        periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
+        entradas: periodoEntradas,
+        gastos: periodoGastos,
+        saldo: periodoSaldo,
+        mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
+        projecaoMes: data.projecaoMes,
+        porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),
+        metas: data.metas ?? [],
+        historico: historicoFiltrado,
+        tituloAlerta: (tipo) => tituloAlerta(tipo as TipoAlerta),
+      });
+    } finally {
+      setExportando(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -385,6 +413,16 @@ function Painel() {
             </button>
           ))}
         </div>
+
+        <button
+          type="button"
+          onClick={exportarPdf}
+          disabled={isLoading || exportando}
+          className="mt-5 ml-0 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 sm:ml-3"
+        >
+          <Download className="size-4" />
+          {exportando ? t("Gerando PDF…", "Generating PDF…") : t("Exportar PDF", "Export PDF")}
+        </button>
       </header>
 
       {isLoading && (

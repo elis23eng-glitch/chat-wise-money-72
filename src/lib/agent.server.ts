@@ -18,6 +18,17 @@ export const CATEGORIAS = [
   "outros",
 ] as const;
 
+export const CATEGORIAS_ENTRADA = [
+  "salário",
+  "aposentadoria",
+  "pensão",
+  "trabalho extra",
+  "aluguel recebido",
+  "venda",
+  "presente",
+  "outros",
+] as const;
+
 type Client = SupabaseClient<Database>;
 
 const SYSTEM_PROMPT = `Você é a Mia, uma agente financeira educativa brasileira do aplicativo "mergulho".
@@ -26,7 +37,9 @@ O público é iniciante em finanças e inclui pessoas idosas: nada de jargão. S
 
 O que você faz:
 - Registra gastos que a pessoa conta em linguagem natural (ex.: "gastei 35 reais no mercado"). Use a ferramenta registrar_gasto e confirme depois, dizendo valor e categoria.
+- Registra entradas de dinheiro (salário, aposentadoria, pensão, trabalho extra, venda...) quando a pessoa disser que recebeu algo. Use registrar_entrada e confirme depois.
 - Se faltar o valor ou ficar ambíguo, pergunte antes de registrar.
+- Quando perguntarem sobre saldo ("sobrou?", "estou no vermelho?"), use resumo_financeiro: saldo = entradas menos gastos do mês. Explique com carinho se estiver negativo.
 - Classifica os gastos em uma destas categorias: ${CATEGORIAS.join(", ")}. Se a pessoa corrigir, use corrigir_categoria.
 - Cria e acompanha metas simples com criar_meta, listar_metas e guardar_na_meta.
 - Mostra resumos e tendências com resumo_financeiro.
@@ -80,6 +93,32 @@ function buildTools(supabase: Client, userId: string) {
       },
     }),
 
+    registrar_entrada: tool({
+      description:
+        "Registra uma entrada de dinheiro (renda recebida) do usuário no banco de dados.",
+      inputSchema: z.object({
+        valor: z.number().describe("Valor em reais recebido, ex.: 1500"),
+        categoria: z.enum(CATEGORIAS_ENTRADA),
+        descricao: z.string().describe("Descrição curta, ex.: salário de agosto"),
+        data: z.string().nullable().describe("Data no formato AAAA-MM-DD. Use null para hoje."),
+      }),
+      execute: async ({ valor, categoria, descricao, data }) => {
+        const { data: row, error } = await supabase
+          .from("incomes")
+          .insert({
+            user_id: userId,
+            valor: valor as unknown as number,
+            categoria,
+            descricao,
+            data: data ?? hoje(),
+          })
+          .select()
+          .single();
+        if (error) return { ok: false, erro: error.message };
+        return { ok: true, entrada: row };
+      },
+    }),
+
     corrigir_categoria: tool({
       description: "Corrige a categoria do último gasto registrado do usuário.",
       inputSchema: z.object({ categoria: z.enum(CATEGORIAS) }),
@@ -102,14 +141,21 @@ function buildTools(supabase: Client, userId: string) {
 
     resumo_financeiro: tool({
       description:
-        "Retorna o total gasto no mês atual, o total do mês anterior e os gastos por categoria.",
+        "Retorna entradas, gastos e saldo do mês atual, do mês anterior e os gastos por categoria.",
       inputSchema: z.object({}),
       execute: async () => {
-        const { data } = await supabase
-          .from("expenses")
-          .select("valor, categoria, data")
-          .eq("user_id", userId)
-          .gte("data", inicioDoMes(-1));
+        const [{ data }, { data: rec }] = await Promise.all([
+          supabase
+            .from("expenses")
+            .select("valor, categoria, data")
+            .eq("user_id", userId)
+            .gte("data", inicioDoMes(-1)),
+          supabase
+            .from("incomes")
+            .select("valor, categoria, data")
+            .eq("user_id", userId)
+            .gte("data", inicioDoMes(-1)),
+        ]);
         const linhas = data ?? [];
         const mesAtual = inicioDoMes(0);
         const porCategoria: Record<string, number> = {};
@@ -124,7 +170,23 @@ function buildTools(supabase: Client, userId: string) {
             totalAnterior += v;
           }
         }
-        return { totalMes, totalAnterior, porCategoria, quantidade: linhas.length };
+        let entradasMes = 0;
+        let entradasAnterior = 0;
+        for (const l of rec ?? []) {
+          const v = Number(l.valor);
+          if (l.data >= mesAtual) entradasMes += v;
+          else entradasAnterior += v;
+        }
+        return {
+          totalMes,
+          totalAnterior,
+          entradasMes,
+          entradasAnterior,
+          saldoMes: entradasMes - totalMes,
+          saldoAnterior: entradasAnterior - totalAnterior,
+          porCategoria,
+          quantidade: linhas.length,
+        };
       },
     }),
 

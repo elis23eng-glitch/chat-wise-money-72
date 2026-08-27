@@ -15,9 +15,15 @@ export const getDashboard = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const desde = primeiroDia(-5);
 
-    const [{ data: gastos }, { data: metas }] = await Promise.all([
+    const [{ data: gastos }, { data: entradas }, { data: metas }] = await Promise.all([
       supabase
         .from("expenses")
+        .select("id, valor, categoria, descricao, data")
+        .eq("user_id", userId)
+        .gte("data", desde)
+        .order("data", { ascending: false }),
+      supabase
+        .from("incomes")
         .select("id, valor, categoria, descricao, data")
         .eq("user_id", userId)
         .gte("data", desde)
@@ -30,9 +36,16 @@ export const getDashboard = createServerFn({ method: "GET" })
     ]);
 
     const linhas = (gastos ?? []).map((g) => ({ ...g, valor: Number(g.valor) }));
+    const linhasEntrada = (entradas ?? []).map((e) => ({ ...e, valor: Number(e.valor) }));
 
     // Série dos últimos 6 meses
-    const meses: { chave: string; rotulo: string; total: number }[] = [];
+    const meses: {
+      chave: string;
+      rotulo: string;
+      total: number;
+      entrada: number;
+      saldo: number;
+    }[] = [];
     for (let i = -5; i <= 0; i++) {
       const inicio = primeiroDia(i);
       const fim = primeiroDia(i + 1);
@@ -40,10 +53,15 @@ export const getDashboard = createServerFn({ method: "GET" })
         .filter((l) => l.data >= inicio && l.data < fim)
         .reduce((s, l) => s + l.valor, 0);
       const d = new Date(`${inicio}T00:00:00Z`);
+      const entrada = linhasEntrada
+        .filter((l) => l.data >= inicio && l.data < fim)
+        .reduce((s, l) => s + l.valor, 0);
       meses.push({
         chave: inicio,
         rotulo: d.toLocaleDateString("pt-BR", { month: "short", timeZone: "UTC" }).replace(".", ""),
         total: Math.round(total * 100) / 100,
+        entrada: Math.round(entrada * 100) / 100,
+        saldo: Math.round((entrada - total) * 100) / 100,
       });
     }
 
@@ -80,7 +98,25 @@ export const getDashboard = createServerFn({ method: "GET" })
     const diaDoMes = hoje.getUTCDate();
     const mediaDiaria = diaDoMes > 0 ? totalMes / diaDoMes : 0;
 
+    const entradasMes = linhasEntrada.filter((l) => l.data >= mesAtual);
+    const entradasAnterior = linhasEntrada.filter(
+      (l) => l.data >= mesAnterior && l.data < mesAtual,
+    );
+    const totalEntradas = entradasMes.reduce((s, l) => s + l.valor, 0);
+    const totalEntradasAnterior = entradasAnterior.reduce((s, l) => s + l.valor, 0);
+
+    const porCategoriaEntrada: Record<string, number> = {};
+    for (const l of entradasMes)
+      porCategoriaEntrada[l.categoria] = (porCategoriaEntrada[l.categoria] ?? 0) + l.valor;
+
     return {
+      totalEntradas,
+      totalEntradasAnterior,
+      saldo: totalEntradas - totalMes,
+      saldoAnterior: totalEntradasAnterior - totalAnterior,
+      porCategoriaEntrada,
+      entradasRecentes: linhasEntrada.slice(0, 6),
+      quantidadeEntradas: entradasMes.length,
       totalMes,
       totalAnterior,
       mediaDiaria,

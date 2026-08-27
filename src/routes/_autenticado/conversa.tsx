@@ -114,8 +114,19 @@ function Conversa() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["mensagens"] }),
   });
 
+  const voz = useLeituraEmVozAlta(idioma === "en" ? "en" : "pt");
+
+  useEffect(() => {
+    if (!voz.autoLeitura || !voz.disponivel) return;
+    const ultima = [...mensagens].reverse().find((m) => m.role !== "user");
+    if (!ultima || voz.foiLido(ultima.id)) return;
+    voz.marcarComoLido(ultima.id);
+    voz.falar(ultima.content, ultima.id);
+  }, [mensagens, voz]);
+
   function submeter(valor: string) {
     const limpo = valor.trim();
+
     if (!limpo || mutation.isPending) return;
     setTexto("");
     mutation.mutate(limpo);

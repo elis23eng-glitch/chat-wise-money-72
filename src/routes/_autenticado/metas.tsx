@@ -12,7 +12,7 @@ import { useIdioma } from "@/lib/i18n";
 export const Route = createFileRoute("/_autenticado/metas")({
   head: () => ({
     meta: [
-      { title: "Minhas metas — mergulho" },
+      { title: "Minhas metas — Wise Money" },
       {
         name: "description",
         content: "Crie metas de economia, guarde aos poucos e acompanhe o progresso de cada uma.",

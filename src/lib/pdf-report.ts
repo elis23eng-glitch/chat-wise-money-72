@@ -61,7 +61,7 @@ const TITULOS_ALERTA: Record<IdiomaFormato, Record<string, string>> = {
 const T = {
   pt: {
     titulo: "Relatório financeiro",
-    app: "mergulho — assistente financeiro",
+    app: "Wise Money — assistente financeiro",
     geradoEm: "Gerado em",
     periodo: "Período",
     mes: "Este mês",
@@ -93,7 +93,7 @@ const T = {
   },
   en: {
     titulo: "Financial report",
-    app: "mergulho — financial assistant",
+    app: "Wise Money — financial assistant",
     geradoEm: "Generated on",
     periodo: "Period",
     mes: "This month",

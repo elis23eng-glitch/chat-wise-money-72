@@ -12,7 +12,7 @@ import { definirIdiomaFormato } from "./format";
 
 export type Idioma = "pt" | "en";
 
-const CHAVE = "mergulho:idioma";
+const CHAVE = "wise-money:idioma";
 
 type Contexto = {
   idioma: Idioma;

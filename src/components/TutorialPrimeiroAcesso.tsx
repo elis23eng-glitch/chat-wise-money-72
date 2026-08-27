@@ -12,7 +12,7 @@ import {
 
 import { useIdioma } from "@/lib/i18n";
 
-const CHAVE = "mergulho:tutorial-visto-v3";
+const CHAVE = "wise-money:tutorial-visto-v3";
 
 type Passo = {
   icone: typeof MessageCircle;

@@ -313,9 +313,12 @@ function Conversa() {
             />
             <PromptInputFooter className="justify-between">
               <VoiceInputButton
+                idioma={idioma === "en" ? "en" : "pt"}
                 onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
+                onAutoSubmit={(txt) => submeter(txt)}
                 disabled={mutation.isPending}
               />
+
               <PromptInputSubmit
                 status={mutation.isPending ? "submitted" : "ready"}
                 disabled={!texto.trim() || mutation.isPending}

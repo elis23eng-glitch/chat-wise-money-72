@@ -226,12 +226,14 @@ function Entrar() {
             </button>
           </form>
 
-          <button
-            onClick={entrarComGoogle}
-            className="mt-3 w-full rounded-full border border-input bg-card px-6 py-3.5 text-base font-semibold transition-colors hover:bg-secondary"
-          >
-            {t("Continuar com o Google", "Continue with Google")}
-          </button>
+          {modo === "criar" && (
+            <button
+              onClick={entrarComGoogle}
+              className="mt-3 w-full rounded-full border border-input bg-card px-6 py-3.5 text-base font-semibold transition-colors hover:bg-secondary"
+            >
+              {t("Continuar com o Google", "Continue with Google")}
+            </button>
+          )}
 
           <button
             onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}

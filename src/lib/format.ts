@@ -48,7 +48,6 @@ export function notaConversao(idioma?: IdiomaFormato) {
   return `Converted from BRL at today's rate (1 USD = R$ ${cotacaoUsd.toFixed(2)})`;
 }
 
-
 export const moeda = brl;
 
 function partes(iso: string) {

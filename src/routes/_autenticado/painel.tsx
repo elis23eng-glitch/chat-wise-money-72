@@ -43,7 +43,15 @@ import {
   type AlertaRegistro,
   type TipoAlerta,
 } from "@/lib/alerts.functions";
-import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto, notaConversao } from "@/lib/format";
+import {
+  brl,
+  dataCurta,
+  dataLonga,
+  categoriaLabel,
+  diaSemanaCurto,
+  mesCurto,
+  notaConversao,
+} from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 

@@ -26,7 +26,6 @@ type Contexto = {
   cotacaoUsd: number | null;
 };
 
-
 const IdiomaContext = createContext<Contexto | null>(null);
 
 const CHAVE_COTACAO = "wise-money:cotacao-usd";
@@ -119,7 +118,6 @@ export function IdiomaProvider({ children }: { children: ReactNode }) {
   );
 }
 
-
 export function useIdioma(): Contexto {
   const ctx = useContext(IdiomaContext);
   if (ctx) return ctx;
@@ -130,5 +128,4 @@ export function useIdioma(): Contexto {
     locale: "pt-BR",
     cotacaoUsd: null,
   };
-
 }

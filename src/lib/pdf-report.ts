@@ -212,7 +212,6 @@ export async function gerarRelatorioPdf(d: DadosRelatorio) {
     y += 16;
   }
 
-
   if (d.secoes.resumo) {
     titulo(L.resumo);
 

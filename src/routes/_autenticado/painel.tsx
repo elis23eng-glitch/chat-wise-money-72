@@ -754,6 +754,28 @@ function Painel() {
                   : t("Compartilhar por link", "Share by link")}
               </button>
             </div>
+
+            {(linkRelatorio || avisoPdf) && (
+              <div className="border-t border-border p-4 text-sm">
+                {linkRelatorio && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      readOnly
+                      value={linkRelatorio}
+                      onFocus={(e) => e.currentTarget.select()}
+                      aria-label={t("Link do relatório", "Report link")}
+                      className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    />
+                    <span className="text-muted-foreground">
+                      {linkCopiado
+                        ? t("Copiado! Vale 7 dias.", "Copied! Valid for 7 days.")
+                        : t("Vale por 7 dias.", "Valid for 7 days.")}
+                    </span>
+                  </div>
+                )}
+                {avisoPdf && <p className="mt-2 text-muted-foreground">{avisoPdf}</p>}
+              </div>
+            )}
           </div>
         </div>
       )}

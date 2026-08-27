@@ -23,7 +23,7 @@ import { VoiceInputButton } from "@/components/VoiceInputButton";
 
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
-import { useLeituraEmVozAlta } from "@/lib/leitura-voz";
+import { saudacaoNina, useLeituraEmVozAlta } from "@/lib/leitura-voz";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({

@@ -305,11 +305,12 @@ function Resumo() {
                       lancamento: { ...g, valor: Number(g.valor), descricao: g.descricao ?? "" },
                     })
                   }
-                  className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                 >
-                  <Pencil className="size-4" />
+                  <Pencil className="size-5" />
                 </button>
                 <button
+                  type="button"
                   aria-label={t("Apagar gasto", "Delete expense")}
                   onClick={() =>
                     setConfirmando({
@@ -319,10 +320,9 @@ function Resumo() {
                       valor: Number(g.valor),
                     })
                   }
-
-                  className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="size-4" />
+                  <Trash2 className="size-5" />
                 </button>
               </li>
             ))}

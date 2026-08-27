@@ -359,6 +359,23 @@ function Resumo() {
                   className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
                 />
               </label>
+              <label className="block">
+                <span className="text-sm font-semibold">{t("Data do gasto", "Expense date")}</span>
+                <input
+                  type="date"
+                  required
+                  value={dataG}
+                  onChange={(e) => setDataG(e.target.value)}
+                  className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
+                />
+                <span className="mt-1 block text-xs text-muted-foreground">
+                  {t(
+                    "Pode escolher um mês passado para lançar contas antigas.",
+                    "You can pick a past month to record older bills.",
+                  )}
+                </span>
+              </label>
+
               <button
                 type="submit"
                 disabled={addMutation.isPending}

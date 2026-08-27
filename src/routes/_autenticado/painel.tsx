@@ -699,11 +699,9 @@ function Painel() {
               </button>
             </div>
 
-            <iframe
-              src={previaUrl}
-              title={t("Prévia do relatório em PDF", "PDF report preview")}
-              className="min-h-0 flex-1 w-full bg-muted"
-            />
+            <div className="min-h-0 flex-1 overflow-y-auto bg-muted/40 p-4">
+              <PreviaRelatorio dados={dadosPdf()!} />
+            </div>
 
             <div className="flex flex-wrap gap-3 border-t border-border p-4">
               <button

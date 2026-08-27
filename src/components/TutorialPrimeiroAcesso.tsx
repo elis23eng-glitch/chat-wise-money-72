@@ -162,6 +162,20 @@ export function TutorialPrimeiroAcesso({
                 {atual.exemplo}
               </p>
             )}
+            {atual.video && (
+              <video
+                className="mt-4 w-full rounded-2xl border border-border shadow-sm"
+                src="/videos/tutorial-mergulho.mp4"
+                poster="/videos/tutorial-poster.jpg"
+                controls
+                playsInline
+                preload="metadata"
+                aria-label={t(
+                  "Vídeo: como registrar um gasto e ver o resumo do mês",
+                  "Video: how to record an expense and see the month summary",
+                )}
+              />
+            )}
           </div>
         </div>
 

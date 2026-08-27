@@ -29,6 +29,11 @@ export type DadosRelatorio = {
   entradas: number;
   gastos: number;
   saldo: number;
+  saldos: {
+    dia: number;
+    semana: number;
+    mes: number;
+  };
   mediaDiaria: number;
   projecaoMes?: number;
   porCategoria: Record<string, number>;

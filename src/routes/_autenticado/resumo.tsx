@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ import {
 import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel, notaConversao } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
+import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
@@ -66,11 +67,21 @@ function Resumo() {
   const criarEntrada = useServerFn(addIncome);
   const apagarEntrada = useServerFn(deleteIncome);
 
-  const { data, isLoading } = useQuery({ queryKey: ["overview"], queryFn: () => overview() });
+  const { data, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["overview"],
+    queryFn: () => overview(),
+  });
 
   const [editando, setEditando] = useState<{
     tipo: "gasto" | "entrada";
     lancamento: LancamentoEditavel;
+  } | null>(null);
+
+  const [confirmando, setConfirmando] = useState<{
+    tipo: "gasto" | "entrada";
+    id: string;
+    descricao: string;
+    valor: number;
   } | null>(null);
 
   const [valor, setValor] = useState("");
@@ -105,6 +116,7 @@ function Resumo() {
     mutationFn: (id: string) => apagarEntrada({ data: { id } }),
     onSuccess: () => {
       toast.success(t("Entrada apagada.", "Income deleted."));
+      setConfirmando(null);
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
@@ -136,6 +148,7 @@ function Resumo() {
     mutationFn: (id: string) => apagar({ data: { id } }),
     onSuccess: () => {
       toast.success(t("Gasto apagado.", "Expense deleted."));
+      setConfirmando(null);
       qc.invalidateQueries({ queryKey: ["overview"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
@@ -152,16 +165,30 @@ function Resumo() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-          {t("Resumo", "Summary")}
-        </p>
-        <h1 className="mt-2 font-display text-4xl tracking-tight">
-          {t("Como está seu mês", "How your month is going")}
-        </h1>
-        {notaConversao(idioma) && (
-          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
-        )}
+      <header className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+            {t("Resumo", "Summary")}
+          </p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight">
+            {t("Como está seu mês", "How your month is going")}
+          </h1>
+          {notaConversao(idioma) && (
+            <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ["dashboard"] });
+            refetch();
+          }}
+          disabled={isFetching}
+          className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-base font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-60"
+        >
+          <RefreshCw className={`size-5 ${isFetching ? "animate-spin" : ""}`} />
+          {t("Atualizar", "Refresh")}
+        </button>
       </header>
 
       <div
@@ -284,17 +311,15 @@ function Resumo() {
                 </button>
                 <button
                   aria-label={t("Apagar gasto", "Delete expense")}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        t(
-                          `Apagar o gasto "${g.descricao}" de ${brl(Number(g.valor))}?`,
-                          `Delete the expense "${g.descricao}" of ${brl(Number(g.valor))}?`,
-                        ),
-                      )
-                    )
-                      delMutation.mutate(g.id);
-                  }}
+                  onClick={() =>
+                    setConfirmando({
+                      tipo: "gasto",
+                      id: g.id,
+                      descricao: g.descricao ?? "",
+                      valor: Number(g.valor),
+                    })
+                  }
+
                   className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-4" />
@@ -454,17 +479,15 @@ function Resumo() {
                     </button>
                     <button
                       aria-label={t("Apagar entrada", "Delete income")}
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            t(
-                              `Apagar a entrada "${e.descricao}" de ${brl(Number(e.valor))}?`,
-                              `Delete the income "${e.descricao}" of ${brl(Number(e.valor))}?`,
-                            ),
-                          )
-                        )
-                          delEntradaMutation.mutate(e.id);
-                      }}
+                      onClick={() =>
+                        setConfirmando({
+                          tipo: "entrada",
+                          id: e.id,
+                          descricao: e.descricao ?? "",
+                          valor: Number(e.valor),
+                        })
+                      }
+
                       className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />
@@ -481,6 +504,23 @@ function Resumo() {
         tipo={editando?.tipo ?? "gasto"}
         lancamento={editando?.lancamento ?? null}
         aoFechar={() => setEditando(null)}
+      />
+
+      <ConfirmarExclusao
+        aberto={!!confirmando}
+        titulo={
+          confirmando?.tipo === "entrada"
+            ? t("Apagar esta entrada?", "Delete this income?")
+            : t("Apagar este gasto?", "Delete this expense?")
+        }
+        descricao={`${confirmando?.descricao ?? ""} — ${brl(confirmando?.valor ?? 0)}`}
+        carregando={delMutation.isPending || delEntradaMutation.isPending}
+        aoCancelar={() => setConfirmando(null)}
+        aoConfirmar={() => {
+          if (!confirmando) return;
+          if (confirmando.tipo === "gasto") delMutation.mutate(confirmando.id);
+          else delEntradaMutation.mutate(confirmando.id);
+        }}
       />
     </div>
   );

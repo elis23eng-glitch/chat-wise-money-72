@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,8 @@ import {
 import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel, notaConversao } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
+import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
+
 
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({

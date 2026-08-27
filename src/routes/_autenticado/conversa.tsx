@@ -111,8 +111,9 @@ function Conversa() {
             {mensagens.map((m) => (
               <Message key={m.id} from={m.role === "user" ? "user" : "assistant"}>
                 <MessageContent
-                  variant={m.role === "user" ? "contained" : "flat"}
-                  className={m.role === "user" ? "bg-primary text-primary-foreground" : ""}
+                  className={
+                    m.role === "user" ? "bg-primary text-primary-foreground" : "bg-transparent"
+                  }
                 >
                   <MessageResponse>{m.content}</MessageResponse>
                 </MessageContent>

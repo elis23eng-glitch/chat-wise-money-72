@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutenticadoRouteRoute = AutenticadoRouteRouteImport.update({
+  id: '/_autenticado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -22,30 +28,40 @@ const EntrarRoute = EntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
+  id: '/conversa',
+  path: '/conversa',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/conversa': typeof AutenticadoConversaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
+  '/conversa': typeof AutenticadoConversaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_autenticado': typeof AutenticadoRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
+  '/_autenticado/conversa': typeof AutenticadoConversaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/entrar'
+  fullPaths: '/' | '/entrar' | '/conversa'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar'
-  id: '__root__' | '/' | '/entrar'
+  to: '/' | '/entrar' | '/conversa'
+  id: '__root__' | '/' | '/_autenticado' | '/entrar' | '/_autenticado/conversa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AutenticadoRouteRoute: typeof AutenticadoRouteRouteWithChildren
   EntrarRoute: typeof EntrarRoute
 }
 
@@ -58,6 +74,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_autenticado': {
+      id: '/_autenticado'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AutenticadoRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrar': {
       id: '/entrar'
       path: '/entrar'
@@ -65,11 +88,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_autenticado/conversa': {
+      id: '/_autenticado/conversa'
+      path: '/conversa'
+      fullPath: '/conversa'
+      preLoaderRoute: typeof AutenticadoConversaRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
   }
 }
 
+interface AutenticadoRouteRouteChildren {
+  AutenticadoConversaRoute: typeof AutenticadoConversaRoute
+}
+
+const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
+  AutenticadoConversaRoute: AutenticadoConversaRoute,
+}
+
+const AutenticadoRouteRouteWithChildren =
+  AutenticadoRouteRoute._addFileChildren(AutenticadoRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AutenticadoRouteRoute: AutenticadoRouteRouteWithChildren,
   EntrarRoute: EntrarRoute,
 }
 export const routeTree = rootRouteImport

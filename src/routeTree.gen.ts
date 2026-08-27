@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
+import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
 import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
 import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
 
@@ -35,6 +36,11 @@ const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
   path: '/conversa',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoMercadoRoute = AutenticadoMercadoRouteImport.update({
+  id: '/mercado',
+  path: '/mercado',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 const AutenticadoMetasRoute = AutenticadoMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -50,6 +56,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
   '/resumo': typeof AutenticadoResumoRoute
 }
@@ -57,6 +64,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
   '/resumo': typeof AutenticadoResumoRoute
 }
@@ -66,20 +74,22 @@ export interface FileRoutesById {
   '/_autenticado': typeof AutenticadoRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
+  '/_autenticado/mercado': typeof AutenticadoMercadoRoute
   '/_autenticado/metas': typeof AutenticadoMetasRoute
   '/_autenticado/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/entrar' | '/conversa' | '/metas' | '/resumo'
+  fullPaths: '/' | '/entrar' | '/conversa' | '/mercado' | '/metas' | '/resumo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/conversa' | '/metas' | '/resumo'
+  to: '/' | '/entrar' | '/conversa' | '/mercado' | '/metas' | '/resumo'
   id:
     | '__root__'
     | '/'
     | '/_autenticado'
     | '/entrar'
     | '/_autenticado/conversa'
+    | '/_autenticado/mercado'
     | '/_autenticado/metas'
     | '/_autenticado/resumo'
   fileRoutesById: FileRoutesById
@@ -120,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoConversaRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/mercado': {
+      id: '/_autenticado/mercado'
+      path: '/mercado'
+      fullPath: '/mercado'
+      preLoaderRoute: typeof AutenticadoMercadoRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
     '/_autenticado/metas': {
       id: '/_autenticado/metas'
       path: '/metas'
@@ -139,12 +156,14 @@ declare module '@tanstack/react-router' {
 
 interface AutenticadoRouteRouteChildren {
   AutenticadoConversaRoute: typeof AutenticadoConversaRoute
+  AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
   AutenticadoMetasRoute: typeof AutenticadoMetasRoute
   AutenticadoResumoRoute: typeof AutenticadoResumoRoute
 }
 
 const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoConversaRoute: AutenticadoConversaRoute,
+  AutenticadoMercadoRoute: AutenticadoMercadoRoute,
   AutenticadoMetasRoute: AutenticadoMetasRoute,
   AutenticadoResumoRoute: AutenticadoResumoRoute,
 }

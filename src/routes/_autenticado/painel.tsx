@@ -141,6 +141,84 @@ function Painel() {
     (data?.quantidadeLancamentos ?? 0) === 0 &&
     (data?.quantidadeEntradas ?? 0) === 0;
 
+  const semana = data?.semana;
+  const semanal = modo === "semana";
+
+  const mesesGrafico = (data?.meses ?? []).map((m) => ({ ...m, rotulo: mesCurto(m.chave) }));
+
+  const diasSemana = (semana?.dias ?? []).map((d) => ({
+    ...d,
+    rotulo: diaSemanaCurto(d.iso),
+  }));
+
+  const categoriasSemana = Object.entries(semana?.porCategoria ?? {})
+    .map(([nome, valor]) => ({ nome, valor: Math.round(valor * 100) / 100 }))
+    .sort((a, b) => b.valor - a.valor);
+
+  // Valores do período escolhido (mês ou semana)
+  const periodoEntradas = semanal ? (semana?.entrada ?? 0) : entradas;
+  const periodoGastos = semanal ? (semana?.gasto ?? 0) : total;
+  const periodoSaldo = semanal ? (semana?.saldo ?? 0) : saldo;
+
+  // ---- Alertas de saldo ----
+  const alertas: Alerta[] = [];
+  if (!isLoading && data) {
+    const rotuloPeriodo = semanal ? t("nesta semana", "this week") : t("neste mês", "this month");
+    if (periodoSaldo < 0) {
+      alertas.push({
+        tom: "perigo",
+        titulo: t("Atenção: saldo negativo", "Heads up: negative balance"),
+        texto: t(
+          `Você gastou ${brl(Math.abs(periodoSaldo))} a mais do que recebeu ${rotuloPeriodo}. Vale revisar os gastos maiores e segurar o que der.`,
+          `You spent ${brl(Math.abs(periodoSaldo))} more than you received ${rotuloPeriodo}. It's worth reviewing the biggest expenses and holding back where you can.`,
+        ),
+      });
+    } else if (periodoEntradas > 0 && periodoSaldo < periodoEntradas * 0.1) {
+      alertas.push({
+        tom: "atencao",
+        titulo: t("Seu saldo está apertado", "Your balance is tight"),
+        texto: t(
+          `Sobrou só ${brl(periodoSaldo)} de tudo que você recebeu ${rotuloPeriodo}. Um cuidado a mais agora evita susto depois.`,
+          `Only ${brl(periodoSaldo)} is left from everything you received ${rotuloPeriodo}. A little extra care now avoids a surprise later.`,
+        ),
+      });
+    } else if (periodoSaldo > 0 && periodoEntradas > 0) {
+      alertas.push({
+        tom: "bom",
+        titulo: t("Está sobrando dinheiro", "You have money left over"),
+        texto: t(
+          `Sobraram ${brl(periodoSaldo)} ${rotuloPeriodo}. Que tal guardar uma partezinha numa meta?`,
+          `You have ${brl(periodoSaldo)} left ${rotuloPeriodo}. How about saving a little in a goal?`,
+        ),
+      });
+    }
+
+    if (!semanal && entradas > 0 && (data.projecaoMes ?? 0) > entradas) {
+      alertas.push({
+        tom: "atencao",
+        titulo: t("No ritmo de hoje, o mês fecha no vermelho", "At today's pace, the month ends in the red"),
+        texto: t(
+          `Se continuar assim, você vai gastar cerca de ${brl(data.projecaoMes)} e recebeu ${brl(entradas)}. Dá tempo de ajustar.`,
+          `If this keeps up, you'll spend about ${brl(data.projecaoMes)} while you received ${brl(entradas)}. There's still time to adjust.`,
+        ),
+      });
+    }
+
+    if (semanal && semana && semana.gastoAnterior > 0) {
+      const dif = ((semana.gasto - semana.gastoAnterior) / semana.gastoAnterior) * 100;
+      if (dif >= 25) {
+        alertas.push({
+          tom: "atencao",
+          titulo: t("Você gastou mais que na semana passada", "You spent more than last week"),
+          texto: t(
+            `Seus gastos subiram ${Math.round(dif)}% em relação aos 7 dias anteriores (${brl(semana.gastoAnterior)}).`,
+            `Your spending went up ${Math.round(dif)}% compared with the previous 7 days (${brl(semana.gastoAnterior)}).`,
+          ),
+        });
+      }
+    }
+  }
+
   return (
     <div className="space-y-8">
       <header>
@@ -156,6 +234,33 @@ function Painel() {
             "Here you see everything together: how much you spent, on what, how it's evolving, and how much is left for your goals.",
           )}
         </p>
+
+        <div
+          className="mt-5 inline-flex items-center gap-1 rounded-full bg-secondary p-1"
+          role="group"
+          aria-label={t("Escolher período", "Choose period")}
+        >
+          {(
+            [
+              { valor: "mes" as const, rotulo: t("Este mês", "This month") },
+              { valor: "semana" as const, rotulo: t("Resumo da semana", "Weekly summary") },
+            ]
+          ).map((op) => (
+            <button
+              key={op.valor}
+              type="button"
+              onClick={() => setModo(op.valor)}
+              aria-pressed={modo === op.valor}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                modo === op.valor
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-primary"
+              }`}
+            >
+              {op.rotulo}
+            </button>
+          ))}
+        </div>
       </header>
 
       {isLoading && (

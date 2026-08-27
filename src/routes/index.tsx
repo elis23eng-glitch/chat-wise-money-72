@@ -121,9 +121,16 @@ function BoasVindas() {
               >
                 {t("Começar conversa", "Start chatting")}
               </Link>
+              <Link
+                to="/instalar"
+                className="rounded-full bg-primary/10 px-6 py-4 text-base font-semibold text-primary transition-colors hover:bg-primary/15"
+              >
+                {t("Instalar no celular", "Install on your phone")}
+              </Link>
               <p className="text-sm text-muted-foreground">
                 {t("Leva menos de um minuto.", "It takes less than a minute.")}
               </p>
+
             </div>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-3">

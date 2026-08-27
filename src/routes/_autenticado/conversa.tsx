@@ -334,7 +334,6 @@ function Conversa() {
           <p className="font-display text-lg">{t("Experimente dizer", "Try saying")}</p>
           <div className="mt-3 space-y-2">
 
-          <div className="mt-3 space-y-2">
             {SUGESTOES.map((s) => (
               <button
                 key={s}

@@ -116,7 +116,12 @@ export const getMessages = createServerFn({ method: "GET" })
 
 export const sendMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ message: z.string().min(1).max(2000) }).parse(data))
+  .inputValidator((data: unknown) => z
+      .object({
+        message: z.string().min(1).max(2000),
+        idioma: z.enum(["pt", "en"]).optional(),
+      })
+      .parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -139,6 +144,7 @@ export const sendMessage = createServerFn({ method: "POST" })
         content: m.content,
       })),
       message: data.message,
+      ...(data.idioma ? { idioma: data.idioma } : {}),
     });
 
     await supabase

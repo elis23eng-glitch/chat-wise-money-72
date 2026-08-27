@@ -258,6 +258,7 @@ export async function runAgent(options: {
   userId: string;
   history: AgentHistory;
   message: string;
+  idioma?: "pt" | "en";
 }): Promise<string> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
@@ -273,7 +274,12 @@ export async function runAgent(options: {
 
   const result = streamText({
     model: lovable.responses("openai/gpt-5.6-terra"),
-    system: SYSTEM_PROMPT,
+    system:
+      options.idioma === "en"
+        ? `${SYSTEM_PROMPT}
+
+IMPORTANTE: o usuário escolheu o idioma inglês. Responda SEMPRE em inglês simples e acolhedor (US English), mesmo que ele escreva em português. Use "R$" para valores em reais e mantenha as categorias em português apenas nas ferramentas; ao falar com a pessoa, traduza o nome da categoria para o inglês.`
+        : SYSTEM_PROMPT,
     messages: [...options.history, { role: "user" as const, content: options.message }],
     tools: buildTools(options.supabase, options.userId),
     stopWhen: stepCountIs(8),

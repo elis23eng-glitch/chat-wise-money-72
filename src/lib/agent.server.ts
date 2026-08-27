@@ -133,6 +133,98 @@ function buildTools(supabase: Client, userId: string) {
       },
     }),
 
+    listar_ultimos_lancamentos: tool({
+      description:
+        "Lista os lançamentos mais recentes (gastos e/ou entradas) para identificar qual o usuário quer corrigir ou apagar.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada", "ambos"]).describe("Qual tipo listar."),
+        limite: z.number().int().min(1).max(10).describe("Quantos lançamentos, ex.: 5"),
+      }),
+      execute: async ({ tipo, limite }) => {
+        const resultado: { gastos?: unknown[]; entradas?: unknown[] } = {};
+        if (tipo === "gasto" || tipo === "ambos") {
+          const { data } = await supabase
+            .from("expenses")
+            .select("id, valor, categoria, descricao, data, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(limite);
+          resultado.gastos = data ?? [];
+        }
+        if (tipo === "entrada" || tipo === "ambos") {
+          const { data } = await supabase
+            .from("incomes")
+            .select("id, valor, categoria, descricao, data, created_at")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(limite);
+          resultado.entradas = data ?? [];
+        }
+        return { ok: true, ...resultado };
+      },
+    }),
+
+    corrigir_lancamento: tool({
+      description:
+        "Corrige um lançamento já registrado (gasto ou entrada): valor, categoria, descrição e/ou data. Se não informar id, corrige o mais recente do tipo escolhido.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada"]),
+        id: z.string().nullable().describe("Id do lançamento. Use null para o mais recente."),
+        valor: z.number().nullable().describe("Novo valor em reais ou null para manter."),
+        categoria: z.string().nullable().describe("Nova categoria ou null para manter."),
+        descricao: z.string().nullable().describe("Nova descrição ou null para manter."),
+        data: z.string().nullable().describe("Nova data AAAA-MM-DD ou null para manter."),
+      }),
+      execute: async ({ tipo, id, valor, categoria, descricao, data }) => {
+        const tabela = tipo === "gasto" ? "expenses" : "incomes";
+        const permitidas: readonly string[] =
+          tipo === "gasto" ? CATEGORIAS : (CATEGORIAS_ENTRADA as readonly string[]);
+
+        if (categoria && !permitidas.includes(categoria)) {
+          return {
+            ok: false,
+            erro: `Categoria inválida. Use uma destas: ${permitidas.join(", ")}.`,
+          };
+        }
+        if (valor !== null && !(valor > 0)) {
+          return { ok: false, erro: "O valor precisa ser maior que zero." };
+        }
+
+        let alvoId = id;
+        if (!alvoId) {
+          const { data: ultimo } = await supabase
+            .from(tabela)
+            .select("id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (!ultimo) return { ok: false, erro: "Nenhum lançamento encontrado para corrigir." };
+          alvoId = ultimo.id;
+        }
+
+        const patch: Record<string, unknown> = {};
+        if (valor !== null) patch["valor"] = valor;
+        if (categoria !== null) patch["categoria"] = categoria;
+        if (descricao !== null) patch["descricao"] = descricao;
+        if (data !== null) patch["data"] = data;
+        if (Object.keys(patch).length === 0) {
+          return { ok: false, erro: "Nada para alterar: diga o que deve ser corrigido." };
+        }
+
+        const { data: row, error } = await supabase
+          .from(tabela)
+          .update(patch)
+          .eq("id", alvoId)
+          .eq("user_id", userId)
+          .select()
+          .single();
+        if (error) return { ok: false, erro: error.message };
+        return { ok: true, tipo, lancamento: row };
+      },
+    }),
+
+
     resumo_financeiro: tool({
       description:
         "Retorna entradas, gastos e saldo do mês atual, do mês anterior e os gastos por categoria.",

@@ -334,6 +334,30 @@ function Conversa() {
         </Conversation>
 
         <div className="border-t border-primary/10 p-4">
+          <div className="mb-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">
+              {t("Comandos prontos — é só tocar", "Ready-made commands — just tap")}
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {COMANDOS_RAPIDOS.map((c) => (
+                <button
+                  key={c.rotulo}
+                  type="button"
+                  disabled={mutation.isPending}
+                  onClick={() => {
+                    if (c.enviar) {
+                      submeter(c.texto);
+                    } else {
+                      setTexto(c.texto);
+                    }
+                  }}
+                  className="shrink-0 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-50"
+                >
+                  {c.rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
           <PromptInput
             onSubmit={(_message, event) => {
               event.preventDefault();

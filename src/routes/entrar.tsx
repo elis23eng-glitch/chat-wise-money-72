@@ -27,7 +27,32 @@ export const Route = createFileRoute("/entrar")({
   component: Entrar,
 });
 
+const CHAVE_SENHA = "wise-money-senha";
+
+/** Guarda a senha no próprio aparelho (codificada) para acesso rápido. */
+function salvarSenha(senha: string) {
+  try {
+    window.localStorage.setItem(CHAVE_SENHA, window.btoa(encodeURIComponent(senha)));
+  } catch {
+    /* ignora */
+  }
+}
+
+function lerSenhaSalva(): string | null {
+  try {
+    const bruto = window.localStorage.getItem(CHAVE_SENHA);
+    return bruto ? decodeURIComponent(window.atob(bruto)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function limparSenhaSalva() {
+  window.localStorage.removeItem(CHAVE_SENHA);
+}
+
 function Entrar() {
+
   const { session, loading } = useAuth();
   const { t } = useIdioma();
   const [modo, setModo] = useState<"entrar" | "criar">("entrar");

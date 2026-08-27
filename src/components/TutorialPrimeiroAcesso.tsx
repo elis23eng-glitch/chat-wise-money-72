@@ -165,7 +165,7 @@ export function TutorialPrimeiroAcesso({
             {atual.video && (
               <video
                 className="mt-4 w-full rounded-2xl border border-border shadow-sm"
-                src="/videos/tutorial-mergulho.mp4"
+                src="/videos/tutorial-wise-money.mp4"
                 poster="/videos/tutorial-poster.jpg"
                 controls
                 playsInline

@@ -486,17 +486,15 @@ function Resumo() {
                     </button>
                     <button
                       aria-label={t("Apagar entrada", "Delete income")}
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            t(
-                              `Apagar a entrada "${e.descricao}" de ${brl(Number(e.valor))}?`,
-                              `Delete the income "${e.descricao}" of ${brl(Number(e.valor))}?`,
-                            ),
-                          )
-                        )
-                          delEntradaMutation.mutate(e.id);
-                      }}
+                      onClick={() =>
+                        setConfirmando({
+                          tipo: "entrada",
+                          id: e.id,
+                          descricao: e.descricao ?? "",
+                          valor: Number(e.valor),
+                        })
+                      }
+
                       className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />

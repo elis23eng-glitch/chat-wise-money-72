@@ -143,10 +143,7 @@ function Conversa() {
     },
     {
       rotulo: t("📅 Trocar data", "📅 Change date"),
-      texto: t(
-        "Trocar a data do último gasto para ",
-        "Change the date of my last expense to ",
-      ),
+      texto: t("Trocar a data do último gasto para ", "Change the date of my last expense to "),
       enviar: false,
     },
     {

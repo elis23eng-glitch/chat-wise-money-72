@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as InstalarRouteImport } from './routes/instalar'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
 import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
 import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
@@ -37,6 +38,11 @@ const AutenticadoRouteRoute = AutenticadoRouteRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstalarRoute = InstalarRouteImport.update({
+  id: '/instalar',
+  path: '/instalar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
+  '/instalar': typeof InstalarRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
+  '/instalar': typeof InstalarRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/_autenticado': typeof AutenticadoRouteRouteWithChildren
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
+  '/instalar': typeof InstalarRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
   '/_autenticado/insights': typeof AutenticadoInsightsRoute
   '/_autenticado/mercado': typeof AutenticadoMercadoRoute
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/entrar'
+    | '/instalar'
     | '/conversa'
     | '/insights'
     | '/mercado'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$'
     | '/entrar'
+    | '/instalar'
     | '/conversa'
     | '/insights'
     | '/mercado'
@@ -134,6 +145,7 @@ export interface FileRouteTypes {
     | '/_autenticado'
     | '/$'
     | '/entrar'
+    | '/instalar'
     | '/_autenticado/conversa'
     | '/_autenticado/insights'
     | '/_autenticado/mercado'
@@ -147,6 +159,7 @@ export interface RootRouteChildren {
   AutenticadoRouteRoute: typeof AutenticadoRouteRouteWithChildren
   SplatRoute: typeof SplatRoute
   EntrarRoute: typeof EntrarRoute
+  InstalarRoute: typeof InstalarRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -177,6 +190,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instalar': {
+      id: '/instalar'
+      path: '/instalar'
+      fullPath: '/instalar'
+      preLoaderRoute: typeof InstalarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_autenticado/conversa': {
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   AutenticadoRouteRoute: AutenticadoRouteRouteWithChildren,
   SplatRoute: SplatRoute,
   EntrarRoute: EntrarRoute,
+  InstalarRoute: InstalarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

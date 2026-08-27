@@ -128,5 +128,7 @@ export function useIdioma(): Contexto {
     definirIdioma: () => {},
     t: (pt: string) => pt,
     locale: "pt-BR",
+    cotacaoUsd: null,
   };
+
 }

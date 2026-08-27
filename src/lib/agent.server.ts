@@ -230,6 +230,41 @@ function buildTools(supabase: Client, userId: string) {
       },
     }),
 
+    excluir_lancamento: tool({
+      description:
+        "Exclui (apaga) um lançamento já registrado (gasto ou entrada). Se não informar id, apaga o mais recente do tipo escolhido. Só use quando a pessoa pedir claramente para apagar/excluir.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada"]),
+        id: z.string().nullable().describe("Id do lançamento. Use null para o mais recente."),
+      }),
+      execute: async ({ tipo, id }) => {
+        const tabela = tipo === "gasto" ? "expenses" : "incomes";
+        let alvoId = id;
+        if (!alvoId) {
+          const { data: ultimo } = await supabase
+            .from(tabela)
+            .select("id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (!ultimo) return { ok: false, erro: "Nenhum lançamento encontrado para excluir." };
+          alvoId = ultimo.id;
+        }
+        const { data: row, error } = await supabase
+          .from(tabela)
+          .delete()
+          .eq("id", alvoId)
+          .eq("user_id", userId)
+          .select()
+          .maybeSingle();
+        if (error) return { ok: false, erro: error.message };
+        if (!row) return { ok: false, erro: "Lançamento não encontrado." };
+        return { ok: true, tipo, excluido: row };
+      },
+    }),
+
+
     resumo_financeiro: tool({
       description:
         "Retorna entradas, gastos e saldo do mês atual, do mês anterior e os gastos por categoria.",

@@ -145,7 +145,7 @@ function Conversa() {
             />
             <PromptInputFooter className="justify-end">
               <PromptInputSubmit
-                status={mutation.isPending ? "submitted" : undefined}
+                status={mutation.isPending ? "submitted" : "ready"}
                 disabled={!texto.trim() || mutation.isPending}
               />
             </PromptInputFooter>

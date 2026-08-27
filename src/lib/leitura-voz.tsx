@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const CHAVE_AUTO = "wm-leitura-automatica";
+const CHAVE_PREFS = "wm-voz-prefs";
 
 function limparTexto(texto: string) {
   return texto

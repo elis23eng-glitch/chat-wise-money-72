@@ -68,14 +68,52 @@ export function saudacaoNina(idioma: "pt" | "en", agora = new Date()) {
   return `${parte.pt}! Eu sou a Nina, sua companheira financeira no Wise Money. Estou aqui para ouvir você, anotar seus gastos e entradas, e explicar as coisas do dinheiro com calma. Pode me contar um gasto recente ou pedir um resumo. Vamos juntos, no seu ritmo.`;
 }
 
+export type PrefsVoz = {
+  /** "ia" = voz da Nina por IA (estilo assistente). "aparelho" = voz padrão do celular. */
+  motor: "ia" | "aparelho";
+  /** Timbre da voz por IA. */
+  timbre: "shimmer" | "nova" | "coral" | "alloy";
+  velocidade: number;
+  volume: number;
+};
+
+export const PREFS_VOZ_PADRAO: PrefsVoz = {
+  motor: "ia",
+  timbre: "shimmer",
+  velocidade: 0.95,
+  volume: 0.95,
+};
+
+function lerPrefs(): PrefsVoz {
+  try {
+    const bruto = localStorage.getItem(CHAVE_PREFS);
+    if (!bruto) return PREFS_VOZ_PADRAO;
+    const p = JSON.parse(bruto) as Partial<PrefsVoz>;
+    return {
+      motor: p.motor === "aparelho" ? "aparelho" : "ia",
+      timbre: (["shimmer", "nova", "coral", "alloy"] as const).includes(p.timbre!)
+        ? p.timbre!
+        : "shimmer",
+      velocidade: Math.min(1.4, Math.max(0.6, Number(p.velocidade) || PREFS_VOZ_PADRAO.velocidade)),
+      volume: Math.min(1, Math.max(0.1, Number(p.volume) || PREFS_VOZ_PADRAO.volume)),
+    };
+  } catch {
+    return PREFS_VOZ_PADRAO;
+  }
+}
+
 export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   const [falandoId, setFalandoId] = useState<string | null>(null);
   const [autoLeitura, setAutoLeitura] = useState(false);
   const [disponivel, setDisponivel] = useState(false);
+  const [prefs, definirPrefs] = useState<PrefsVoz>(PREFS_VOZ_PADRAO);
   const jaLidos = useRef<Set<string>>(new Set());
   const vozRef = useRef<SpeechSynthesisVoice | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pedidoRef = useRef(0);
+  const prefsRef = useRef<PrefsVoz>(PREFS_VOZ_PADRAO);
+  prefsRef.current = prefs;
+
 
   useEffect(() => {
     setDisponivel(true);

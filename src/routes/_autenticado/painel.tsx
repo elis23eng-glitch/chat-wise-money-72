@@ -347,31 +347,73 @@ function Painel() {
 
 
   // ---- Exportar o painel em PDF ----
-  const [exportando, setExportando] = useState(false);
-  async function exportarPdf() {
-    if (!data) return;
-    setExportando(true);
+  const [painelPdfAberto, setPainelPdfAberto] = useState(false);
+  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar">(null);
+  const [avisoPdf, setAvisoPdf] = useState("");
+  const [idiomaPdf, setIdiomaPdf] = useState<"pt" | "en">(idioma);
+  const [secoesPdf, setSecoesPdf] = useState({
+    resumo: true,
+    categorias: true,
+    metas: true,
+    alertas: true,
+  });
+
+  const dadosPdf = () =>
+    data
+      ? {
+          idioma: idiomaPdf,
+          secoes: secoesPdf,
+          modo: (semanal ? "semana" : "mes") as "semana" | "mes",
+          periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
+          periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
+          entradas: periodoEntradas,
+          gastos: periodoGastos,
+          saldo: periodoSaldo,
+          mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
+          projecaoMes: data.projecaoMes,
+          porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),
+          metas: data.metas ?? [],
+          historico: historicoFiltrado,
+        }
+      : null;
+
+  const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
+
+  async function exportarPdf(acao: "baixar" | "compartilhar") {
+    const dados = dadosPdf();
+    if (!dados || nenhumaSecao) return;
+    setAvisoPdf("");
+    setExportando(acao);
     try {
-      const { gerarRelatorioPdf } = await import("@/lib/pdf-report");
-      await gerarRelatorioPdf({
-        idioma,
-        modo: semanal ? "semana" : "mes",
-        periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
-        periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
-        entradas: periodoEntradas,
-        gastos: periodoGastos,
-        saldo: periodoSaldo,
-        mediaDiaria: semanal ? (semana?.mediaDiaria ?? 0) : (data.mediaDiaria ?? 0),
-        projecaoMes: data.projecaoMes,
-        porCategoria: semanal ? (semana?.porCategoria ?? {}) : (data.porCategoria ?? {}),
-        metas: data.metas ?? [],
-        historico: historicoFiltrado,
-        tituloAlerta: (tipo) => tituloAlerta(tipo as TipoAlerta),
-      });
+      const mod = await import("@/lib/pdf-report");
+      if (acao === "baixar") {
+        await mod.baixarRelatorioPdf(dados);
+      } else {
+        const ok = await mod.compartilharRelatorioPdf(
+          dados,
+          idiomaPdf === "pt" ? "Relatório financeiro" : "Financial report",
+        );
+        if (!ok) {
+          await mod.baixarRelatorioPdf(dados);
+          setAvisoPdf(
+            t(
+              "Este aparelho não permite compartilhar direto — o arquivo foi baixado para você enviar.",
+              "This device can't share directly — the file was downloaded so you can send it.",
+            ),
+          );
+        }
+      }
     } finally {
-      setExportando(false);
+      setExportando(null);
     }
   }
+
+  const SECOES_PDF = [
+    { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
+    { chave: "categorias" as const, rotulo: t("Gastos por categoria", "Spending by category") },
+    { chave: "metas" as const, rotulo: t("Metas", "Goals") },
+    { chave: "alertas" as const, rotulo: t("Histórico de alertas", "Alert history") },
+  ];
 
   return (
     <div className="space-y-8">

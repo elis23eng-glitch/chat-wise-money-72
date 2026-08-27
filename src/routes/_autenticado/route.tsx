@@ -10,7 +10,9 @@ export const Route = createFileRoute("/_autenticado")({
 
 const NAV = [
   { to: "/conversa", label: "Conversa" },
+  { to: "/painel", label: "Painel" },
   { to: "/resumo", label: "Resumo" },
+
   { to: "/metas", label: "Metas" },
   { to: "/mercado", label: "Mercado" },
   { to: "/insights", label: "Insights" },

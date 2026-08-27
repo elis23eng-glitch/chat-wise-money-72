@@ -11,13 +11,14 @@ import {
 
 import { useIdioma } from "@/lib/i18n";
 
-const CHAVE = "mergulho:tutorial-visto-v2";
+const CHAVE = "mergulho:tutorial-visto-v3";
 
 type Passo = {
   icone: typeof MessageCircle;
   titulo: string;
   texto: string;
   exemplo?: string;
+  video?: boolean;
 };
 
 export function useTutorial() {
@@ -58,6 +59,15 @@ export function TutorialPrimeiroAcesso({
   }, [aberto]);
 
   const passos: Passo[] = [
+    {
+      icone: PlayCircle,
+      titulo: t("Veja em vídeo (30 segundos)", "Watch the 30-second video"),
+      texto: t(
+        "Um mini tutorial mostrando como registrar um gasto conversando e como ver o resumo do mês no Painel.",
+        "A mini tutorial showing how to record an expense by chatting and how to see your month summary on the Dashboard.",
+      ),
+      video: true,
+    },
     {
       icone: MessageCircle,
       titulo: t("Converse com a Nina", "Chat with Nina"),

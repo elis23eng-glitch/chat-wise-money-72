@@ -1,4 +1,4 @@
-import { brl, categoriaLabel, dataCurta } from "@/lib/format";
+import { brl, categoriaLabel, dataCurta, notaConversao } from "@/lib/format";
 import type { DadosRelatorio } from "@/lib/pdf-report";
 
 const TXT = {
@@ -137,6 +137,10 @@ export function PreviaRelatorio({ dados }: { dados: DadosRelatorio }) {
         {dataCurta(dados.periodoInicio, dados.idioma)} – {dataCurta(dados.periodoFim, dados.idioma)}
         )
       </p>
+
+      {notaConversao(dados.idioma) && (
+        <p className="mt-1 text-xs text-muted-foreground">{notaConversao(dados.idioma)}</p>
+      )}
 
       {dados.secoes.resumo && (
         <Secao titulo={L.resumo}>

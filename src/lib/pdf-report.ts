@@ -1,4 +1,4 @@
-import { brl, categoriaLabel, dataCurta, type IdiomaFormato } from "./format";
+import { brl, categoriaLabel, dataCurta, notaConversao, type IdiomaFormato } from "./format";
 
 type Meta = { titulo: string; valor_alvo: number; valor_atual: number; prazo: string | null };
 

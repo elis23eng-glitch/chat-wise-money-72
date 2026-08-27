@@ -572,13 +572,11 @@ function Painel() {
               <button
                 type="button"
                 onClick={abrirPrevia}
-                disabled={nenhumaSecao || gerandoPrevia}
+                disabled={nenhumaSecao}
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
               >
                 <Eye className="size-5" />
-                {gerandoPrevia
-                  ? t("Montando a prévia…", "Building the preview…")
-                  : t("Ver prévia", "Preview report")}
+                {t("Ver prévia", "Preview report")}
               </button>
               <button
                 type="button"

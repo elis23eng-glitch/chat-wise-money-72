@@ -52,15 +52,33 @@ function escolherVoz(idioma: "pt" | "en"): SpeechSynthesisVoice | null {
   return feminina ?? candidatas[0] ?? null;
 }
 
+/** Saudação da Nina adaptada ao horário do aparelho. */
+export function saudacaoNina(idioma: "pt" | "en", agora = new Date()) {
+  const h = agora.getHours();
+  const parte =
+    h < 12
+      ? { pt: "Bom dia", en: "Good morning" }
+      : h < 18
+        ? { pt: "Boa tarde", en: "Good afternoon" }
+        : { pt: "Boa noite", en: "Good evening" };
+
+  if (idioma === "en") {
+    return `${parte.en}! I'm Nina, your financial companion at Wise Money. I'm here to listen, log your expenses and income, and explain money matters calmly. Tell me about a recent expense or ask for a summary. Let's go at your pace.`;
+  }
+  return `${parte.pt}! Eu sou a Nina, sua companheira financeira no Wise Money. Estou aqui para ouvir você, anotar seus gastos e entradas, e explicar as coisas do dinheiro com calma. Pode me contar um gasto recente ou pedir um resumo. Vamos juntos, no seu ritmo.`;
+}
+
 export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   const [falandoId, setFalandoId] = useState<string | null>(null);
   const [autoLeitura, setAutoLeitura] = useState(false);
   const [disponivel, setDisponivel] = useState(false);
   const jaLidos = useRef<Set<string>>(new Set());
   const vozRef = useRef<SpeechSynthesisVoice | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pedidoRef = useRef(0);
 
   useEffect(() => {
-    setDisponivel(suportaVoz());
+    setDisponivel(true);
     try {
       setAutoLeitura(localStorage.getItem(CHAVE_AUTO) === "1");
     } catch {
@@ -79,19 +97,24 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   }, [idioma]);
 
   const parar = useCallback(() => {
-    if (!suportaVoz()) return;
-    window.speechSynthesis.cancel();
+    pedidoRef.current += 1;
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+      audioRef.current = null;
+    }
+    if (suportaVoz()) window.speechSynthesis.cancel();
     setFalandoId(null);
   }, []);
 
-  const falar = useCallback(
-    (texto: string, id: string) => {
-      if (!suportaVoz()) return;
-      const conteudo = limparTexto(texto);
-      if (!conteudo) return;
+  /** Fallback local (voz do aparelho) quando a voz por IA não está disponível. */
+  const falarLocal = useCallback(
+    (conteudo: string, id: string) => {
+      if (!suportaVoz()) {
+        setFalandoId(null);
+        return;
+      }
       window.speechSynthesis.cancel();
-
-      // Quebra em frases: pausas curtas deixam a leitura mais humana e gentil.
       const frases = conteudo.match(/[^.!?…]+[.!?…]*/g) ?? [conteudo];
       const voz = vozRef.current ?? escolherVoz(idioma);
       vozRef.current = voz;
@@ -101,9 +124,9 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
         const fala = new SpeechSynthesisUtterance(frase.trim());
         fala.lang = idioma === "en" ? "en-US" : "pt-BR";
         if (voz) fala.voice = voz;
-        fala.rate = 0.85; // fala mais calma e natural
-        fala.pitch = 1.05; // tom suave, próximo de uma conversa real
-        fala.volume = 0.95; // levemente mais suave, sem perder clareza
+        fala.rate = 0.9;
+        fala.pitch = 1.05;
+        fala.volume = 0.95;
         if (i === frases.length - 1) {
           fala.onend = () => setFalandoId(null);
           fala.onerror = () => setFalandoId(null);
@@ -113,6 +136,44 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     },
     [idioma],
   );
+
+  const falar = useCallback(
+    (texto: string, id: string) => {
+      const conteudo = limparTexto(texto);
+      if (!conteudo) return;
+      parar();
+      const pedido = pedidoRef.current;
+      setFalandoId(id);
+
+      void (async () => {
+        try {
+          const res = await fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: conteudo, idioma }),
+          });
+          if (!res.ok) throw new Error(`TTS ${res.status}`);
+          const blob = await res.blob();
+          if (pedido !== pedidoRef.current) return;
+          const url = URL.createObjectURL(blob);
+          const audio = new Audio(url);
+          audioRef.current = audio;
+          const encerrar = () => {
+            URL.revokeObjectURL(url);
+            if (pedido === pedidoRef.current) setFalandoId(null);
+          };
+          audio.onended = encerrar;
+          audio.onerror = encerrar;
+          await audio.play();
+        } catch {
+          if (pedido !== pedidoRef.current) return;
+          falarLocal(conteudo, id);
+        }
+      })();
+    },
+    [idioma, parar, falarLocal],
+  );
+
 
   const alternarAuto = useCallback(() => {
     setAutoLeitura((atual) => {

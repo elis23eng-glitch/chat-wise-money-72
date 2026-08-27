@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
+import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,16 +34,23 @@ const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
   path: '/conversa',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoResumoRoute = AutenticadoResumoRouteImport.update({
+  id: '/resumo',
+  path: '/resumo',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/conversa': typeof AutenticadoConversaRoute
+  '/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,13 +58,20 @@ export interface FileRoutesById {
   '/_autenticado': typeof AutenticadoRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
+  '/_autenticado/resumo': typeof AutenticadoResumoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/entrar' | '/conversa'
+  fullPaths: '/' | '/entrar' | '/conversa' | '/resumo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/entrar' | '/conversa'
-  id: '__root__' | '/' | '/_autenticado' | '/entrar' | '/_autenticado/conversa'
+  to: '/' | '/entrar' | '/conversa' | '/resumo'
+  id:
+    | '__root__'
+    | '/'
+    | '/_autenticado'
+    | '/entrar'
+    | '/_autenticado/conversa'
+    | '/_autenticado/resumo'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,15 +110,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoConversaRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/resumo': {
+      id: '/_autenticado/resumo'
+      path: '/resumo'
+      fullPath: '/resumo'
+      preLoaderRoute: typeof AutenticadoResumoRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
   }
 }
 
 interface AutenticadoRouteRouteChildren {
   AutenticadoConversaRoute: typeof AutenticadoConversaRoute
+  AutenticadoResumoRoute: typeof AutenticadoResumoRoute
 }
 
 const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoConversaRoute: AutenticadoConversaRoute,
+  AutenticadoResumoRoute: AutenticadoResumoRoute,
 }
 
 const AutenticadoRouteRouteWithChildren =

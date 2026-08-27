@@ -169,17 +169,32 @@ function Resumo() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-          {t("Resumo", "Summary")}
-        </p>
-        <h1 className="mt-2 font-display text-4xl tracking-tight">
-          {t("Como está seu mês", "How your month is going")}
-        </h1>
-        {notaConversao(idioma) && (
-          <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
-        )}
+      <header className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+            {t("Resumo", "Summary")}
+          </p>
+          <h1 className="mt-2 font-display text-4xl tracking-tight">
+            {t("Como está seu mês", "How your month is going")}
+          </h1>
+          {notaConversao(idioma) && (
+            <p className="mt-2 text-sm text-muted-foreground">{notaConversao(idioma)}</p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ["dashboard"] });
+            refetch();
+          }}
+          disabled={isFetching}
+          className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-base font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-60"
+        >
+          <RefreshCw className={`size-5 ${isFetching ? "animate-spin" : ""}`} />
+          {t("Atualizar", "Refresh")}
+        </button>
       </header>
+
 
       <div
         className={`rounded-3xl p-6 ${

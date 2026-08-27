@@ -115,8 +115,24 @@ function Conversa() {
       enviar: true,
     },
     {
-      rotulo: t("✏️ Corrigir último", "✏️ Fix last entry"),
-      texto: t("Corrigir o último lançamento para ", "Change my last entry to "),
+      rotulo: t("✏️ Corrigir valor", "✏️ Fix amount"),
+      texto: t("Corrigir o valor do último gasto para ", "Fix the amount of my last expense to "),
+      enviar: false,
+    },
+    {
+      rotulo: t("🏷️ Corrigir categoria", "🏷️ Fix category"),
+      texto: t(
+        "Corrigir a categoria do último gasto para ",
+        "Fix the category of my last expense to ",
+      ),
+      enviar: false,
+    },
+    {
+      rotulo: t("📅 Trocar data", "📅 Change date"),
+      texto: t(
+        "Trocar a data do último gasto para ",
+        "Change the date of my last expense to ",
+      ),
       enviar: false,
     },
     {

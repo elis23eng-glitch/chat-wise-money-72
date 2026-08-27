@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/tts")({
         const apiKey = process.env["LOVABLE_API_KEY"];
         if (!apiKey) return new Response("TTS indisponível", { status: 503 });
 
-        let body: { text?: unknown; idioma?: unknown };
+        let body: { text?: unknown; idioma?: unknown; voice?: unknown; speed?: unknown };
         try {
           body = (await request.json()) as typeof body;
         } catch {
@@ -18,6 +18,12 @@ export const Route = createFileRoute("/api/tts")({
         const text = typeof body.text === "string" ? body.text.trim().slice(0, 3000) : "";
         if (!text) return new Response("Texto vazio", { status: 400 });
         const idioma = body.idioma === "en" ? "en" : "pt";
+        const vozes = ["shimmer", "nova", "coral", "alloy"] as const;
+        const voice = vozes.includes(body.voice as (typeof vozes)[number])
+          ? (body.voice as string)
+          : "shimmer";
+        const bruta = Number(body.speed);
+        const speed = Number.isFinite(bruta) ? Math.min(1.4, Math.max(0.6, bruta)) : 0.95;
 
         const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/speech", {
           method: "POST",
@@ -28,9 +34,10 @@ export const Route = createFileRoute("/api/tts")({
           body: JSON.stringify({
             model: "openai/gpt-4o-mini-tts",
             input: text,
-            voice: "shimmer",
+            voice,
             response_format: "mp3",
-            speed: 0.95,
+            speed,
+
             instructions:
               idioma === "en"
                 ? "Speak like a warm, calm smart-assistant: clear, friendly, natural pacing, gentle and reassuring. Neutral American English."

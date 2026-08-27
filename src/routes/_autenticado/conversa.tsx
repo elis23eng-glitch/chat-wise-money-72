@@ -18,6 +18,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { PainelVoz } from "@/components/PainelVoz";
 import { ResumoEmAudio } from "@/components/ResumoEmAudio";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 
@@ -435,6 +436,7 @@ function Conversa() {
 
       <aside className="space-y-4">
         <ResumoEmAudio voz={voz} />
+        <PainelVoz prefs={voz.prefs} salvarPrefs={voz.salvarPrefs} testar={voz.falar} />
         <div className="surface-card p-5">
           <p className="font-display text-lg">{t("Experimente dizer", "Try saying")}</p>
           <div className="mt-3 space-y-2">

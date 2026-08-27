@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const CHAVE_AUTO = "wm-leitura-automatica";
+const CHAVE_PREFS = "wm-voz-prefs";
 
 function limparTexto(texto: string) {
   return texto
@@ -68,14 +69,51 @@ export function saudacaoNina(idioma: "pt" | "en", agora = new Date()) {
   return `${parte.pt}! Eu sou a Nina, sua companheira financeira no Wise Money. Estou aqui para ouvir você, anotar seus gastos e entradas, e explicar as coisas do dinheiro com calma. Pode me contar um gasto recente ou pedir um resumo. Vamos juntos, no seu ritmo.`;
 }
 
+export type PrefsVoz = {
+  /** "ia" = voz da Nina por IA (estilo assistente). "aparelho" = voz padrão do celular. */
+  motor: "ia" | "aparelho";
+  /** Timbre da voz por IA. */
+  timbre: "shimmer" | "nova" | "coral" | "alloy";
+  velocidade: number;
+  volume: number;
+};
+
+export const PREFS_VOZ_PADRAO: PrefsVoz = {
+  motor: "ia",
+  timbre: "shimmer",
+  velocidade: 0.95,
+  volume: 0.95,
+};
+
+function lerPrefs(): PrefsVoz {
+  try {
+    const bruto = localStorage.getItem(CHAVE_PREFS);
+    if (!bruto) return PREFS_VOZ_PADRAO;
+    const p = JSON.parse(bruto) as Partial<PrefsVoz>;
+    return {
+      motor: p.motor === "aparelho" ? "aparelho" : "ia",
+      timbre: (["shimmer", "nova", "coral", "alloy"] as const).includes(p.timbre!)
+        ? p.timbre!
+        : "shimmer",
+      velocidade: Math.min(1.4, Math.max(0.6, Number(p.velocidade) || PREFS_VOZ_PADRAO.velocidade)),
+      volume: Math.min(1, Math.max(0.1, Number(p.volume) || PREFS_VOZ_PADRAO.volume)),
+    };
+  } catch {
+    return PREFS_VOZ_PADRAO;
+  }
+}
+
 export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   const [falandoId, setFalandoId] = useState<string | null>(null);
   const [autoLeitura, setAutoLeitura] = useState(false);
   const [disponivel, setDisponivel] = useState(false);
+  const [prefs, definirPrefs] = useState<PrefsVoz>(PREFS_VOZ_PADRAO);
   const jaLidos = useRef<Set<string>>(new Set());
   const vozRef = useRef<SpeechSynthesisVoice | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const pedidoRef = useRef(0);
+  const prefsRef = useRef<PrefsVoz>(PREFS_VOZ_PADRAO);
+  prefsRef.current = prefs;
 
   useEffect(() => {
     setDisponivel(true);
@@ -84,6 +122,7 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     } catch {
       /* ignore */
     }
+    definirPrefs(lerPrefs());
   }, []);
 
   useEffect(() => {
@@ -124,9 +163,9 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
         const fala = new SpeechSynthesisUtterance(frase.trim());
         fala.lang = idioma === "en" ? "en-US" : "pt-BR";
         if (voz) fala.voice = voz;
-        fala.rate = 0.9;
+        fala.rate = prefsRef.current.velocidade;
         fala.pitch = 1.05;
-        fala.volume = 0.95;
+        fala.volume = prefsRef.current.volume;
         if (i === frases.length - 1) {
           fala.onend = () => setFalandoId(null);
           fala.onerror = () => setFalandoId(null);
@@ -144,19 +183,31 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
       parar();
       const pedido = pedidoRef.current;
       setFalandoId(id);
+      const atuais = prefsRef.current;
+
+      if (atuais.motor === "aparelho") {
+        falarLocal(conteudo, id);
+        return;
+      }
 
       void (async () => {
         try {
           const res = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: conteudo, idioma }),
+            body: JSON.stringify({
+              text: conteudo,
+              idioma,
+              voice: atuais.timbre,
+              speed: atuais.velocidade,
+            }),
           });
           if (!res.ok) throw new Error(`TTS ${res.status}`);
           const blob = await res.blob();
           if (pedido !== pedidoRef.current) return;
           const url = URL.createObjectURL(blob);
           const audio = new Audio(url);
+          audio.volume = atuais.volume;
           audioRef.current = audio;
           const encerrar = () => {
             URL.revokeObjectURL(url);
@@ -173,6 +224,18 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     },
     [idioma, parar, falarLocal],
   );
+
+  const salvarPrefs = useCallback((novas: Partial<PrefsVoz>) => {
+    definirPrefs((atual) => {
+      const proximas = { ...atual, ...novas };
+      try {
+        localStorage.setItem(CHAVE_PREFS, JSON.stringify(proximas));
+      } catch {
+        /* ignore */
+      }
+      return proximas;
+    });
+  }, []);
 
   const alternarAuto = useCallback(() => {
     setAutoLeitura((atual) => {
@@ -196,6 +259,8 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   useEffect(() => () => parar(), [parar]);
 
   return {
+    prefs,
+    salvarPrefs,
     disponivel,
     falandoId,
     falar,

@@ -3,11 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type TipoAlerta =
-  | "saldo_negativo"
-  | "saldo_apertado"
-  | "sobra"
-  | "projecao_vermelho"
-  | "gasto_acima_semana";
+  "saldo_negativo" | "saldo_apertado" | "sobra" | "projecao_vermelho" | "gasto_acima_semana";
 
 export type AlertaRegistro = {
   tipo: TipoAlerta;
@@ -56,7 +52,9 @@ export const listarAlertas = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("balance_alerts")
-      .select("id, tipo, tom, periodo, periodo_inicio, periodo_fim, entradas, gastos, saldo, extra, created_at")
+      .select(
+        "id, tipo, tom, periodo, periodo_inicio, periodo_fim, entradas, gastos, saldo, extra, created_at",
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(60);

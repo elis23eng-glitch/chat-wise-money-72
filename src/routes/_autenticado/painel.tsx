@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowDownRight,
+  History,
   ArrowUpRight,
   CalendarDays,
   PiggyBank,
@@ -29,6 +30,12 @@ import {
 } from "recharts";
 
 import { getDashboard } from "@/lib/dashboard.functions";
+import {
+  listarAlertas,
+  registrarAlertas,
+  type AlertaRegistro,
+  type TipoAlerta,
+} from "@/lib/alerts.functions";
 import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 
@@ -88,7 +95,12 @@ function DicaComparativo({ active, payload, label }: any) {
   );
 }
 
-type Alerta = { tom: "perigo" | "atencao" | "bom"; titulo: string; texto: string };
+type Alerta = {
+  tipo: TipoAlerta;
+  tom: "perigo" | "atencao" | "bom";
+  titulo: string;
+  texto: string;
+};
 
 function CartaoAlerta({ alerta }: { alerta: Alerta }) {
   const estilo =
@@ -157,6 +169,7 @@ function Painel() {
     const rotuloPeriodo = semanal ? t("nesta semana", "this week") : t("neste mês", "this month");
     if (periodoSaldo < 0) {
       alertas.push({
+        tipo: "saldo_negativo",
         tom: "perigo",
         titulo: t("Atenção: saldo negativo", "Heads up: negative balance"),
         texto: t(
@@ -166,6 +179,7 @@ function Painel() {
       });
     } else if (periodoEntradas > 0 && periodoSaldo < periodoEntradas * 0.1) {
       alertas.push({
+        tipo: "saldo_apertado",
         tom: "atencao",
         titulo: t("Seu saldo está apertado", "Your balance is tight"),
         texto: t(
@@ -175,6 +189,7 @@ function Painel() {
       });
     } else if (periodoSaldo > 0 && periodoEntradas > 0) {
       alertas.push({
+        tipo: "sobra",
         tom: "bom",
         titulo: t("Está sobrando dinheiro", "You have money left over"),
         texto: t(
@@ -186,6 +201,7 @@ function Painel() {
 
     if (!semanal && entradas > 0 && (data.projecaoMes ?? 0) > entradas) {
       alertas.push({
+        tipo: "projecao_vermelho",
         tom: "atencao",
         titulo: t(
           "No ritmo de hoje, o mês fecha no vermelho",
@@ -202,6 +218,7 @@ function Painel() {
       const dif = ((semana.gasto - semana.gastoAnterior) / semana.gastoAnterior) * 100;
       if (dif >= 25) {
         alertas.push({
+          tipo: "gasto_acima_semana",
           tom: "atencao",
           titulo: t("Você gastou mais que na semana passada", "You spent more than last week"),
           texto: t(
@@ -212,6 +229,62 @@ function Painel() {
       }
     }
   }
+
+  // ---- Histórico de alertas ----
+  const qc = useQueryClient();
+  const carregarHistorico = useServerFn(listarAlertas);
+  const gravarAlertas = useServerFn(registrarAlertas);
+  const { data: historico } = useQuery({
+    queryKey: ["alertas-historico"],
+    queryFn: () => carregarHistorico(),
+  });
+  const gravar = useMutation({
+    mutationFn: (alertas: AlertaRegistro[]) => gravarAlertas({ data: { alertas } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["alertas-historico"] }),
+  });
+
+  const hoje = new Date().toISOString().slice(0, 10);
+  const inicioMes = `${hoje.slice(0, 7)}-01`;
+  const registros = useMemo<AlertaRegistro[]>(
+    () =>
+      alertas.map((a) => ({
+        tipo: a.tipo,
+        tom: a.tom,
+        periodo: semanal ? ("semana" as const) : ("mes" as const),
+        periodoInicio: semanal ? (semana?.inicio ?? hoje) : inicioMes,
+        periodoFim: semanal ? (semana?.fim ?? hoje) : hoje,
+        entradas: periodoEntradas,
+        gastos: periodoGastos,
+        saldo: periodoSaldo,
+        extra: a.tipo === "projecao_vermelho" ? (data?.projecaoMes ?? null) : null,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      JSON.stringify(alertas.map((a) => a.tipo)),
+      semanal,
+      periodoSaldo,
+      periodoGastos,
+      periodoEntradas,
+    ],
+  );
+
+  const assinatura = JSON.stringify(registros);
+  useEffect(() => {
+    if (isLoading || registros.length === 0) return;
+    gravar.mutate(registros);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assinatura, isLoading]);
+
+  const tituloAlerta = (tipo: TipoAlerta) =>
+    tipo === "saldo_negativo"
+      ? t("Saldo negativo", "Negative balance")
+      : tipo === "saldo_apertado"
+        ? t("Saldo apertado", "Tight balance")
+        : tipo === "sobra"
+          ? t("Sobrou dinheiro", "Money left over")
+          : tipo === "projecao_vermelho"
+            ? t("Projeção no vermelho", "Projected to end in the red")
+            : t("Semana mais cara que a anterior", "Pricier week than the previous one");
 
   return (
     <div className="space-y-8">
@@ -823,6 +896,75 @@ function Painel() {
             </Caixa>
           </section>
         </>
+      )}
+
+      {!isLoading && (
+        <Caixa>
+          <div className="flex items-center gap-2">
+            <History className="size-5 text-primary" />
+            <h2 className="font-display text-2xl">{t("Histórico de alertas", "Alert history")}</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(
+              "Cada alerta de saldo que apareceu para você, com a data, o período e os valores daquele momento.",
+              "Every balance alert you saw, with the date, the period and the numbers at that moment.",
+            )}
+          </p>
+
+          {!historico || historico.length === 0 ? (
+            <p className="mt-4 text-muted-foreground">
+              {t(
+                "Nenhum alerta registrado ainda. Eles aparecem aqui assim que forem disparados.",
+                "No alerts recorded yet. They show up here as soon as they are triggered.",
+              )}
+            </p>
+          ) : (
+            <ul className="mt-4 divide-y divide-primary/10">
+              {historico.map((h) => (
+                <li key={h.id} className="flex flex-wrap items-start gap-x-4 gap-y-2 py-4">
+                  <span
+                    className={`mt-1 size-2.5 shrink-0 rounded-full ${
+                      h.tom === "perigo"
+                        ? "bg-destructive"
+                        : h.tom === "atencao"
+                          ? "bg-accent"
+                          : "bg-primary"
+                    }`}
+                    aria-hidden
+                  />
+                  <div className="min-w-[12rem] flex-1">
+                    <p className="font-medium">{tituloAlerta(h.tipo)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {h.periodo === "semana" ? t("Semana", "Week") : t("Mês", "Month")}:{" "}
+                      {dataCurta(h.inicio)} – {dataCurta(h.fim)} ·{" "}
+                      {t("registrado em", "recorded on")} {dataCurta(h.criadoEm.slice(0, 10))}
+                    </p>
+                  </div>
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-primary-deep">
+                      <span className="block text-xs text-muted-foreground">
+                        {t("Entradas", "Income")}
+                      </span>
+                      {brl(h.entradas)}
+                    </span>
+                    <span>
+                      <span className="block text-xs text-muted-foreground">
+                        {t("Gastos", "Spending")}
+                      </span>
+                      {brl(h.gastos)}
+                    </span>
+                    <span className={h.saldo < 0 ? "text-destructive" : "text-primary-deep"}>
+                      <span className="block text-xs text-muted-foreground">
+                        {t("Saldo", "Balance")}
+                      </span>
+                      {brl(h.saldo)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Caixa>
       )}
     </div>
   );

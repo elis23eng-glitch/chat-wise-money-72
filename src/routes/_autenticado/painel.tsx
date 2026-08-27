@@ -349,7 +349,7 @@ function Painel() {
 
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);
-  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar">(null);
+  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar" | "link">(null);
   const [avisoPdf, setAvisoPdf] = useState("");
   const [idiomaPdf, setIdiomaPdf] = useState<"pt" | "en">(idioma);
   const [secoesPdf, setSecoesPdf] = useState({

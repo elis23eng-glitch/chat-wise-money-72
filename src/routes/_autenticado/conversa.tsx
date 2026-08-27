@@ -17,6 +17,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
@@ -143,7 +144,11 @@ function Conversa() {
               onChange={(e) => setTexto(e.target.value)}
               placeholder="Ex.: gastei 42 reais com farmácia ontem"
             />
-            <PromptInputFooter className="justify-end">
+            <PromptInputFooter className="justify-between">
+              <VoiceInputButton
+                onText={(t) => setTexto((atual) => (atual ? `${atual} ${t}` : t))}
+                disabled={mutation.isPending}
+              />
               <PromptInputSubmit
                 status={mutation.isPending ? "submitted" : "ready"}
                 disabled={!texto.trim() || mutation.isPending}

@@ -176,7 +176,24 @@ export const getDashboard = createServerFn({ method: "GET" })
       entradasRecentes: entradasSemana.slice(0, 6),
     };
 
+    // ---- Saldo de hoje ----
+    const isoHoje = isoDiaAtras(0);
+    const gastoHoje = linhas.filter((l) => l.data === isoHoje).reduce((s, l) => s + l.valor, 0);
+    const entradaHoje = linhasEntrada
+      .filter((l) => l.data === isoHoje)
+      .reduce((s, l) => s + l.valor, 0);
+    const dia = {
+      iso: isoHoje,
+      gasto: gastoHoje,
+      entrada: entradaHoje,
+      saldo: entradaHoje - gastoHoje,
+      quantidade:
+        linhas.filter((l) => l.data === isoHoje).length +
+        linhasEntrada.filter((l) => l.data === isoHoje).length,
+    };
+
     return {
+      dia,
       semana,
       totalEntradas,
       totalEntradasAnterior,

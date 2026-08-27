@@ -8,6 +8,9 @@ import {
   History,
   ArrowUpRight,
   CalendarDays,
+  Eye,
+  Link2 as LinkIcon,
+  X,
   PiggyBank,
   Share2,
   Target,
@@ -40,6 +43,7 @@ import {
 } from "@/lib/alerts.functions";
 import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
+import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({
@@ -349,7 +353,7 @@ function Painel() {
 
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);
-  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar">(null);
+  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar" | "link">(null);
   const [avisoPdf, setAvisoPdf] = useState("");
   const [idiomaPdf, setIdiomaPdf] = useState<"pt" | "en">(idioma);
   const [secoesPdf, setSecoesPdf] = useState({
@@ -380,7 +384,22 @@ function Painel() {
 
   const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
 
-  async function exportarPdf(acao: "baixar" | "compartilhar") {
+  // Prévia do relatório
+  const [previaAberta, setPreviaAberta] = useState(false);
+  const [linkRelatorio, setLinkRelatorio] = useState("");
+  const [linkCopiado, setLinkCopiado] = useState(false);
+
+  const fecharPrevia = () => setPreviaAberta(false);
+
+  function abrirPrevia() {
+    if (!dadosPdf() || nenhumaSecao) return;
+    setAvisoPdf("");
+    setLinkRelatorio("");
+    setPreviaAberta(true);
+  }
+
+
+  async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
     const dados = dadosPdf();
     if (!dados || nenhumaSecao) return;
     setAvisoPdf("");
@@ -389,6 +408,25 @@ function Painel() {
       const mod = await import("@/lib/pdf-report");
       if (acao === "baixar") {
         await mod.baixarRelatorioPdf(dados);
+      } else if (acao === "link") {
+        try {
+          const url = await mod.gerarLinkRelatorioPdf(dados);
+          setLinkRelatorio(url);
+          setLinkCopiado(false);
+          try {
+            await navigator.clipboard.writeText(url);
+            setLinkCopiado(true);
+          } catch {
+            /* sem permissão de área de transferência */
+          }
+        } catch {
+          setAvisoPdf(
+            t(
+              "Não consegui criar o link agora. Tente de novo em instantes.",
+              "I couldn't create the link right now. Please try again shortly.",
+            ),
+          );
+        }
       } else {
         const ok = await mod.compartilharRelatorioPdf(
           dados,
@@ -408,6 +446,7 @@ function Painel() {
       setExportando(null);
     }
   }
+
 
   const SECOES_PDF = [
     { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
@@ -533,9 +572,18 @@ function Painel() {
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"
+                onClick={abrirPrevia}
+                disabled={nenhumaSecao}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+              >
+                <Eye className="size-5" />
+                {t("Ver prévia", "Preview report")}
+              </button>
+              <button
+                type="button"
                 onClick={() => exportarPdf("baixar")}
                 disabled={nenhumaSecao || exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
               >
                 <Download className="size-5" />
                 {exportando === "baixar"
@@ -553,7 +601,59 @@ function Painel() {
                   ? t("Preparando…", "Preparing…")
                   : t("Compartilhar", "Share")}
               </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("link")}
+                disabled={nenhumaSecao || exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <LinkIcon className="size-5" />
+                {exportando === "link"
+                  ? t("Criando link…", "Creating link…")
+                  : t("Compartilhar por link", "Share by link")}
+              </button>
             </div>
+
+            {linkRelatorio && (
+              <div className="rounded-2xl border border-primary/20 bg-secondary p-4">
+                <p className="text-base font-semibold text-primary-deep">
+                  {linkCopiado
+                    ? t("Link copiado! Vale por 7 dias.", "Link copied! Valid for 7 days.")
+                    : t("Link pronto — vale por 7 dias.", "Link ready — valid for 7 days.")}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input
+                    readOnly
+                    value={linkRelatorio}
+                    onFocus={(e) => e.currentTarget.select()}
+                    aria-label={t("Link do relatório", "Report link")}
+                    className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(linkRelatorio);
+                        setLinkCopiado(true);
+                      } catch {
+                        /* ignora */
+                      }
+                    }}
+                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-deep"
+                  >
+                    {t("Copiar", "Copy")}
+                  </button>
+                  <a
+                    href={linkRelatorio}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-full border border-primary/30 bg-card px-5 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
+                  >
+                    {t("Abrir", "Open")}
+                  </a>
+                </div>
+              </div>
+            )}
 
             {nenhumaSecao && (
               <p className="text-sm text-destructive">
@@ -564,9 +664,104 @@ function Painel() {
               </p>
             )}
             {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
+
           </div>
         )}
       </header>
+
+      {previaAberta && dadosPdf() && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col bg-foreground/60 p-3 backdrop-blur-sm sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("Prévia do relatório", "Report preview")}
+        >
+          <div className="surface-card mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden p-0">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+              <div>
+                <h2 className="font-display text-xl leading-none">
+                  {t("Prévia do relatório", "Report preview")}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {(idiomaPdf === "pt" ? "Português (BR)" : "English") +
+                    " · " +
+                    SECOES_PDF.filter((s) => secoesPdf[s.chave])
+                      .map((s) => s.rotulo)
+                      .join(", ")}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={fecharPrevia}
+                className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-primary-deep hover:bg-primary/15"
+              >
+                <X className="size-4" />
+                {t("Fechar", "Close")}
+              </button>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto bg-muted/40 p-4">
+              <PreviaRelatorio dados={dadosPdf()!} />
+            </div>
+
+            <div className="flex flex-wrap gap-3 border-t border-border p-4">
+              <button
+                type="button"
+                onClick={() => exportarPdf("baixar")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
+              >
+                <Download className="size-5" />
+                {t("Baixar PDF", "Download PDF")}
+              </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("compartilhar")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <Share2 className="size-5" />
+                {t("Compartilhar", "Share")}
+              </button>
+              <button
+                type="button"
+                onClick={() => exportarPdf("link")}
+                disabled={exportando !== null}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
+              >
+                <LinkIcon className="size-5" />
+                {exportando === "link"
+                  ? t("Criando link…", "Creating link…")
+                  : t("Compartilhar por link", "Share by link")}
+              </button>
+            </div>
+
+            {(linkRelatorio || avisoPdf) && (
+              <div className="border-t border-border p-4 text-sm">
+                {linkRelatorio && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      readOnly
+                      value={linkRelatorio}
+                      onFocus={(e) => e.currentTarget.select()}
+                      aria-label={t("Link do relatório", "Report link")}
+                      className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                    />
+                    <span className="text-muted-foreground">
+                      {linkCopiado
+                        ? t("Copiado! Vale 7 dias.", "Copied! Valid for 7 days.")
+                        : t("Vale por 7 dias.", "Valid for 7 days.")}
+                    </span>
+                  </div>
+                )}
+                {avisoPdf && <p className="mt-2 text-muted-foreground">{avisoPdf}</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+
 
       {isLoading && (
         <p className="text-muted-foreground">
@@ -639,6 +834,80 @@ function Painel() {
                   )}
             </p>
           </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                chave: "dia",
+                rotulo: t("Hoje", "Today"),
+                detalhe: dataLonga(data?.dia?.iso ?? hoje),
+                entrada: data?.dia?.entrada ?? 0,
+                gasto: data?.dia?.gasto ?? 0,
+                saldo: data?.dia?.saldo ?? 0,
+              },
+              {
+                chave: "semana",
+                rotulo: t("Últimos 7 dias", "Last 7 days"),
+                detalhe:
+                  semana && `${dataCurta(semana.inicio)} – ${dataCurta(semana.fim)}`,
+                entrada: semana?.entrada ?? 0,
+                gasto: semana?.gasto ?? 0,
+                saldo: semana?.saldo ?? 0,
+              },
+              {
+                chave: "mes",
+                rotulo: t("Este mês", "This month"),
+                detalhe: `${dataCurta(inicioMes)} – ${dataCurta(hoje)}`,
+                entrada: entradas,
+                gasto: total,
+                saldo: saldo,
+              },
+            ].map((p) => {
+              const positivo = p.saldo >= 0;
+              return (
+                <div
+                  key={p.chave}
+                  className={`rounded-2xl border p-5 ${
+                    positivo
+                      ? "border-primary/25 bg-primary/5"
+                      : "border-destructive/30 bg-destructive/10"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-base font-semibold">{p.rotulo}</p>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        positivo
+                          ? "bg-primary/15 text-primary-deep"
+                          : "bg-destructive/20 text-destructive"
+                      }`}
+                    >
+                      {positivo ? (
+                        <TrendingUp className="size-3.5" />
+                      ) : (
+                        <TrendingDown className="size-3.5" />
+                      )}
+                      {positivo ? t("positivo", "positive") : t("negativo", "negative")}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-2 font-display text-3xl ${
+                      positivo ? "text-primary-deep" : "text-destructive"
+                    }`}
+                  >
+                    {brl(p.saldo)}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("Entradas", "Income")} {brl(p.entrada)} · {t("Saídas", "Expenses")}{" "}
+                    {brl(p.gasto)}
+                  </p>
+                  {p.detalhe && <p className="mt-1 text-xs text-muted-foreground">{p.detalhe}</p>}
+                </div>
+              );
+            })}
+          </div>
+
+
 
           {alertas.length > 0 && (
             <div className="grid gap-3 md:grid-cols-2">

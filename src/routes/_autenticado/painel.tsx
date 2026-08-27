@@ -29,14 +29,7 @@ import {
 } from "recharts";
 
 import { getDashboard } from "@/lib/dashboard.functions";
-import {
-  brl,
-  dataCurta,
-  dataLonga,
-  categoriaLabel,
-  diaSemanaCurto,
-  mesCurto,
-} from "@/lib/format";
+import { brl, dataCurta, dataLonga, categoriaLabel, diaSemanaCurto, mesCurto } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_autenticado/painel")({
@@ -137,9 +130,7 @@ function Painel() {
     .sort((a, b) => b.valor - a.valor);
 
   const semDados =
-    !isLoading &&
-    (data?.quantidadeLancamentos ?? 0) === 0 &&
-    (data?.quantidadeEntradas ?? 0) === 0;
+    !isLoading && (data?.quantidadeLancamentos ?? 0) === 0 && (data?.quantidadeEntradas ?? 0) === 0;
 
   const semana = data?.semana;
   const semanal = modo === "semana";
@@ -196,7 +187,10 @@ function Painel() {
     if (!semanal && entradas > 0 && (data.projecaoMes ?? 0) > entradas) {
       alertas.push({
         tom: "atencao",
-        titulo: t("No ritmo de hoje, o mês fecha no vermelho", "At today's pace, the month ends in the red"),
+        titulo: t(
+          "No ritmo de hoje, o mês fecha no vermelho",
+          "At today's pace, the month ends in the red",
+        ),
         texto: t(
           `Se continuar assim, você vai gastar cerca de ${brl(data.projecaoMes)} e recebeu ${brl(entradas)}. Dá tempo de ajustar.`,
           `If this keeps up, you'll spend about ${brl(data.projecaoMes)} while you received ${brl(entradas)}. There's still time to adjust.`,
@@ -240,12 +234,10 @@ function Painel() {
           role="group"
           aria-label={t("Escolher período", "Choose period")}
         >
-          {(
-            [
-              { valor: "mes" as const, rotulo: t("Este mês", "This month") },
-              { valor: "semana" as const, rotulo: t("Resumo da semana", "Weekly summary") },
-            ]
-          ).map((op) => (
+          {[
+            { valor: "mes" as const, rotulo: t("Este mês", "This month") },
+            { valor: "semana" as const, rotulo: t("Resumo da semana", "Weekly summary") },
+          ].map((op) => (
             <button
               key={op.valor}
               type="button"
@@ -264,7 +256,9 @@ function Painel() {
       </header>
 
       {isLoading && (
-        <p className="text-muted-foreground">{t("Carregando seus números…", "Loading your numbers…")}</p>
+        <p className="text-muted-foreground">
+          {t("Carregando seus números…", "Loading your numbers…")}
+        </p>
       )}
 
       {semDados && (
@@ -320,10 +314,14 @@ function Painel() {
                     )
                 : t(
                     `Você recebeu ${brl(periodoEntradas)} e gastou ${brl(periodoGastos)}${
-                      semanal && semana ? ` entre ${dataLonga(semana.inicio)} e ${dataLonga(semana.fim)}` : ""
+                      semanal && semana
+                        ? ` entre ${dataLonga(semana.inicio)} e ${dataLonga(semana.fim)}`
+                        : ""
                     }.`,
                     `You received ${brl(periodoEntradas)} and spent ${brl(periodoGastos)}${
-                      semanal && semana ? ` between ${dataLonga(semana.inicio)} and ${dataLonga(semana.fim)}` : ""
+                      semanal && semana
+                        ? ` between ${dataLonga(semana.inicio)} and ${dataLonga(semana.fim)}`
+                        : ""
                     }.`,
                   )}
             </p>
@@ -405,7 +403,9 @@ function Painel() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <TrendingUp className="size-4" /> {t("Dia mais caro", "Priciest day")}
                   </div>
-                  <p className="mt-3 font-display text-3xl">{brl(semana?.diaMaisCaro.total ?? 0)}</p>
+                  <p className="mt-3 font-display text-3xl">
+                    {brl(semana?.diaMaisCaro.total ?? 0)}
+                  </p>
                   <p className="mt-1 text-sm capitalize text-muted-foreground">
                     {semana ? dataLonga(semana.diaMaisCaro.iso) : "—"}
                   </p>
@@ -428,7 +428,10 @@ function Painel() {
                           stroke="var(--muted-foreground)"
                         />
                         <YAxis hide />
-                        <Tooltip content={<DicaComparativo />} cursor={{ fill: "var(--secondary)" }} />
+                        <Tooltip
+                          content={<DicaComparativo />}
+                          cursor={{ fill: "var(--secondary)" }}
+                        />
                         <Legend
                           verticalAlign="top"
                           height={28}
@@ -513,7 +516,10 @@ function Painel() {
                     {(semana?.recentes ?? []).length === 0 &&
                       (semana?.entradasRecentes ?? []).length === 0 && (
                         <li className="py-2.5 text-muted-foreground">
-                          {t("Nada anotado nos últimos 7 dias.", "Nothing recorded in the last 7 days.")}
+                          {t(
+                            "Nada anotado nos últimos 7 dias.",
+                            "Nothing recorded in the last 7 days.",
+                          )}
                         </li>
                       )}
                   </ul>
@@ -526,8 +532,6 @@ function Painel() {
 
       {!isLoading && !semanal && (
         <>
-
-
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Caixa>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -611,11 +615,14 @@ function Painel() {
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Caixa>
               <h2 className="font-display text-2xl">
-                {t("Entradas e saídas nos últimos 6 meses", "Income and expenses over the last 6 months")}
+                {t(
+                  "Entradas e saídas nos últimos 6 meses",
+                  "Income and expenses over the last 6 months",
+                )}
               </h2>
               <div className="mt-4 h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data?.meses ?? []}>
+                  <AreaChart data={mesesGrafico}>
                     <defs>
                       <linearGradient id="areaGasto" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.55} />
@@ -665,9 +672,13 @@ function Painel() {
             </Caixa>
 
             <Caixa>
-              <h2 className="font-display text-2xl">{t("Onde o dinheiro foi", "Where the money went")}</h2>
+              <h2 className="font-display text-2xl">
+                {t("Onde o dinheiro foi", "Where the money went")}
+              </h2>
               {categorias.length === 0 ? (
-                <p className="mt-4 text-muted-foreground">{t("Sem gastos neste mês.", "No expenses this month.")}</p>
+                <p className="mt-4 text-muted-foreground">
+                  {t("Sem gastos neste mês.", "No expenses this month.")}
+                </p>
               ) : (
                 <>
                   <div className="mt-2 h-52 w-full">
@@ -708,7 +719,9 @@ function Painel() {
 
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Caixa>
-              <h2 className="font-display text-2xl">{t("Gastos dia a dia deste mês", "Daily spending this month")}</h2>
+              <h2 className="font-display text-2xl">
+                {t("Gastos dia a dia deste mês", "Daily spending this month")}
+              </h2>
               <div className="mt-4 h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data?.diario ?? []}>
@@ -763,7 +776,9 @@ function Painel() {
                 </div>
               )}
 
-              <h3 className="mt-8 font-display text-xl">{t("Últimas entradas", "Latest income")}</h3>
+              <h3 className="mt-8 font-display text-xl">
+                {t("Últimas entradas", "Latest income")}
+              </h3>
               {(data?.entradasRecentes ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">
                   {t("Nenhuma entrada anotada ainda.", "No income recorded yet.")}{" "}
@@ -789,7 +804,9 @@ function Painel() {
                 </ul>
               )}
 
-              <h3 className="mt-8 font-display text-xl">{t("Últimas saídas", "Latest expenses")}</h3>
+              <h3 className="mt-8 font-display text-xl">
+                {t("Últimas saídas", "Latest expenses")}
+              </h3>
               <ul className="mt-2 divide-y divide-primary/10 text-sm">
                 {(data?.recentes ?? []).map((g) => (
                   <li key={g.id} className="flex items-center gap-3 py-2.5">

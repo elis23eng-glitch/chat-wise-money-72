@@ -91,6 +91,41 @@ function Conversa() {
     t("Quero juntar R$ 1.200 até dezembro", "I want to save $1,200 by December"),
   ];
 
+  // Comandos prontos: alguns só preenchem o texto (o usuário completa o valor),
+  // outros são enviados na hora.
+  const COMANDOS_RAPIDOS: { rotulo: string; texto: string; enviar: boolean }[] = [
+    {
+      rotulo: t("💸 Gastei…", "💸 I spent…"),
+      texto: t("Gastei ", "I spent "),
+      enviar: false,
+    },
+    {
+      rotulo: t("💰 Recebi…", "💰 I received…"),
+      texto: t("Recebi ", "I received "),
+      enviar: false,
+    },
+    {
+      rotulo: t("📊 Mostre meu resumo", "📊 Show my summary"),
+      texto: t("Mostre meu resumo deste mês", "Show my summary for this month"),
+      enviar: true,
+    },
+    {
+      rotulo: t("🎯 Minhas metas", "🎯 My goals"),
+      texto: t("Como estão as minhas metas?", "How are my goals going?"),
+      enviar: true,
+    },
+    {
+      rotulo: t("✏️ Corrigir último", "✏️ Fix last entry"),
+      texto: t("Corrigir o último lançamento para ", "Change my last entry to "),
+      enviar: false,
+    },
+    {
+      rotulo: t("🗑️ Apagar último", "🗑️ Delete last"),
+      texto: t("Apagar o último gasto", "Delete my last expense"),
+      enviar: true,
+    },
+  ];
+
   const { data: mensagens = [], isLoading } = useQuery({
     queryKey: ["mensagens"],
     queryFn: () => fetchMessages(),
@@ -299,6 +334,30 @@ function Conversa() {
         </Conversation>
 
         <div className="border-t border-primary/10 p-4">
+          <div className="mb-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">
+              {t("Comandos prontos — é só tocar", "Ready-made commands — just tap")}
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {COMANDOS_RAPIDOS.map((c) => (
+                <button
+                  key={c.rotulo}
+                  type="button"
+                  disabled={mutation.isPending}
+                  onClick={() => {
+                    if (c.enviar) {
+                      submeter(c.texto);
+                    } else {
+                      setTexto(c.texto);
+                    }
+                  }}
+                  className="shrink-0 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-50"
+                >
+                  {c.rotulo}
+                </button>
+              ))}
+            </div>
+          </div>
           <PromptInput
             onSubmit={(_message, event) => {
               event.preventDefault();

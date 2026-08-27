@@ -46,7 +46,7 @@ function Entrar() {
     setEnviando(true);
     try {
       if (modo === "criar") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password: senha,
           options: {
@@ -55,16 +55,39 @@ function Entrar() {
           },
         });
         if (error) throw error;
-        toast.success(
-          t(
-            "Conta criada! Se pedirmos confirmação, olhe seu e-mail.",
-            "Account created! If we ask for confirmation, check your email.",
-          ),
-        );
+        if (!data.session) {
+          // Sem sessão imediata: tenta entrar direto com as mesmas credenciais.
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password: senha,
+          });
+          if (signInError) {
+            toast.success(
+              t(
+                "Conta criada! Confirme pelo e-mail e depois entre.",
+                "Account created! Confirm via email, then sign in.",
+              ),
+            );
+            setModo("entrar");
+            return;
+          }
+        }
+        toast.success(t("Conta criada! Bem-vinda.", "Account created! Welcome."));
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) throw error;
+        if (error) {
+          if (/invalid login credentials/i.test(error.message)) {
+            throw new Error(
+              t(
+                "E-mail ou senha não conferem. Se acabou de criar a conta, confirme pelo e-mail.",
+                "Email or password doesn't match. If you just signed up, confirm via email.",
+              ),
+            );
+          }
+          throw error;
+        }
       }
+
     } catch (err) {
       toast.error(
         err instanceof Error

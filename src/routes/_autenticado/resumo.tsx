@@ -12,7 +12,7 @@ import {
   deleteIncome,
   getOverview,
 } from "@/lib/finance.functions";
-import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel } from "@/lib/format";
+import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel, notaConversao } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
 

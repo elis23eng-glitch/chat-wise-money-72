@@ -27,7 +27,8 @@ import {
 } from "recharts";
 
 import { getDashboard } from "@/lib/dashboard.functions";
-import { brl, dataCurta } from "@/lib/format";
+import { brl, dataCurta, categoriaLabel } from "@/lib/format";
+import { useIdioma } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({
@@ -71,13 +72,14 @@ function DicaGrafico({ active, payload, label }: any) {
 }
 
 function DicaComparativo({ active, payload, label }: any) {
+  const { t } = useIdioma();
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-xl border border-primary/20 bg-card px-3 py-2 text-sm shadow-soft">
       <p className="font-semibold capitalize">{label}</p>
       {payload.map((p: any) => (
         <p key={p.dataKey} className="text-muted-foreground">
-          {p.dataKey === "entrada" ? "Entrou" : "Saiu"}: {brl(Number(p.value))}
+          {p.dataKey === "entrada" ? t("Entrou", "In") : t("Saiu", "Out")}: {brl(Number(p.value))}
         </p>
       ))}
     </div>
@@ -85,6 +87,7 @@ function DicaComparativo({ active, payload, label }: any) {
 }
 
 function Painel() {
+  const { t, idioma } = useIdioma();
   const carregar = useServerFn(getDashboard);
   const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: () => carregar() });
 
@@ -107,27 +110,40 @@ function Painel() {
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Painel</p>
-        <h1 className="mt-2 font-display text-4xl tracking-tight">Sua vida financeira num olhar</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+          {t("Painel", "Dashboard")}
+        </p>
+        <h1 className="mt-2 font-display text-4xl tracking-tight">
+          {t("Sua vida financeira num olhar", "Your finances at a glance")}
+        </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Aqui você vê tudo junto: quanto gastou, com o quê, como está evoluindo e quanto falta para
-          suas metas.
+          {t(
+            "Aqui você vê tudo junto: quanto gastou, com o quê, como está evoluindo e quanto falta para suas metas.",
+            "Here you see everything together: how much you spent, on what, how it's evolving, and how much is left for your goals.",
+          )}
         </p>
       </header>
 
-      {isLoading && <p className="text-muted-foreground">Carregando seus números…</p>}
+      {isLoading && (
+        <p className="text-muted-foreground">{t("Carregando seus números…", "Loading your numbers…")}</p>
+      )}
 
       {semDados && (
         <Caixa>
-          <h2 className="font-display text-2xl">Ainda não há gastos neste mês</h2>
+          <h2 className="font-display text-2xl">
+            {t("Ainda não há gastos neste mês", "There are no expenses this month yet")}
+          </h2>
           <p className="mt-2 text-muted-foreground">
-            Assim que você anotar o primeiro gasto, os gráficos aparecem aqui automaticamente.
+            {t(
+              "Assim que você anotar o primeiro gasto, os gráficos aparecem aqui automaticamente.",
+              "As soon as you record your first expense, the charts will appear here automatically.",
+            )}
           </p>
           <Link
             to="/conversa"
             className="mt-5 inline-block rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep"
           >
-            Anotar conversando
+            {t("Anotar conversando", "Add by chatting")}
           </Link>
         </Caixa>
       )}
@@ -143,37 +159,49 @@ function Painel() {
           >
             <div className="flex items-center gap-2 text-sm opacity-90">
               {saldo >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
-              Saldo deste mês
+              {t("Saldo deste mês", "This month's balance")}
             </div>
             <p className="mt-3 font-display text-4xl sm:text-5xl">{brl(saldo)}</p>
             <p className="mt-2 max-w-xl text-base opacity-90">
               {entradas === 0 && total === 0
-                ? "Ainda não há entradas nem gastos anotados neste mês."
+                ? t(
+                    "Ainda não há entradas nem gastos anotados neste mês.",
+                    "There are no income or expenses recorded this month yet.",
+                  )
                 : saldo >= 0
-                  ? `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Está sobrando dinheiro — que tal guardar um pouco numa meta?`
-                  : `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Atenção: você está no vermelho em ${brl(Math.abs(saldo))} neste mês.`}
+                  ? t(
+                      `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Está sobrando dinheiro — que tal guardar um pouco numa meta?`,
+                      `You received ${brl(entradas)} and spent ${brl(total)}. You have money left over — how about saving some in a goal?`,
+                    )
+                  : t(
+                      `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Atenção: você está no vermelho em ${brl(Math.abs(saldo))} neste mês.`,
+                      `You received ${brl(entradas)} and spent ${brl(total)}. Watch out: you're ${brl(Math.abs(saldo))} in the red this month.`,
+                    )}
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Caixa>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <PiggyBank className="size-4" /> Entradas do mês
+                <PiggyBank className="size-4" /> {t("Entradas do mês", "This month's income")}
               </div>
               <p className="mt-3 font-display text-3xl text-primary-deep">{brl(entradas)}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {data?.quantidadeEntradas ?? 0} entrada(s) registrada(s)
+                {t(
+                  `${data?.quantidadeEntradas ?? 0} entrada(s) registrada(s)`,
+                  `${data?.quantidadeEntradas ?? 0} income entry(ies) recorded`,
+                )}
               </p>
             </Caixa>
 
             <div className="rounded-3xl bg-primary-deep p-6 text-primary-deep-foreground">
               <div className="flex items-center gap-2 text-sm opacity-80">
-                <Wallet className="size-4" /> Gasto do mês
+                <Wallet className="size-4" /> {t("Gasto do mês", "This month's spending")}
               </div>
               <p className="mt-3 font-display text-3xl">{brl(total)}</p>
               <p className="mt-1 flex items-center gap-1 text-sm opacity-80">
                 {anterior === 0 ? (
-                  "Primeiro mês registrado"
+                  t("Primeiro mês registrado", "First month recorded")
                 ) : (
                   <>
                     {subiu ? (
@@ -181,7 +209,10 @@ function Painel() {
                     ) : (
                       <ArrowDownRight className="size-4" />
                     )}
-                    {Math.abs(variacao).toFixed(0)}% {subiu ? "a mais" : "a menos"} que o mês passado
+                    {t(
+                      `${Math.abs(variacao).toFixed(0)}% ${subiu ? "a mais" : "a menos"} que o mês passado`,
+                      `${Math.abs(variacao).toFixed(0)}% ${subiu ? "more" : "less"} than last month`,
+                    )}
                   </>
                 )}
               </p>
@@ -189,40 +220,51 @@ function Painel() {
 
             <Caixa>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarDays className="size-4" /> Média por dia
+                <CalendarDays className="size-4" /> {t("Média por dia", "Average per day")}
               </div>
               <p className="mt-3 font-display text-3xl">{brl(data?.mediaDiaria ?? 0)}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {data?.quantidadeLancamentos ?? 0} lançamentos no mês
+                {t(
+                  `${data?.quantidadeLancamentos ?? 0} lançamentos no mês`,
+                  `${data?.quantidadeLancamentos ?? 0} entries this month`,
+                )}
               </p>
             </Caixa>
 
             <Caixa>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ArrowUpRight className="size-4" /> Projeção do mês
+                <ArrowUpRight className="size-4" /> {t("Projeção do mês", "Month projection")}
               </div>
               <p className="mt-3 font-display text-3xl">{brl(data?.projecaoMes ?? 0)}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Se continuar no ritmo de hoje até o fim do mês
+                {t(
+                  "Se continuar no ritmo de hoje até o fim do mês",
+                  "If you keep today's pace until the end of the month",
+                )}
               </p>
             </Caixa>
 
             <Caixa>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Target className="size-4" /> Guardado nas metas
+                <Target className="size-4" /> {t("Guardado nas metas", "Saved in your goals")}
               </div>
               <p className="mt-3 font-display text-3xl">
                 {brl((data?.metas ?? []).reduce((s, m) => s + m.valor_atual, 0))}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {(data?.metas ?? []).length} meta(s) ativa(s)
+                {t(
+                  `${(data?.metas ?? []).length} meta(s) ativa(s)`,
+                  `${(data?.metas ?? []).length} active goal(s)`,
+                )}
               </p>
             </Caixa>
           </div>
 
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Caixa>
-              <h2 className="font-display text-2xl">Entradas e saídas nos últimos 6 meses</h2>
+              <h2 className="font-display text-2xl">
+                {t("Entradas e saídas nos últimos 6 meses", "Income and expenses over the last 6 months")}
+              </h2>
               <div className="mt-4 h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data?.meses ?? []}>
@@ -251,7 +293,7 @@ function Painel() {
                       iconType="circle"
                       formatter={(v) => (
                         <span className="text-sm text-muted-foreground">
-                          {v === "entrada" ? "Entrou" : "Saiu"}
+                          {v === "entrada" ? t("Entrou", "In") : t("Saiu", "Out")}
                         </span>
                       )}
                     />
@@ -275,9 +317,9 @@ function Painel() {
             </Caixa>
 
             <Caixa>
-              <h2 className="font-display text-2xl">Onde o dinheiro foi</h2>
+              <h2 className="font-display text-2xl">{t("Onde o dinheiro foi", "Where the money went")}</h2>
               {categorias.length === 0 ? (
-                <p className="mt-4 text-muted-foreground">Sem gastos neste mês.</p>
+                <p className="mt-4 text-muted-foreground">{t("Sem gastos neste mês.", "No expenses this month.")}</p>
               ) : (
                 <>
                   <div className="mt-2 h-52 w-full">
@@ -306,7 +348,7 @@ function Painel() {
                           className="size-3 shrink-0 rounded-full"
                           style={{ background: CORES[i % CORES.length] }}
                         />
-                        <span className="capitalize">{c.nome}</span>
+                        <span className="capitalize">{categoriaLabel(c.nome, idioma)}</span>
                         <span className="ml-auto text-muted-foreground">{brl(c.valor)}</span>
                       </li>
                     ))}
@@ -318,7 +360,7 @@ function Painel() {
 
           <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <Caixa>
-              <h2 className="font-display text-2xl">Gastos dia a dia deste mês</h2>
+              <h2 className="font-display text-2xl">{t("Gastos dia a dia deste mês", "Daily spending this month")}</h2>
               <div className="mt-4 h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data?.diario ?? []}>
@@ -338,12 +380,12 @@ function Painel() {
             </Caixa>
 
             <Caixa>
-              <h2 className="font-display text-2xl">Suas metas</h2>
+              <h2 className="font-display text-2xl">{t("Suas metas", "Your goals")}</h2>
               {(data?.metas ?? []).length === 0 ? (
                 <p className="mt-4 text-muted-foreground">
-                  Você ainda não criou metas.{" "}
+                  {t("Você ainda não criou metas.", "You haven't created any goals yet.")}{" "}
                   <Link to="/metas" className="font-semibold text-primary underline">
-                    Criar agora
+                    {t("Criar agora", "Create now")}
                   </Link>
                 </p>
               ) : (
@@ -355,7 +397,10 @@ function Painel() {
                         <div className="flex items-baseline justify-between text-sm">
                           <span className="font-medium">{m.titulo}</span>
                           <span className="text-muted-foreground">
-                            {brl(m.valor_atual)} de {brl(m.valor_alvo)}
+                            {t(
+                              `${brl(m.valor_atual)} de ${brl(m.valor_alvo)}`,
+                              `${brl(m.valor_atual)} of ${brl(m.valor_alvo)}`,
+                            )}
                           </span>
                         </div>
                         <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-secondary">
@@ -370,12 +415,12 @@ function Painel() {
                 </div>
               )}
 
-              <h3 className="mt-8 font-display text-xl">Últimas entradas</h3>
+              <h3 className="mt-8 font-display text-xl">{t("Últimas entradas", "Latest income")}</h3>
               {(data?.entradasRecentes ?? []).length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Nenhuma entrada anotada ainda.{" "}
+                  {t("Nenhuma entrada anotada ainda.", "No income recorded yet.")}{" "}
                   <Link to="/resumo" className="font-semibold text-primary underline">
-                    Anotar entrada
+                    {t("Anotar entrada", "Add income")}
                   </Link>
                 </p>
               ) : (
@@ -385,7 +430,7 @@ function Painel() {
                       <div className="min-w-0">
                         <p className="truncate font-medium">{e.descricao}</p>
                         <p className="text-xs capitalize text-muted-foreground">
-                          {e.categoria} · {dataCurta(e.data)}
+                          {categoriaLabel(e.categoria, idioma)} · {dataCurta(e.data)}
                         </p>
                       </div>
                       <span className="ml-auto font-display text-base text-primary-deep">
@@ -396,14 +441,14 @@ function Painel() {
                 </ul>
               )}
 
-              <h3 className="mt-8 font-display text-xl">Últimas saídas</h3>
+              <h3 className="mt-8 font-display text-xl">{t("Últimas saídas", "Latest expenses")}</h3>
               <ul className="mt-2 divide-y divide-primary/10 text-sm">
                 {(data?.recentes ?? []).map((g) => (
                   <li key={g.id} className="flex items-center gap-3 py-2.5">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{g.descricao}</p>
                       <p className="text-xs capitalize text-muted-foreground">
-                        {g.categoria} · {dataCurta(g.data)}
+                        {categoriaLabel(g.categoria, idioma)} · {dataCurta(g.data)}
                       </p>
                     </div>
                     <span className="ml-auto font-display text-base">{brl(g.valor)}</span>

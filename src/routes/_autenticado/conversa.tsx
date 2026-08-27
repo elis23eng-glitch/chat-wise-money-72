@@ -19,6 +19,7 @@ import {
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
+import { useIdioma } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({
@@ -38,19 +39,20 @@ export const Route = createFileRoute("/_autenticado/conversa")({
   component: Conversa,
 });
 
-const SUGESTOES = [
-  "Gastei 35 reais no mercado hoje",
-  "Quanto eu gastei este mês?",
-  "O que é uma reserva de emergência?",
-  "Quero juntar R$ 1.200 até dezembro",
-];
-
 function Conversa() {
   const qc = useQueryClient();
   const fetchMessages = useServerFn(getMessages);
   const enviar = useServerFn(sendMessage);
   const limpar = useServerFn(clearMessages);
   const [texto, setTexto] = useState("");
+  const { t, idioma } = useIdioma();
+
+  const SUGESTOES = [
+    t("Gastei 35 reais no mercado hoje", "I spent $35 at the market today"),
+    t("Quanto eu gastei este mês?", "How much did I spend this month?"),
+    t("O que é uma reserva de emergência?", "What is an emergency fund?"),
+    t("Quero juntar R$ 1.200 até dezembro", "I want to save $1,200 by December"),
+  ];
 
   const { data: mensagens = [], isLoading } = useQuery({
     queryKey: ["mensagens"],
@@ -58,12 +60,15 @@ function Conversa() {
   });
 
   const mutation = useMutation({
-    mutationFn: (message: string) => enviar({ data: { message } }),
+    mutationFn: (message: string) => enviar({ data: { message, idioma } }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["mensagens"] });
       qc.invalidateQueries({ queryKey: ["overview"] });
     },
-    onError: () => toast.error("Não consegui responder agora. Tente de novo em instantes."),
+    onError: () =>
+      toast.error(
+        t("Não consegui responder agora. Tente de novo em instantes.", "I couldn't reply right now. Please try again in a moment."),
+      ),
   });
 
   const limparMutation = useMutation({
@@ -86,26 +91,36 @@ function Conversa() {
             m
           </span>
           <div>
-            <p className="font-display text-lg leading-none">Seu agente financeiro</p>
-            <p className="text-xs text-muted-foreground">Fale como quiser, eu entendo.</p>
+            <p className="font-display text-lg leading-none">
+              {t("Seu agente financeiro", "Your financial agent")}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {t("Fale como quiser, eu entendo.", "Speak however you like, I'll understand.")}
+            </p>
           </div>
           <button
             onClick={() => limparMutation.mutate()}
             className="ml-auto rounded-full px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary"
           >
-            Limpar conversa
+            {t("Limpar conversa", "Clear conversation")}
           </button>
         </div>
 
         <Conversation className="flex-1">
           <ConversationContent className="gap-4">
-            {isLoading && <p className="text-sm text-muted-foreground">Carregando conversa…</p>}
+            {isLoading && (
+              <p className="text-sm text-muted-foreground">
+                {t("Carregando conversa…", "Loading conversation…")}
+              </p>
+            )}
             {!isLoading && mensagens.length === 0 && (
               <div className="mx-auto max-w-md py-10 text-center">
-                <p className="font-display text-2xl">Oi! Vamos começar?</p>
+                <p className="font-display text-2xl">{t("Oi! Vamos começar?", "Hi! Shall we begin?")}</p>
                 <p className="mt-2 text-muted-foreground">
-                  Me conte um gasto recente ou faça uma pergunta sobre dinheiro. Eu explico com
-                  calma, sem termos complicados.
+                  {t(
+                    "Me conte um gasto recente ou faça uma pergunta sobre dinheiro. Eu explico com calma, sem termos complicados.",
+                    "Tell me about a recent expense or ask a question about money. I'll explain calmly, without complicated terms.",
+                  )}
                 </p>
               </div>
             )}
@@ -125,7 +140,7 @@ function Conversa() {
                 <span className="grid size-7 place-items-center rounded-full bg-primary/10 font-display text-xs text-primary">
                   m
                 </span>
-                <Shimmer>Pensando com você…</Shimmer>
+                <Shimmer>{t("Pensando com você…", "Thinking it over with you…")}</Shimmer>
               </div>
             )}
           </ConversationContent>
@@ -142,11 +157,11 @@ function Conversa() {
             <PromptInputTextarea
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
-              placeholder="Ex.: gastei 42 reais com farmácia ontem"
+              placeholder={t("Ex.: gastei 42 reais com farmácia ontem", "E.g.: I spent $42 at the pharmacy yesterday")}
             />
             <PromptInputFooter className="justify-between">
               <VoiceInputButton
-                onText={(t) => setTexto((atual) => (atual ? `${atual} ${t}` : t))}
+                onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
                 disabled={mutation.isPending}
               />
               <PromptInputSubmit
@@ -160,7 +175,7 @@ function Conversa() {
 
       <aside className="space-y-4">
         <div className="surface-card p-5">
-          <p className="font-display text-lg">Experimente dizer</p>
+          <p className="font-display text-lg">{t("Experimente dizer", "Try saying")}</p>
           <div className="mt-3 space-y-2">
             {SUGESTOES.map((s) => (
               <button
@@ -175,10 +190,12 @@ function Conversa() {
         </div>
 
         <div className="rounded-3xl bg-primary-deep p-5 text-primary-deep-foreground">
-          <p className="font-display text-lg">Dica</p>
+          <p className="font-display text-lg">{t("Dica", "Tip")}</p>
           <p className="mt-2 text-sm leading-relaxed opacity-85">
-            Se eu classificar um gasto na categoria errada, é só me avisar: “na verdade isso foi
-            transporte”.
+            {t(
+              "Se eu classificar um gasto na categoria errada, é só me avisar: “na verdade isso foi transporte”.",
+              "If I categorize an expense wrong, just let me know: \"actually that was transportation\".",
+            )}
           </p>
         </div>
       </aside>

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { addToGoal, createGoal, deleteGoal, getOverview } from "@/lib/finance.functions";
 import { brl, dataCurta } from "@/lib/format";
+import { useIdioma } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_autenticado/metas")({
   head: () => ({
@@ -27,6 +28,7 @@ export const Route = createFileRoute("/_autenticado/metas")({
 });
 
 function Metas() {
+  const { t } = useIdioma();
   const qc = useQueryClient();
   const overview = useServerFn(getOverview);
   const criar = useServerFn(createGoal);
@@ -53,10 +55,11 @@ function Metas() {
       setTitulo("");
       setAlvo("");
       setPrazo("");
-      toast.success("Meta criada! Vamos juntos.");
+      toast.success(t("Meta criada! Vamos juntos.", "Goal created! Let's go together."));
       qc.invalidateQueries({ queryKey: ["overview"] });
     },
-    onError: () => toast.error("Confira os dados da meta e tente de novo."),
+    onError: () =>
+      toast.error(t("Confira os dados da meta e tente de novo.", "Check the goal details and try again.")),
   });
 
   const guardarMutation = useMutation({
@@ -72,10 +75,17 @@ function Metas() {
   return (
     <div className="space-y-8">
       <header>
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">Metas</p>
-        <h1 className="mt-2 font-display text-4xl tracking-tight">Onde você quer chegar</h1>
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+          {t("Metas", "Goals")}
+        </p>
+        <h1 className="mt-2 font-display text-4xl tracking-tight">
+          {t("Onde você quer chegar", "Where you want to get to")}
+        </h1>
         <p className="mt-2 max-w-lg text-muted-foreground">
-          Metas pequenas funcionam melhor. Comece com um valor que caiba no seu mês.
+          {t(
+            "Metas pequenas funcionam melhor. Comece com um valor que caiba no seu mês.",
+            "Small goals work best. Start with an amount that fits your monthly budget.",
+          )}
         </p>
       </header>
 
@@ -83,9 +93,12 @@ function Metas() {
         <div className="space-y-4">
           {metas.length === 0 && (
             <div className="surface-card p-8 text-center">
-              <p className="font-display text-2xl">Nenhuma meta ainda</p>
+              <p className="font-display text-2xl">{t("Nenhuma meta ainda", "No goals yet")}</p>
               <p className="mt-2 text-muted-foreground">
-                Que tal começar com uma reserva de R$ 500 para imprevistos?
+                {t(
+                  "Que tal começar com uma reserva de R$ 500 para imprevistos?",
+                  "How about starting with a $500 emergency fund?",
+                )}
               </p>
             </div>
           )}
@@ -98,12 +111,17 @@ function Metas() {
                   <div>
                     <h2 className="font-display text-2xl">{m.titulo}</h2>
                     <p className="text-sm text-muted-foreground">
-                      {brl(m.valor_atual)} de {brl(m.valor_alvo)}
-                      {m.prazo ? ` · até ${dataCurta(m.prazo)}` : ""}
+                      {t(
+                        `${brl(m.valor_atual)} de ${brl(m.valor_alvo)}`,
+                        `${brl(m.valor_atual)} of ${brl(m.valor_alvo)}`,
+                      )}
+                      {m.prazo
+                        ? ` · ${t(`até ${dataCurta(m.prazo)}`, `until ${dataCurta(m.prazo)}`)}`
+                        : ""}
                     </p>
                   </div>
                   <button
-                    aria-label="Apagar meta"
+                    aria-label={t("Apagar meta", "Delete goal")}
                     onClick={() => apagarMutation.mutate(m.id)}
                     className="ml-auto rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                   >
@@ -118,7 +136,10 @@ function Metas() {
                   />
                 </div>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {pct}% concluído · faltam {brl(falta)}
+                  {t(
+                    `${pct}% concluído · faltam ${brl(falta)}`,
+                    `${pct}% complete · ${brl(falta)} left`,
+                  )}
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-2">
@@ -128,7 +149,7 @@ function Metas() {
                       onClick={() => guardarMutation.mutate({ id: m.id, valor: v })}
                       className="rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/15"
                     >
-                      Guardar R$ {v}
+                      {t(`Guardar R$ ${v}`, `Save $${v}`)}
                     </button>
                   ))}
                 </div>
@@ -138,7 +159,7 @@ function Metas() {
         </div>
 
         <aside className="surface-card h-fit p-6">
-          <h2 className="font-display text-xl">Nova meta</h2>
+          <h2 className="font-display text-xl">{t("Nova meta", "New goal")}</h2>
           <form
             className="mt-4 space-y-3"
             onSubmit={(e) => {
@@ -147,17 +168,19 @@ function Metas() {
             }}
           >
             <label className="block">
-              <span className="text-sm font-semibold">O que você quer conquistar?</span>
+              <span className="text-sm font-semibold">
+                {t("O que você quer conquistar?", "What do you want to achieve?")}
+              </span>
               <input
                 required
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
-                placeholder="Reserva de emergência"
+                placeholder={t("Reserva de emergência", "Emergency fund")}
                 className="mt-1.5 w-full rounded-2xl border border-input bg-card px-4 py-3 text-base outline-none focus:border-primary"
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold">Valor da meta (R$)</span>
+              <span className="text-sm font-semibold">{t("Valor da meta (R$)", "Goal amount ($)")}</span>
               <input
                 required
                 inputMode="decimal"
@@ -168,7 +191,7 @@ function Metas() {
               />
             </label>
             <label className="block">
-              <span className="text-sm font-semibold">Prazo (opcional)</span>
+              <span className="text-sm font-semibold">{t("Prazo (opcional)", "Deadline (optional)")}</span>
               <input
                 type="date"
                 value={prazo}
@@ -181,7 +204,7 @@ function Metas() {
               disabled={criarMutation.isPending}
               className="w-full rounded-full bg-primary px-6 py-3.5 text-base font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
             >
-              Criar meta
+              {t("Criar meta", "Create goal")}
             </button>
           </form>
         </aside>

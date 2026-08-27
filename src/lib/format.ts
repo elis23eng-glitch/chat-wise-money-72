@@ -25,3 +25,27 @@ export const CORES_CATEGORIA: Record<string, string> = {
   "vestuário": "bg-secondary",
   outros: "bg-muted-foreground",
 };
+
+export const CATEGORIA_LABEL: Record<string, string> = {
+  "alimentação": "Food",
+  transporte: "Transport",
+  moradia: "Housing",
+  "contas fixas": "Fixed bills",
+  "saúde": "Health",
+  lazer: "Leisure",
+  "educação": "Education",
+  "vestuário": "Clothing",
+  outros: "Other",
+  "salário": "Salary",
+  aposentadoria: "Retirement",
+  "pensão": "Pension",
+  "trabalho extra": "Extra work",
+  "aluguel recebido": "Rent received",
+  venda: "Sale",
+  presente: "Gift",
+};
+
+export function categoriaLabel(nome: string, idioma: "pt" | "en") {
+  if (idioma === "pt") return nome;
+  return CATEGORIA_LABEL[nome] ?? nome;
+}

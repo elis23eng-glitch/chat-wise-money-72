@@ -159,7 +159,23 @@ function Entrar() {
                 )}
           </p>
 
-          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          {modo === "entrar" && (
+            <>
+              <button
+                onClick={entrarComGoogle}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary-deep"
+              >
+                {t("Entrar com o Google (1 toque)", "Sign in with Google (1 tap)")}
+              </button>
+              <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                {t("ou use e-mail e senha", "or use email and password")}
+                <span className="h-px flex-1 bg-border" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={onSubmit} className={modo === "criar" ? "mt-6 space-y-4" : "space-y-4"}>
             {modo === "criar" && (
               <label className="block">
                 <span className="text-sm font-semibold">

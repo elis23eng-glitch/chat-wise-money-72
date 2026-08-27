@@ -125,7 +125,6 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     definirPrefs(lerPrefs());
   }, []);
 
-
   useEffect(() => {
     if (!suportaVoz()) return;
     const atualizar = () => {
@@ -237,7 +236,6 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
       return proximas;
     });
   }, []);
-
 
   const alternarAuto = useCallback(() => {
     setAutoLeitura((atual) => {

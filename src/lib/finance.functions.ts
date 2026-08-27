@@ -319,3 +319,23 @@ export const updateIncome = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const deleteEntry = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        tipo: z.enum(["gasto", "entrada"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from(data.tipo === "gasto" ? "expenses" : "incomes")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

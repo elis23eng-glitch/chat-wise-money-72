@@ -87,7 +87,6 @@ function Entrar() {
           throw error;
         }
       }
-
     } catch (err) {
       toast.error(
         err instanceof Error

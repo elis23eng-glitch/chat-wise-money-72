@@ -271,3 +271,51 @@ export const deleteIncome = createServerFn({ method: "POST" })
     await context.supabase.from("incomes").delete().eq("id", data.id).eq("user_id", context.userId);
     return { ok: true };
   });
+
+export const updateExpense = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        valor: z.number().positive(),
+        categoria: z.enum(CATEGORIAS),
+        descricao: z.string().max(120),
+        data: z.string(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { id, ...campos } = data;
+    const { error } = await context.supabase
+      .from("expenses")
+      .update(campos)
+      .eq("id", id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateIncome = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        valor: z.number().positive(),
+        categoria: z.enum(CATEGORIAS_ENTRADA),
+        descricao: z.string().max(120),
+        data: z.string(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { id, ...campos } = data;
+    const { error } = await context.supabase
+      .from("incomes")
+      .update(campos)
+      .eq("id", id)
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

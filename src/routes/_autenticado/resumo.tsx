@@ -180,9 +180,23 @@ function Resumo() {
         <button
           type="button"
           onClick={async () => {
-            await qc.invalidateQueries({ refetchType: "all" });
-            await refetch();
-            toast.success(t("Dados atualizados!", "Data updated!"));
+            try {
+              await Promise.all([
+                qc.refetchQueries({ queryKey: ["overview"], type: "all" }),
+                qc.refetchQueries({ queryKey: ["dashboard"], type: "all" }),
+                qc.refetchQueries({ queryKey: ["mensagens"], type: "all" }),
+                qc.refetchQueries({ queryKey: ["alertas-historico"], type: "all" }),
+              ]);
+              await refetch();
+              toast.success(t("Dados atualizados!", "Data updated!"));
+            } catch {
+              toast.error(
+                t(
+                  "Não consegui atualizar agora. Verifique sua internet e toque de novo.",
+                  "Could not refresh now. Check your connection and try again.",
+                ),
+              );
+            }
           }}
           disabled={isFetching}
           className="flex items-center gap-2 rounded-full bg-secondary px-5 py-3 text-base font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-60"

@@ -291,33 +291,242 @@ function Painel() {
         <>
           <div
             className={`rounded-3xl p-6 sm:p-8 ${
-              saldo >= 0
+              periodoSaldo >= 0
                 ? "bg-primary-deep text-primary-deep-foreground"
                 : "bg-destructive text-destructive-foreground"
             }`}
           >
             <div className="flex items-center gap-2 text-sm opacity-90">
-              {saldo >= 0 ? <TrendingUp className="size-4" /> : <TrendingDown className="size-4" />}
-              {t("Saldo deste mês", "This month's balance")}
+              {periodoSaldo >= 0 ? (
+                <TrendingUp className="size-4" />
+              ) : (
+                <TrendingDown className="size-4" />
+              )}
+              {semanal
+                ? t("Saldo dos últimos 7 dias", "Balance of the last 7 days")
+                : t("Saldo deste mês", "This month's balance")}
             </div>
-            <p className="mt-3 font-display text-4xl sm:text-5xl">{brl(saldo)}</p>
+            <p className="mt-3 font-display text-4xl sm:text-5xl">{brl(periodoSaldo)}</p>
             <p className="mt-2 max-w-xl text-base opacity-90">
-              {entradas === 0 && total === 0
-                ? t(
-                    "Ainda não há entradas nem gastos anotados neste mês.",
-                    "There are no income or expenses recorded this month yet.",
-                  )
-                : saldo >= 0
+              {periodoEntradas === 0 && periodoGastos === 0
+                ? semanal
                   ? t(
-                      `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Está sobrando dinheiro — que tal guardar um pouco numa meta?`,
-                      `You received ${brl(entradas)} and spent ${brl(total)}. You have money left over — how about saving some in a goal?`,
+                      "Ainda não há entradas nem gastos anotados nesta semana.",
+                      "There is no income or spending recorded this week yet.",
                     )
                   : t(
-                      `Você recebeu ${brl(entradas)} e gastou ${brl(total)}. Atenção: você está no vermelho em ${brl(Math.abs(saldo))} neste mês.`,
-                      `You received ${brl(entradas)} and spent ${brl(total)}. Watch out: you're ${brl(Math.abs(saldo))} in the red this month.`,
-                    )}
+                      "Ainda não há entradas nem gastos anotados neste mês.",
+                      "There are no income or expenses recorded this month yet.",
+                    )
+                : t(
+                    `Você recebeu ${brl(periodoEntradas)} e gastou ${brl(periodoGastos)}${
+                      semanal && semana ? ` entre ${dataLonga(semana.inicio)} e ${dataLonga(semana.fim)}` : ""
+                    }.`,
+                    `You received ${brl(periodoEntradas)} and spent ${brl(periodoGastos)}${
+                      semanal && semana ? ` between ${dataLonga(semana.inicio)} and ${dataLonga(semana.fim)}` : ""
+                    }.`,
+                  )}
             </p>
           </div>
+
+          {alertas.length > 0 && (
+            <div className="grid gap-3 md:grid-cols-2">
+              {alertas.map((a) => (
+                <CartaoAlerta key={a.titulo} alerta={a} />
+              ))}
+            </div>
+          )}
+
+          {semanal && (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Caixa>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <PiggyBank className="size-4" /> {t("Entradas da semana", "Income this week")}
+                  </div>
+                  <p className="mt-3 font-display text-3xl text-primary-deep">
+                    {brl(semana?.entrada ?? 0)}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t(
+                      `${semana?.quantidadeEntradas ?? 0} entrada(s) em 7 dias`,
+                      `${semana?.quantidadeEntradas ?? 0} income entry(ies) in 7 days`,
+                    )}
+                  </p>
+                </Caixa>
+
+                <div className="rounded-3xl bg-primary-deep p-6 text-primary-deep-foreground">
+                  <div className="flex items-center gap-2 text-sm opacity-80">
+                    <Wallet className="size-4" /> {t("Gastos da semana", "Spending this week")}
+                  </div>
+                  <p className="mt-3 font-display text-3xl">{brl(semana?.gasto ?? 0)}</p>
+                  <p className="mt-1 text-sm opacity-80">
+                    {(semana?.gastoAnterior ?? 0) === 0
+                      ? t("Primeira semana registrada", "First week recorded")
+                      : t(
+                          `${Math.abs(
+                            Math.round(
+                              (((semana?.gasto ?? 0) - (semana?.gastoAnterior ?? 0)) /
+                                (semana?.gastoAnterior || 1)) *
+                                100,
+                            ),
+                          )}% ${
+                            (semana?.gasto ?? 0) >= (semana?.gastoAnterior ?? 0)
+                              ? "a mais"
+                              : "a menos"
+                          } que os 7 dias anteriores`,
+                          `${Math.abs(
+                            Math.round(
+                              (((semana?.gasto ?? 0) - (semana?.gastoAnterior ?? 0)) /
+                                (semana?.gastoAnterior || 1)) *
+                                100,
+                            ),
+                          )}% ${
+                            (semana?.gasto ?? 0) >= (semana?.gastoAnterior ?? 0) ? "more" : "less"
+                          } than the previous 7 days`,
+                        )}
+                  </p>
+                </div>
+
+                <Caixa>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarDays className="size-4" /> {t("Média por dia", "Average per day")}
+                  </div>
+                  <p className="mt-3 font-display text-3xl">{brl(semana?.mediaDiaria ?? 0)}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t(
+                      `${semana?.quantidadeGastos ?? 0} gastos em 7 dias`,
+                      `${semana?.quantidadeGastos ?? 0} expenses in 7 days`,
+                    )}
+                  </p>
+                </Caixa>
+
+                <Caixa>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <TrendingUp className="size-4" /> {t("Dia mais caro", "Priciest day")}
+                  </div>
+                  <p className="mt-3 font-display text-3xl">{brl(semana?.diaMaisCaro.total ?? 0)}</p>
+                  <p className="mt-1 text-sm capitalize text-muted-foreground">
+                    {semana ? dataLonga(semana.diaMaisCaro.iso) : "—"}
+                  </p>
+                </Caixa>
+              </div>
+
+              <section className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                <Caixa>
+                  <h2 className="font-display text-2xl">
+                    {t("Dia a dia dos últimos 7 dias", "Day by day over the last 7 days")}
+                  </h2>
+                  <div className="mt-4 h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={diasSemana}>
+                        <XAxis
+                          dataKey="rotulo"
+                          tickLine={false}
+                          axisLine={false}
+                          className="text-xs"
+                          stroke="var(--muted-foreground)"
+                        />
+                        <YAxis hide />
+                        <Tooltip content={<DicaComparativo />} cursor={{ fill: "var(--secondary)" }} />
+                        <Legend
+                          verticalAlign="top"
+                          height={28}
+                          iconType="circle"
+                          formatter={(v) => (
+                            <span className="text-sm text-muted-foreground">
+                              {v === "entrada" ? t("Entrou", "In") : t("Saiu", "Out")}
+                            </span>
+                          )}
+                        />
+                        <Bar dataKey="entrada" fill="var(--chart-2)" radius={[6, 6, 0, 0]} />
+                        <Bar dataKey="total" fill="var(--accent)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Caixa>
+
+                <Caixa>
+                  <h2 className="font-display text-2xl">
+                    {t("Onde o dinheiro foi na semana", "Where the money went this week")}
+                  </h2>
+                  {categoriasSemana.length === 0 ? (
+                    <p className="mt-4 text-muted-foreground">
+                      {t("Sem gastos nos últimos 7 dias.", "No expenses in the last 7 days.")}
+                    </p>
+                  ) : (
+                    <ul className="mt-4 space-y-3 text-sm">
+                      {categoriasSemana.slice(0, 6).map((c, i) => (
+                        <li key={c.nome}>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="size-3 shrink-0 rounded-full"
+                              style={{ background: CORES[i % CORES.length] }}
+                            />
+                            <span className="capitalize">{categoriaLabel(c.nome, idioma)}</span>
+                            <span className="ml-auto text-muted-foreground">{brl(c.valor)}</span>
+                          </div>
+                          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full rounded-full bg-primary"
+                              style={{
+                                width: `${Math.max(
+                                  4,
+                                  (c.valor / Math.max(1, semana?.gasto ?? 1)) * 100,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <h3 className="mt-8 font-display text-xl">
+                    {t("Lançamentos da semana", "This week's entries")}
+                  </h3>
+                  <ul className="mt-2 divide-y divide-primary/10 text-sm">
+                    {(semana?.entradasRecentes ?? []).map((e) => (
+                      <li key={e.id} className="flex items-center gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{e.descricao}</p>
+                          <p className="text-xs capitalize text-muted-foreground">
+                            {categoriaLabel(e.categoria, idioma)} · {dataCurta(e.data)}
+                          </p>
+                        </div>
+                        <span className="ml-auto font-display text-base text-primary-deep">
+                          + {brl(e.valor)}
+                        </span>
+                      </li>
+                    ))}
+                    {(semana?.recentes ?? []).map((g) => (
+                      <li key={g.id} className="flex items-center gap-3 py-2.5">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{g.descricao}</p>
+                          <p className="text-xs capitalize text-muted-foreground">
+                            {categoriaLabel(g.categoria, idioma)} · {dataCurta(g.data)}
+                          </p>
+                        </div>
+                        <span className="ml-auto font-display text-base">- {brl(g.valor)}</span>
+                      </li>
+                    ))}
+                    {(semana?.recentes ?? []).length === 0 &&
+                      (semana?.entradasRecentes ?? []).length === 0 && (
+                        <li className="py-2.5 text-muted-foreground">
+                          {t("Nada anotado nos últimos 7 dias.", "Nothing recorded in the last 7 days.")}
+                        </li>
+                      )}
+                  </ul>
+                </Caixa>
+              </section>
+            </>
+          )}
+        </>
+      )}
+
+      {!isLoading && !semanal && (
+        <>
+
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Caixa>

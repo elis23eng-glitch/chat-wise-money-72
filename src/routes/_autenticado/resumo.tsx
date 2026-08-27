@@ -316,17 +316,15 @@ function Resumo() {
                 </button>
                 <button
                   aria-label={t("Apagar gasto", "Delete expense")}
-                  onClick={() => {
-                    if (
-                      window.confirm(
-                        t(
-                          `Apagar o gasto "${g.descricao}" de ${brl(Number(g.valor))}?`,
-                          `Delete the expense "${g.descricao}" of ${brl(Number(g.valor))}?`,
-                        ),
-                      )
-                    )
-                      delMutation.mutate(g.id);
-                  }}
+                  onClick={() =>
+                    setConfirmando({
+                      tipo: "gasto",
+                      id: g.id,
+                      descricao: g.descricao ?? "",
+                      valor: Number(g.valor),
+                    })
+                  }
+
                   className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <Trash2 className="size-4" />

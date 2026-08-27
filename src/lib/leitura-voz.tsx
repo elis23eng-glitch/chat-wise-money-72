@@ -115,7 +115,6 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
   const prefsRef = useRef<PrefsVoz>(PREFS_VOZ_PADRAO);
   prefsRef.current = prefs;
 
-
   useEffect(() => {
     setDisponivel(true);
     try {
@@ -123,7 +122,9 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
     } catch {
       /* ignore */
     }
+    definirPrefs(lerPrefs());
   }, []);
+
 
   useEffect(() => {
     if (!suportaVoz()) return;

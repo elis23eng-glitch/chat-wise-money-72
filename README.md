@@ -24,31 +24,64 @@ A assistente virtual **Nina** interpreta mensagens em linguagem natural, registr
 
 - 💬 **Chat conversacional com Nina** — registre gastos e receitas falando ou digitando naturalmente.
 - 📊 **Painel financeiro completo** — visualize saldo, entradas, saídas e gráficos por categoria.
+- 📈 **Dashboard anual** — acompanhe entradas, gastos e saldo mês a mês ao longo do ano, com gráfico e tabela detalhada.
 - 🎯 **Metas financeiras** — crie metas e acompanhe o progresso.
 - 🔔 **Alertas de saldo** — notificações automáticas quando o saldo está negativo ou o orçamento está apertado.
 - 📅 **Visão semanal e mensal** — alterne entre períodos para entender melhor seus hábitos.
-- 🌍 **Multilíngue** — suporte a **Português (BR)** e **Inglês**.
+- 🌍 **Multilíngue** — suporte a **Português (BR)** e **Inglês**, com formatação de moeda e datas localizadas.
 - 📄 **Exportação de relatórios em PDF** — prévia interativa, seleção de seções, escolha de idioma e compartilhamento por link temporário.
 - 📱 **PWA (Progressive Web App)** — instale diretamente na tela inicial do celular, sem precisar de loja de aplicativos.
 - 🎓 **Tutorial interativo de primeiro acesso** — guia passo a passo para quem nunca usou um app financeiro.
 
 ---
 
-## 🆕 Últimas melhorias e correções
+## 🆕 Últimas melhorias e implementações
 
-Esta versão traz vários ajustes baseados em testes reais com usuários, especialmente para tornar o app mais acessível no celular:
+Esta versão reúne todas as evoluções implementadas no projeto, desde a base inicial até os ajustes mais recentes testados no celular:
 
-- 🎤 **Comandos de voz prontos no chat** — toque ou fale: _"gastei"_, _"recebi"_, _"mostre meu resumo"_, _"minhas metas"_, _"corrigir valor"_, _"corrigir categoria"_, _"trocar data"_ ou _"apagar último"_.
-- 🔧 **Correção do fluxo de autenticação** — login, cadastro e login com Google agora redirecionam corretamente para o app; e-mail de confirmação automática ativado.
-- 🔐 **Acesso automático no celular** — opção "Entrar sozinho neste aparelho" lembra o e-mail e a senha localmente (com aviso de segurança), ideal para quem usa o app todos os dias.
-- 🔊 **Leitura em voz alta das mensagens da Nina** — botão individual "Ouvir" em cada resposta e alternância global "Voz ligada/desligada".
-- 🎙️ **Resumo e insights em áudio** — ouça entradas, saídas, saldo positivo/negativo e progresso das metas em cerca de 15 segundos.
-- ✏️ **Correção e exclusão de lançamentos** — edite valor, categoria ou data por voz ou manualmente, e apague registros errados com confirmação.
-- 💱 **Moeda conforme o idioma** — Português exibe valores em **R$ (BRL)**; Inglês converte automaticamente para **US$ (USD)** usando cotação do dólar.
-- 📱 **PWA otimizado para Android moderno** — ícones _maskable_, manifesto atualizado, atalhos e página `/instalar` com instruções de reinstalação para evitar avisos de versão antiga do Android.
-- ❓ **Botão de ajuda fixo no chat** — exemplos bilíngues de comandos de voz (registrar, corrigir, excluir, consultar resumo e cancelar).
-- 🎬 **Tutorial em vídeo** — demonstração de como registrar um gasto e ver o resumo do mês no primeiro acesso.
-- ✅ **CI/CD com GitHub Actions** — lint, typecheck, testes e build validados automaticamente a cada alteração.
+### 🎤 Acessibilidade e voz
+
+- **Comandos de voz prontos no chat** — toque ou fale: _"gastei"_, _"recebi"_, _"mostre meu resumo"_, _"minhas metas"_, _"corrigir valor"_, _"corrigir categoria"_, _"trocar data"_ ou _"apagar último"_.
+- **Entrada por voz no chat** — fale diretamente no campo de mensagem; a transcrição é enviada automaticamente para a Nina.
+- **Leitura em voz alta das mensagens da Nina** — botão "Ouvir" individual em cada resposta e alternância global "Voz ligada/desligada".
+- **Resumo e insights em áudio** — ouça entradas, saídas, saldo positivo/negativo e progresso das metas em cerca de 15 segundos.
+- **Saudação por voz com horário do dia** — a Nina diz "bom dia", "boa tarde" ou "boa noite" conforme o horário local.
+- **Painel de preferências de voz** — escolha entre voz IA (estilo assistente/Alexa-like) ou voz do aparelho, ajuste velocidade e volume, e salve no app.
+- **TTS com IA via gateway** — geração de áudio mais natural e humanizada para a Nina, com fallback para Web Speech API.
+
+### 🔧 Autenticação e acesso
+
+- **Correção do fluxo de autenticação** — login, cadastro e login com Google redirecionam corretamente para o app; confirmação automática de e-mail ativada.
+- **Acesso automático no celular** — opção "Entrar sozinho neste aparelho" lembra o e-mail e a senha localmente (com aviso de segurança), ideal para uso diário.
+- **Login mobile simplificado** — priorização do Google One Tap, áreas de toque maiores e autocomplete de senha.
+
+### 💰 Controle financeiro avançado
+
+- **Registro de gastos e entradas com data escolhida** — agora é possível lançar despesas e receitas de meses anteriores (por exemplo, de janeiro até o mês atual).
+- **Painel anual (`/ano`)** — dashboard do ano com seletor de ano, totais anuais, gráfico mensal de entradas x gastos, tabela mês a mês e gastos por categoria.
+- **Correção de lançamentos** — edite valor, categoria ou data do último gasto/entrada por comando de voz ou manualmente.
+- **Exclusão de lançamentos** — apague registros errados por voz com a Nina ou manualmente, com modal de confirmação bilíngue.
+- **Moeda conforme o idioma** — Português exibe **R$ (BRL)**; Inglês converte automaticamente para **US$ (USD)** usando cotação do dólar com cache de 30 minutos.
+- **Alertas de saldo persistentes** — notificações quando o saldo está negativo, com histórico de alertas.
+
+### 📱 Experiência mobile e PWA
+
+- **PWA otimizado para Android moderno** — ícones _maskable_, manifesto atualizado, atalhos e página `/instalar` para evitar avisos de versão antiga do Android.
+- **Atualização automática de dados** — ao abrir ou voltar ao app, gastos, saldo, metas e resumo são atualizados automaticamente.
+- **Botão Atualizar na navegação** — recarrega resumo, painel, metas e alertas em um toque, ao lado do link Insights.
+- **Pull-to-refresh** — puxe a tela para baixo para atualizar os dados, com feedback visual bilíngue.
+- **Ícone visual do app** — porquinho com moeda dourada, fácil de localizar na tela inicial por idosos.
+
+### ❓ Ajuda e aprendizado
+
+- **Botão de ajuda fixo no chat** — exemplos bilíngues de comandos de voz (registrar, corrigir, excluir, consultar resumo e cancelar).
+- **Tutorial interativo de primeiro acesso** — guia passo a passo para quem nunca usou um app financeiro.
+- **Tutorial em vídeo** — demonstração de como registrar um gasto e ver o resumo do mês.
+
+### ✅ Qualidade e segurança
+
+- **CI/CD com GitHub Actions** — lint, typecheck, testes (Vitest) e build validados automaticamente a cada push/pull request.
+- **Varredura de segurança** — verificação de vulnerabilidades e permissões antes de cada publicação.
 
 ---
 
@@ -73,9 +106,11 @@ O projeto foi pensado para ser usado por pessoas de todas as idades, com foco es
 - [Lovable Cloud](https://lovable.dev) — backend, autenticação e banco de dados.
 - [Supabase](https://supabase.com) — banco PostgreSQL, auth e storage.
 - [AI SDK](https://sdk.vercel.ai) — integração com modelo de linguagem.
+- [Lovable AI Gateway](https://lovable.dev) — geração de áudio TTS para a voz da Nina.
 - [Recharts](https://recharts.org) — gráficos interativos.
 - [jsPDF](https://github.com/parallax/jsPDF) — geração de relatórios PDF.
-- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — reconhecimento de voz.
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API) — reconhecimento e síntese de voz.
+- [Remotion](https://www.remotion.dev) — renderização do tutorial em vídeo.
 
 ---
 

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowDownRight,
@@ -9,6 +10,7 @@ import {
   Target,
   TrendingDown,
   TrendingUp,
+  TriangleAlert,
   Wallet,
 } from "lucide-react";
 import {
@@ -27,7 +29,14 @@ import {
 } from "recharts";
 
 import { getDashboard } from "@/lib/dashboard.functions";
-import { brl, dataCurta, categoriaLabel } from "@/lib/format";
+import {
+  brl,
+  dataCurta,
+  dataLonga,
+  categoriaLabel,
+  diaSemanaCurto,
+  mesCurto,
+} from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_autenticado/painel")({
@@ -86,8 +95,33 @@ function DicaComparativo({ active, payload, label }: any) {
   );
 }
 
+type Alerta = { tom: "perigo" | "atencao" | "bom"; titulo: string; texto: string };
+
+function CartaoAlerta({ alerta }: { alerta: Alerta }) {
+  const estilo =
+    alerta.tom === "perigo"
+      ? "border-destructive/40 bg-destructive/10 text-destructive"
+      : alerta.tom === "atencao"
+        ? "border-accent/50 bg-accent/15 text-foreground"
+        : "border-primary/30 bg-primary/10 text-foreground";
+  return (
+    <div className={`flex items-start gap-3 rounded-2xl border p-4 ${estilo}`} role="status">
+      {alerta.tom === "bom" ? (
+        <PiggyBank className="mt-0.5 size-5 shrink-0" />
+      ) : (
+        <TriangleAlert className="mt-0.5 size-5 shrink-0" />
+      )}
+      <div>
+        <p className="font-display text-lg leading-tight">{alerta.titulo}</p>
+        <p className="mt-1 text-sm leading-relaxed opacity-90">{alerta.texto}</p>
+      </div>
+    </div>
+  );
+}
+
 function Painel() {
   const { t, idioma } = useIdioma();
+  const [modo, setModo] = useState<"mes" | "semana">("mes");
   const carregar = useServerFn(getDashboard);
   const { data, isLoading } = useQuery({ queryKey: ["dashboard"], queryFn: () => carregar() });
 

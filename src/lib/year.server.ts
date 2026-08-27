@@ -35,7 +35,8 @@ export function montarAno(ano: number, gastos: LinhaSimples[], entradas: LinhaSi
   }
 
   const porCategoria: Record<string, number> = {};
-  for (const l of gastos) porCategoria[l.categoria] = arred((porCategoria[l.categoria] ?? 0) + l.valor);
+  for (const l of gastos)
+    porCategoria[l.categoria] = arred((porCategoria[l.categoria] ?? 0) + l.valor);
 
   const porCategoriaEntrada: Record<string, number> = {};
   for (const l of entradas)

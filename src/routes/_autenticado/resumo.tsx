@@ -95,7 +95,6 @@ function Resumo() {
   const [descricaoE, setDescricaoE] = useState("");
   const [dataE, setDataE] = useState(hojeIso);
 
-
   const addEntradaMutation = useMutation({
     mutationFn: () =>
       criarEntrada({
@@ -447,9 +446,7 @@ function Resumo() {
                 />
               </label>
               <label className="block">
-                <span className="text-sm font-semibold">
-                  {t("Data da entrada", "Income date")}
-                </span>
+                <span className="text-sm font-semibold">{t("Data da entrada", "Income date")}</span>
                 <input
                   type="date"
                   required

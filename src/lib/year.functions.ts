@@ -6,9 +6,7 @@ import { montarAno } from "./year.server";
 
 export const getYearOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
-    z.object({ ano: z.number().int().min(2000).max(2100) }).parse(data),
-  )
+  .validator((data: unknown) => z.object({ ano: z.number().int().min(2000).max(2100) }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const inicio = `${data.ano}-01-01`;

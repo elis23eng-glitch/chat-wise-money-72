@@ -93,6 +93,8 @@ function Resumo() {
 
   const [categoriaE, setCategoriaE] = useState<(typeof CATEGORIAS_ENTRADA)[number]>("salário");
   const [descricaoE, setDescricaoE] = useState("");
+  const [dataE, setDataE] = useState(hojeIso);
+
 
   const addEntradaMutation = useMutation({
     mutationFn: () =>

@@ -42,6 +42,7 @@ O que você faz:
 - Quando perguntarem sobre saldo ("sobrou?", "estou no vermelho?"), use resumo_financeiro: saldo = entradas menos gastos do mês. Explique com carinho se estiver negativo.
 - Classifica os gastos em uma destas categorias: ${CATEGORIAS.join(", ")}. Se a pessoa corrigir só a categoria do último gasto, use corrigir_categoria.
 - Corrige lançamentos por voz ou texto. Quando a pessoa disser algo como "corrigir o último gasto para 50 reais", "o mercado foi 80 e não 100", "mudar a entrada de ontem para aposentadoria" ou "errei o valor", use corrigir_lancamento (valor, categoria, descrição e/ou data). Se não estiver claro qual lançamento é, use listar_ultimos_lancamentos, leia as opções em voz simples ("1) mercado, R$ 100,00, hoje") e pergunte qual delas. Depois de corrigir, confirme em voz alta o que ficou: "Pronto, mudei o mercado de R$ 100,00 para R$ 80,00."
+- Exclui lançamentos por voz ou texto. Quando a pessoa disser "apagar o último gasto", "excluir esse lançamento", "não foi isso, apaga" ou parecido, use excluir_lancamento. Se houver dúvida sobre qual, use listar_ultimos_lancamentos, leia as opções em voz simples e pergunte qual apagar. Antes de apagar, confirme com uma pergunta curta ("Quer que eu apague o gasto de mercado de R$ 100,00 de hoje?") e só chame a ferramenta depois do "sim". Depois confirme: "Pronto, apaguei o gasto de mercado de R$ 100,00."
 - Cria e acompanha metas simples com criar_meta, listar_metas e guardar_na_meta.
 - Mostra resumos e tendências com resumo_financeiro.
 - Explica conceitos (juros, orçamento, reserva de emergência, inflação, Tesouro Direto, CDB, fundos) de forma bem simples, com exemplos do dia a dia.
@@ -227,6 +228,40 @@ function buildTools(supabase: Client, userId: string) {
           .single();
         if (error) return { ok: false, erro: error.message };
         return { ok: true, tipo, lancamento: row };
+      },
+    }),
+
+    excluir_lancamento: tool({
+      description:
+        "Exclui (apaga) um lançamento já registrado (gasto ou entrada). Se não informar id, apaga o mais recente do tipo escolhido. Só use quando a pessoa pedir claramente para apagar/excluir.",
+      inputSchema: z.object({
+        tipo: z.enum(["gasto", "entrada"]),
+        id: z.string().nullable().describe("Id do lançamento. Use null para o mais recente."),
+      }),
+      execute: async ({ tipo, id }) => {
+        const tabela = tipo === "gasto" ? "expenses" : "incomes";
+        let alvoId = id;
+        if (!alvoId) {
+          const { data: ultimo } = await supabase
+            .from(tabela)
+            .select("id")
+            .eq("user_id", userId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (!ultimo) return { ok: false, erro: "Nenhum lançamento encontrado para excluir." };
+          alvoId = ultimo.id;
+        }
+        const { data: row, error } = await supabase
+          .from(tabela)
+          .delete()
+          .eq("id", alvoId)
+          .eq("user_id", userId)
+          .select()
+          .maybeSingle();
+        if (error) return { ok: false, erro: error.message };
+        if (!row) return { ok: false, erro: "Lançamento não encontrado." };
+        return { ok: true, tipo, excluido: row };
       },
     }),
 

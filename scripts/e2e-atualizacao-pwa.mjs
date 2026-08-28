@@ -110,6 +110,27 @@ try {
       `Service worker antigo removido (ativos: ${registros.join(", ") || "nenhum"})`,
     ) && ok;
 
+  const versaoWorker = await pagina.evaluate(async () => {
+    const controlador = navigator.serviceWorker.controller;
+    if (!controlador) return null;
+    return new Promise((resolve) => {
+      const canal = new MessageChannel();
+      const limite = setTimeout(() => resolve(null), 3000);
+      canal.port1.onmessage = (evento) => {
+        clearTimeout(limite);
+        resolve(evento.data?.version ?? null);
+      };
+      controlador.postMessage({ type: "GET_VERSION" }, [canal.port2]);
+    });
+  });
+  ok = passo(versaoWorker === "v4", `Worker controlador confirma versão ${versaoWorker}`) && ok;
+
+  const versaoPublicada = await pagina.evaluate(async () => {
+    const resposta = await fetch(`/version.json?e2e=${Date.now()}`, { cache: "no-store" });
+    return (await resposta.json()).version;
+  });
+  ok = passo(versaoPublicada === "v4", `Versão publicada confirma ${versaoPublicada}`) && ok;
+
   const cachesRestantes = await pagina.evaluate(() => caches.keys());
   ok =
     passo(

@@ -14,32 +14,12 @@ import { aplicarVersaoBaixada, procurarNovaVersao } from "@/lib/atualizar-app";
  * 3. Recarrega a página uma única vez quando o novo service worker assume e
  *    avisa a pessoa que o app foi atualizado (nome corrigido para Wise Money).
  */
-const CAMINHO_SW = "/sw.js";
 const PREFIXO_CACHE_ATUAL = "wise-money-v4";
 const MARCA_AVISO = "wise-money:avisar-atualizacao";
 /** De quanto em quanto tempo procuramos uma versão nova em segundo plano. */
 const HORAS_ENTRE_CHECAGENS = 6;
 const INTERVALO_MS = HORAS_ENTRE_CHECAGENS * 60 * 60 * 1000;
 const CHAVE_ULTIMA_CHECAGEM = "wise-money:ultima-checagem-sw";
-
-function podeRegistrar() {
-  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return false;
-  const sw = new URL(window.location.href).searchParams.get("sw");
-  if (sw === "off") return false;
-  // "sw=on" existe apenas para o teste automatizado rodar fora de produção.
-  if (!import.meta.env.PROD && sw !== "on") return false;
-  if (window.self !== window.top) return false;
-
-  const host = window.location.hostname;
-  const previews = [
-    host.startsWith("id-preview--"),
-    host.startsWith("preview--"),
-    host === "lovableproject.com" || host.endsWith(".lovableproject.com"),
-    host === "lovableproject-dev.com" || host.endsWith(".lovableproject-dev.com"),
-    host === "beta.lovable.dev" || host.endsWith(".beta.lovable.dev"),
-  ];
-  return !previews.some(Boolean);
-}
 
 export function LimparCacheAntigo() {
   const { t } = useIdioma();
@@ -64,75 +44,26 @@ export function LimparCacheAntigo() {
       // sessionStorage indisponível: seguimos sem o aviso
     }
 
-    const registrar = podeRegistrar();
-    let recarregando = false;
-    function aoTrocarControlador() {
-      if (recarregando) return;
-      recarregando = true;
-      registrarEventoSw("atualizacao-detectada");
-      try {
-        window.sessionStorage.setItem(MARCA_AVISO, "1");
-      } catch {
-        // sem sessionStorage o aviso não aparece, mas a atualização acontece
-      }
-      window.location.reload();
-    }
-    if (registrar) {
-      navigator.serviceWorker.addEventListener("controllerchange", aoTrocarControlador);
-    }
-
     void (async () => {
       try {
-        const registros = await navigator.serviceWorker.getRegistrations();
-        const antigos = registros.filter((r) => {
-          const url = r.active?.scriptURL ?? r.waiting?.scriptURL ?? r.installing?.scriptURL;
-          if (!registrar) return true;
-          return !!url && !url.endsWith(CAMINHO_SW);
-        });
-        await Promise.all(antigos.map((r) => r.unregister()));
-
         let cachesRemovidos = 0;
         if ("caches" in window) {
           const chaves = await caches.keys();
-          const antigas = chaves.filter((c) => !registrar || !c.startsWith(PREFIXO_CACHE_ATUAL));
+          const antigas = chaves.filter(
+            (c) =>
+              (c.startsWith("wise-money") || c.startsWith("mergulho")) &&
+              !c.includes(PREFIXO_CACHE_ATUAL),
+          );
           cachesRemovidos = antigas.length;
           await Promise.all(antigas.map((c) => caches.delete(c)));
         }
-        if (antigos.length || cachesRemovidos) {
-          registrarEventoSw(
-            "limpeza-cache-antigo",
-            `workers:${antigos.length} caches:${cachesRemovidos}`,
-          );
+        if (cachesRemovidos) {
+          registrarEventoSw("limpeza-cache-antigo", `caches:${cachesRemovidos}`);
         }
-
-        if (!registrar) return;
-
-        const registro = await navigator.serviceWorker.register(CAMINHO_SW, {
-          scope: "/",
-          updateViaCache: "none",
-        });
-        registrarEventoSw("registro-ok");
-        await registro.update().catch(() => undefined);
-        registro.waiting?.postMessage("skip-waiting");
-        const abertoEm = Date.now();
-        registro.addEventListener("updatefound", () => {
-          registro.installing?.addEventListener("statechange", function () {
-            // Só aplicamos sozinho logo na abertura; depois disso a pessoa é
-            // avisada discretamente e decide quando atualizar.
-            if (this.state === "installed" && Date.now() - abertoEm < 15000) {
-              registro.waiting?.postMessage("skip-waiting");
-            }
-            if (this.state === "redundant") registrarEventoSw("atualizacao-falhou");
-          });
-        });
       } catch (erro) {
         registrarEventoSw("registro-falhou", erro instanceof Error ? erro.message : String(erro));
       }
     })();
-
-    return () => {
-      navigator.serviceWorker.removeEventListener("controllerchange", aoTrocarControlador);
-    };
   }, [t]);
 
   // Checagem discreta em segundo plano: de tempos em tempos procura uma versão

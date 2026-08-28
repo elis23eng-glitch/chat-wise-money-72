@@ -20,6 +20,8 @@ import {
 import { lerEventosSw, limparEventosSw, resumoPorVersaoData, VERSAO_APP } from "@/lib/eventos-sw";
 import type { EventoSw, ResumoPorVersaoData } from "@/lib/eventos-sw";
 import { useIdioma } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { recarregarAppAgora } from "@/lib/pwa-client";
 
 type Periodo = "24h" | "7d" | "30d";
 const DIAS_POR_PERIODO: Record<Periodo, number> = { "24h": 1, "7d": 7, "30d": 30 };
@@ -41,6 +43,7 @@ export function AtualizacaoApp() {
   const [eventos, setEventos] = useState<EventoSw[]>([]);
   const [periodo, setPeriodo] = useState<Periodo>("7d");
   const [versao, setVersao] = useState<string>("todas");
+  const [recarregando, setRecarregando] = useState(false);
 
   const recarregarResumo = useCallback(() => setEventos(lerEventosSw()), []);
 
@@ -158,6 +161,9 @@ export function AtualizacaoApp() {
         <RefreshCw className="size-6 text-primary" />
         {t("Atualização do app", "App update")}
       </p>
+      <p className="mt-3 inline-flex rounded-md bg-primary/10 px-3 py-2 text-base font-semibold text-primary">
+        {t("Versão instalada", "Installed version")}: {VERSAO_APP}
+      </p>
 
       <button
         type="button"
@@ -174,6 +180,26 @@ export function AtualizacaoApp() {
           ? t("Atualizando…", "Updating…")
           : t("Verificar atualização agora", "Check for updates now")}
       </button>
+
+      <Button
+        type="button"
+        variant="outline"
+        disabled={recarregando || estaOffline()}
+        onClick={async () => {
+          setRecarregando(true);
+          try {
+            await recarregarAppAgora();
+          } catch {
+            setRecarregando(false);
+            setEstado("offline");
+            setAguardandoConexao(true);
+          }
+        }}
+        className="mt-3 min-h-12 w-full text-base font-semibold"
+      >
+        {recarregando ? <Loader2 className="animate-spin" /> : <RefreshCw />}
+        {t("Recarregar agora", "Reload now")}
+      </Button>
 
       <p
         role="status"

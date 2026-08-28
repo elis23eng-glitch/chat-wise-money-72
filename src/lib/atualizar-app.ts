@@ -3,6 +3,7 @@
  * pessoa. Tudo acontece no navegador; nada é enviado para fora do aparelho.
  */
 import { registrarEventoSw } from "@/lib/eventos-sw";
+import { recarregarAppAgora, verificarVersaoPwa } from "@/lib/pwa-client";
 
 export const CAMINHO_SW = "/sw.js";
 export const MARCA_AVISO = "wise-money:avisar-atualizacao";
@@ -34,14 +35,13 @@ export async function verificarAtualizacaoAgora(): Promise<ResultadoAtualizacao>
   }
 
   try {
-    const registro =
-      (await navigator.serviceWorker.getRegistration(CAMINHO_SW)) ??
-      (await navigator.serviceWorker.register(CAMINHO_SW, { scope: "/", updateViaCache: "none" }));
-
+    const registro = await navigator.serviceWorker.getRegistration(CAMINHO_SW);
+    if (!registro) return { estado: "sem-suporte" };
+    const versoes = await verificarVersaoPwa();
     await registro.update();
 
     const pendente = registro.waiting ?? registro.installing;
-    if (!pendente) return { estado: "sem-novidade" };
+    if (!pendente && !versoes.desatualizado) return { estado: "sem-novidade" };
 
     try {
       window.sessionStorage.setItem(MARCA_AVISO, "1");
@@ -50,9 +50,11 @@ export async function verificarAtualizacaoAgora(): Promise<ResultadoAtualizacao>
     }
     registrarEventoSw("atualizacao-detectada", "verificação manual");
 
-    if (registro.waiting) {
+    if (versoes.desatualizado && !pendente) {
+      await recarregarAppAgora();
+    } else if (registro.waiting) {
       registro.waiting.postMessage("skip-waiting");
-    } else {
+    } else if (pendente) {
       pendente.addEventListener("statechange", function () {
         if (this.state === "installed") registro.waiting?.postMessage("skip-waiting");
       });
@@ -95,13 +97,11 @@ export async function procurarNovaVersao(): Promise<boolean> {
 /** Aplica a versão já baixada e recarrega a tela. */
 export async function aplicarVersaoBaixada() {
   if (!temSuporte()) return;
-  const registro = await navigator.serviceWorker.getRegistration(CAMINHO_SW);
-  if (!registro) return;
   try {
     window.sessionStorage.setItem(MARCA_AVISO, "1");
   } catch {
     // sem sessionStorage o aviso não aparece, mas a atualização acontece
   }
   registrarEventoSw("atualizacao-detectada", "aviso em segundo plano");
-  registro.waiting?.postMessage("skip-waiting");
+  await recarregarAppAgora();
 }

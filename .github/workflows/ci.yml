@@ -270,3 +270,8 @@ jobs:
         run: bun scripts/e2e-atualizacao-pwa.mjs
         env:
           APP_URL: http://localhost:8080
+
+      - name: Simular abertura offline / alto cache
+        run: bun scripts/e2e-offline-marca.mjs
+        env:
+          APP_URL: http://localhost:8080

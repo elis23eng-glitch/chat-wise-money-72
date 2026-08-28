@@ -30,6 +30,11 @@ export const Route = createFileRoute("/_autenticado/ano")({
         property: "og:description",
         content: "Entradas, gastos e saldo detalhados mês a mês, de janeiro a dezembro.",
       },
+      { name: "twitter:title", content: "Painel do ano — Wise Money" },
+      {
+        name: "twitter:description",
+        content: "Entradas, gastos e saldo detalhados mês a mês, de janeiro a dezembro.",
+      },
     ],
   }),
   component: PainelAno,

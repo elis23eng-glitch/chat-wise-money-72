@@ -38,13 +38,18 @@ self.addEventListener("fetch", (evento) => {
   if (req.mode === "navigate" || url.pathname === "/manifest.json") {
     evento.respondWith(
       (async () => {
+        // A chave ignora a parte "?..." para o modo offline achar a página
+        // mesmo que o link tenha parâmetros diferentes.
+        const chave = new Request(url.origin + url.pathname);
         try {
           const resposta = await fetch(req, { cache: "no-store" });
           const cache = await caches.open(ESTATICOS);
-          cache.put(req, resposta.clone());
+          cache.put(chave, resposta.clone());
           return resposta;
         } catch {
-          const emCache = await caches.match(req);
+          const cache = await caches.open(ESTATICOS);
+          const emCache =
+            (await cache.match(chave)) ?? (await cache.match(new Request(url.origin + "/")));
           return emCache ?? Response.error();
         }
       })(),

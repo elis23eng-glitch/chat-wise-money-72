@@ -27,7 +27,22 @@ for (const rota of ROTAS) {
       .map((m) => m[1])
       .join(" ");
 
+    const meta = (chave, atributo) =>
+      html.match(new RegExp(`<meta[^>]*${atributo}="${chave}"[^>]*content="([^"]*)"`, "i"))?.[1] ??
+      html.match(new RegExp(`<meta[^>]*content="([^"]*)"[^>]*${atributo}="${chave}"`, "i"))?.[1] ??
+      "";
+    const ogTitulo = meta("og:title", "property");
+    const ogDescricao = meta("og:description", "property");
+    const twTitulo = meta("twitter:title", "name");
+    const twCard = meta("twitter:card", "name");
+
     const problemas = [];
+    if (!ESPERADO.test(ogTitulo)) problemas.push("og:title sem “Wise Money”");
+    if (!ogDescricao) problemas.push("og:description ausente");
+    if (!ESPERADO.test(twTitulo)) problemas.push("twitter:title sem “Wise Money”");
+    if (!twCard) problemas.push("twitter:card ausente");
+    if (PROIBIDO.test(`${ogTitulo} ${ogDescricao} ${twTitulo}`))
+      problemas.push("marca antiga no compartilhamento");
     if (PROIBIDO.test(html)) problemas.push("marca antiga no DOM");
     if (PROIBIDO.test(titulo)) problemas.push("marca antiga no título");
     if (PROIBIDO.test(metas)) problemas.push("marca antiga nas meta tags");
@@ -45,7 +60,7 @@ for (const rota of ROTAS) {
 }
 
 const resumo = [
-  "## Verificação de marca (Wise Money)",
+  "## Verificação de marca e compartilhamento (Wise Money)",
   "",
   `Base: ${BASE}`,
   "",

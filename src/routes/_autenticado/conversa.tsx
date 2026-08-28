@@ -34,9 +34,14 @@ export const Route = createFileRoute("/_autenticado/conversa")({
         name: "description",
         content: "Converse com seu agente financeiro para registrar gastos e tirar dúvidas.",
       },
-      { property: "og:title", content: "Conversa com seu agente financeiro" },
+      { property: "og:title", content: "Conversa com seu agente financeiro — Wise Money" },
       {
         property: "og:description",
+        content: "Registre gastos e entenda seu dinheiro conversando em linguagem simples.",
+      },
+      { name: "twitter:title", content: "Conversa com seu agente financeiro — Wise Money" },
+      {
+        name: "twitter:description",
         content: "Registre gastos e entenda seu dinheiro conversando em linguagem simples.",
       },
     ],

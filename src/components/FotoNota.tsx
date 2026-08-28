@@ -274,10 +274,41 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   });
 
   const salvar = useMutation({
-    mutationFn: async (lista: Item[]) =>
-      registrar({
+    mutationFn: async (lista: Item[]) => {
+      const r = await registrar({
         data: { itens: lista, ...(anexar && previa ? { imagem: previa, mime } : {}) },
-      }),
+      });
+      try {
+        const media =
+          lista.length > 0 ? lista.reduce((s, i) => s + (i.confianca ?? 1), 0) / lista.length : 1;
+        await auditar({
+          data: {
+            comprovante: r.comprovante ?? null,
+            estabelecimento: lista[0]?.estabelecimento ?? null,
+            data: lista[0]?.data ?? null,
+            arquivoTipo: mime,
+            totalItens: lista.length,
+            itensBaixaConfianca: lista.filter(duvidoso).length,
+            confiancaMedia: Math.min(1, Math.max(0, media)),
+            tentativasOcr: Math.max(1, historico.length),
+            duplicidadeTotal: duplicidade?.total ?? 0,
+            duplicidadeIgnorada: ignorarDuplicidade,
+            observacao: observacao.slice(0, 400),
+            edicoes: diferencas(historico[0]?.itens ?? [], lista),
+            itens: lista.map((i) => ({
+              descricao: i.descricao,
+              valor: i.valor,
+              categoria: i.categoria,
+              data: i.data,
+              ...(typeof i.confianca === "number" ? { confianca: i.confianca } : {}),
+            })),
+          },
+        });
+      } catch {
+        /* a auditoria é um extra: nunca impede o registro da despesa */
+      }
+      return r;
+    },
     onSuccess: (r) => {
       toast.success(t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`));
       fechar();

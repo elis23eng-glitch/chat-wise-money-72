@@ -208,7 +208,7 @@ function Conversa() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <section className="surface-card flex h-[70vh] min-h-[520px] flex-col overflow-hidden shadow-soft">
-        <div className="flex items-center gap-3 border-b border-primary/10 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-3 border-b border-primary/10 px-5 py-4">
           <span className="grid size-9 place-items-center rounded-full bg-primary/10 font-display text-primary">
             m
           </span>
@@ -241,6 +241,18 @@ function Conversa() {
           >
             {t("Limpar conversa", "Clear conversation")}
           </button>
+
+          {voz.disponivel && (
+            <button
+              onClick={() =>
+                voz.falar(saudacaoNina(idioma === "en" ? "en" : "pt"), "saudacao-inicial")
+              }
+              className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              <Volume2 className="size-4" />
+              {t("Ouvir saudação da Nina", "Hear Nina's greeting")}
+            </button>
+          )}
 
           <button
             onClick={() => setAjudaAberta(true)}

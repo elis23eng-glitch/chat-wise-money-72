@@ -487,6 +487,7 @@ function Painel() {
 
   return (
     <div className="space-y-8">
+      <LembretesInteligentes />
       <header>
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
           {t("Painel", "Dashboard")}

@@ -15,7 +15,7 @@ import { aplicarVersaoBaixada, procurarNovaVersao } from "@/lib/atualizar-app";
  *    avisa a pessoa que o app foi atualizado (nome corrigido para Wise Money).
  */
 const CAMINHO_SW = "/sw.js";
-const PREFIXO_CACHE = "wise-money-v2";
+const PREFIXO_CACHE_ATUAL = "wise-money-v4";
 const MARCA_AVISO = "wise-money:avisar-atualizacao";
 /** De quanto em quanto tempo procuramos uma versão nova em segundo plano. */
 const HORAS_ENTRE_CHECAGENS = 6;
@@ -94,7 +94,7 @@ export function LimparCacheAntigo() {
         let cachesRemovidos = 0;
         if ("caches" in window) {
           const chaves = await caches.keys();
-          const antigas = chaves.filter((c) => !registrar || !c.startsWith(PREFIXO_CACHE));
+          const antigas = chaves.filter((c) => !registrar || !c.startsWith(PREFIXO_CACHE_ATUAL));
           cachesRemovidos = antigas.length;
           await Promise.all(antigas.map((c) => caches.delete(c)));
         }

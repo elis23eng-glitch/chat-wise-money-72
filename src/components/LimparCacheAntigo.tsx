@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { useIdioma } from "@/lib/i18n";
 import { registrarEventoSw } from "@/lib/eventos-sw";
+import { aplicarVersaoBaixada, procurarNovaVersao } from "@/lib/atualizar-app";
 
 /**
  * Mantém o app instalado sempre atualizado:
@@ -16,6 +17,10 @@ import { registrarEventoSw } from "@/lib/eventos-sw";
 const CAMINHO_SW = "/sw.js";
 const PREFIXO_CACHE = "wise-money-v2";
 const MARCA_AVISO = "wise-money:avisar-atualizacao";
+/** De quanto em quanto tempo procuramos uma versão nova em segundo plano. */
+const HORAS_ENTRE_CHECAGENS = 6;
+const INTERVALO_MS = HORAS_ENTRE_CHECAGENS * 60 * 60 * 1000;
+const CHAVE_ULTIMA_CHECAGEM = "wise-money:ultima-checagem-sw";
 
 function podeRegistrar() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return false;
@@ -109,9 +114,14 @@ export function LimparCacheAntigo() {
         registrarEventoSw("registro-ok");
         await registro.update().catch(() => undefined);
         registro.waiting?.postMessage("skip-waiting");
+        const abertoEm = Date.now();
         registro.addEventListener("updatefound", () => {
           registro.installing?.addEventListener("statechange", function () {
-            if (this.state === "installed") registro.waiting?.postMessage("skip-waiting");
+            // Só aplicamos sozinho logo na abertura; depois disso a pessoa é
+            // avisada discretamente e decide quando atualizar.
+            if (this.state === "installed" && Date.now() - abertoEm < 15000) {
+              registro.waiting?.postMessage("skip-waiting");
+            }
             if (this.state === "redundant") registrarEventoSw("atualizacao-falhou");
           });
         });
@@ -122,6 +132,49 @@ export function LimparCacheAntigo() {
 
     return () => {
       navigator.serviceWorker.removeEventListener("controllerchange", aoTrocarControlador);
+    };
+  }, [t]);
+
+  // Checagem discreta em segundo plano: de tempos em tempos procura uma versão
+  // nova e apenas avisa; quem decide aplicar é a pessoa.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    let avisado = false;
+
+    async function checar() {
+      const agora = Date.now();
+      try {
+        const ultima = Number(window.localStorage.getItem(CHAVE_ULTIMA_CHECAGEM) ?? 0);
+        if (agora - ultima < INTERVALO_MS) return;
+        window.localStorage.setItem(CHAVE_ULTIMA_CHECAGEM, String(agora));
+      } catch {
+        // sem armazenamento seguimos checando mesmo assim
+      }
+      if (avisado) return;
+      const temNovidade = await procurarNovaVersao();
+      if (!temNovidade) return;
+      avisado = true;
+      toast(t("Uma versão nova está pronta", "A new version is ready"), {
+        description: t(
+          "Você pode atualizar agora ou continuar usando normalmente.",
+          "You can update now or keep using the app as usual.",
+        ),
+        duration: 12000,
+        action: {
+          label: t("Atualizar", "Update"),
+          onClick: () => void aplicarVersaoBaixada(),
+        },
+      });
+    }
+
+    const relogio = window.setInterval(() => void checar(), INTERVALO_MS);
+    const aoVoltar = () => {
+      if (document.visibilityState === "visible") void checar();
+    };
+    document.addEventListener("visibilitychange", aoVoltar);
+    return () => {
+      window.clearInterval(relogio);
+      document.removeEventListener("visibilitychange", aoVoltar);
     };
   }, [t]);
 

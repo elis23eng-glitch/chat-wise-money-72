@@ -47,16 +47,13 @@ export function LimparCacheAntigo() {
       if (window.sessionStorage.getItem(MARCA_AVISO)) {
         window.sessionStorage.removeItem(MARCA_AVISO);
         registrarEventoSw("atualizacao-aplicada");
-        toast.success(
-          t("App atualizado para o Wise Money", "App updated to Wise Money"),
-          {
-            description: t(
-              "O nome antigo foi corrigido e você já está na versão mais nova — não precisa reinstalar.",
-              "The old name is gone and you are on the newest version — no need to reinstall.",
-            ),
-            duration: 8000,
-          },
-        );
+        toast.success(t("App atualizado para o Wise Money", "App updated to Wise Money"), {
+          description: t(
+            "O nome antigo foi corrigido e você já está na versão mais nova — não precisa reinstalar.",
+            "The old name is gone and you are on the newest version — no need to reinstall.",
+          ),
+          duration: 8000,
+        });
       }
     } catch {
       // sessionStorage indisponível: seguimos sem o aviso
@@ -119,10 +116,7 @@ export function LimparCacheAntigo() {
           });
         });
       } catch (erro) {
-        registrarEventoSw(
-          "registro-falhou",
-          erro instanceof Error ? erro.message : String(erro),
-        );
+        registrarEventoSw("registro-falhou", erro instanceof Error ? erro.message : String(erro));
       }
     })();
 

@@ -64,12 +64,12 @@ export const Route = createFileRoute("/_autenticado/painel")({
         content:
           "Visão geral dos seus gastos: total do mês, evolução, categorias, metas e média diária.",
       },
-      { property: "og:title", content: "Painel financeiro" },
+      { property: "og:title", content: "Painel financeiro — Wise Money" },
       {
         property: "og:description",
         content: "Gráficos simples com a evolução dos seus gastos, categorias e metas.",
       },
-      { name: "twitter:title", content: "Painel financeiro" },
+      { name: "twitter:title", content: "Painel financeiro — Wise Money" },
       {
         name: "twitter:description",
         content: "Gráficos simples com a evolução dos seus gastos, categorias e metas.",

@@ -25,12 +25,12 @@ export const Route = createFileRoute("/_autenticado/resumo")({
         name: "description",
         content: "Veja quanto você gastou no mês, por categoria, e compare com o mês anterior.",
       },
-      { property: "og:title", content: "Resumo dos seus gastos" },
+      { property: "og:title", content: "Resumo dos seus gastos — Wise Money" },
       {
         property: "og:description",
         content: "Total do mês, gastos por categoria e comparação com o mês passado.",
       },
-      { name: "twitter:title", content: "Resumo dos seus gastos" },
+      { name: "twitter:title", content: "Resumo dos seus gastos — Wise Money" },
       {
         name: "twitter:description",
         content: "Total do mês, gastos por categoria e comparação com o mês passado.",

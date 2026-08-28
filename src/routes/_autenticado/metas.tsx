@@ -17,12 +17,12 @@ export const Route = createFileRoute("/_autenticado/metas")({
         name: "description",
         content: "Crie metas de economia, guarde aos poucos e acompanhe o progresso de cada uma.",
       },
-      { property: "og:title", content: "Minhas metas financeiras" },
+      { property: "og:title", content: "Minhas metas financeiras — Wise Money" },
       {
         property: "og:description",
         content: "Defina objetivos, guarde um pouco por vez e veja o quanto já caminhou.",
       },
-      { name: "twitter:title", content: "Minhas metas financeiras" },
+      { name: "twitter:title", content: "Minhas metas financeiras — Wise Money" },
       {
         name: "twitter:description",
         content: "Defina objetivos, guarde um pouco por vez e veja o quanto já caminhou.",

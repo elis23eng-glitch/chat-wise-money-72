@@ -21,6 +21,7 @@ import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/c
 import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
 import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
 import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
+import { Route as AutenticadoMinhaSegurancaRouteImport } from './routes/_autenticado/minha-seguranca'
 import { Route as AutenticadoPainelRouteImport } from './routes/_autenticado/painel'
 import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
 import { Route as AutenticadoSaudeRouteImport } from './routes/_autenticado/saude'
@@ -85,6 +86,12 @@ const AutenticadoMetasRoute = AutenticadoMetasRouteImport.update({
   path: '/metas',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoMinhaSegurancaRoute =
+  AutenticadoMinhaSegurancaRouteImport.update({
+    id: '/minha-seguranca',
+    path: '/minha-seguranca',
+    getParentRoute: () => AutenticadoRouteRoute,
+  } as any)
 const AutenticadoPainelRoute = AutenticadoPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
+  '/minha-seguranca': typeof AutenticadoMinhaSegurancaRoute
   '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
   '/saude': typeof AutenticadoSaudeRoute
@@ -135,6 +143,7 @@ export interface FileRoutesByTo {
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
   '/metas': typeof AutenticadoMetasRoute
+  '/minha-seguranca': typeof AutenticadoMinhaSegurancaRoute
   '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
   '/saude': typeof AutenticadoSaudeRoute
@@ -154,6 +163,7 @@ export interface FileRoutesById {
   '/_autenticado/insights': typeof AutenticadoInsightsRoute
   '/_autenticado/mercado': typeof AutenticadoMercadoRoute
   '/_autenticado/metas': typeof AutenticadoMetasRoute
+  '/_autenticado/minha-seguranca': typeof AutenticadoMinhaSegurancaRoute
   '/_autenticado/painel': typeof AutenticadoPainelRoute
   '/_autenticado/resumo': typeof AutenticadoResumoRoute
   '/_autenticado/saude': typeof AutenticadoSaudeRoute
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/mercado'
     | '/metas'
+    | '/minha-seguranca'
     | '/painel'
     | '/resumo'
     | '/saude'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/insights'
     | '/mercado'
     | '/metas'
+    | '/minha-seguranca'
     | '/painel'
     | '/resumo'
     | '/saude'
@@ -208,6 +220,7 @@ export interface FileRouteTypes {
     | '/_autenticado/insights'
     | '/_autenticado/mercado'
     | '/_autenticado/metas'
+    | '/_autenticado/minha-seguranca'
     | '/_autenticado/painel'
     | '/_autenticado/resumo'
     | '/_autenticado/saude'
@@ -310,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoMetasRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/minha-seguranca': {
+      id: '/_autenticado/minha-seguranca'
+      path: '/minha-seguranca'
+      fullPath: '/minha-seguranca'
+      preLoaderRoute: typeof AutenticadoMinhaSegurancaRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
     '/_autenticado/painel': {
       id: '/_autenticado/painel'
       path: '/painel'
@@ -348,6 +368,7 @@ interface AutenticadoRouteRouteChildren {
   AutenticadoInsightsRoute: typeof AutenticadoInsightsRoute
   AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
   AutenticadoMetasRoute: typeof AutenticadoMetasRoute
+  AutenticadoMinhaSegurancaRoute: typeof AutenticadoMinhaSegurancaRoute
   AutenticadoPainelRoute: typeof AutenticadoPainelRoute
   AutenticadoResumoRoute: typeof AutenticadoResumoRoute
   AutenticadoSaudeRoute: typeof AutenticadoSaudeRoute
@@ -360,6 +381,7 @@ const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoInsightsRoute: AutenticadoInsightsRoute,
   AutenticadoMercadoRoute: AutenticadoMercadoRoute,
   AutenticadoMetasRoute: AutenticadoMetasRoute,
+  AutenticadoMinhaSegurancaRoute: AutenticadoMinhaSegurancaRoute,
   AutenticadoPainelRoute: AutenticadoPainelRoute,
   AutenticadoResumoRoute: AutenticadoResumoRoute,
   AutenticadoSaudeRoute: AutenticadoSaudeRoute,

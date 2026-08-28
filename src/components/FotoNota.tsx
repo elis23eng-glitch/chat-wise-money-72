@@ -226,7 +226,9 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                     />
                     <select
                       value={item.categoria}
-                      onChange={(e) => atualizar(i, { categoria: e.target.value as CategoriaGasto })}
+                      onChange={(e) =>
+                        atualizar(i, { categoria: e.target.value as CategoriaGasto })
+                      }
                       aria-label={t("Categoria", "Category")}
                       className="col-span-2 rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
                     >

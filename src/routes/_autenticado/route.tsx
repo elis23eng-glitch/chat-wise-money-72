@@ -39,6 +39,8 @@ function BotaoAtualizar() {
             qc.refetchQueries({ queryKey: ["mensagens"], type: "all" }),
             qc.refetchQueries({ queryKey: ["alertas-historico"], type: "all" }),
             qc.refetchQueries({ queryKey: ["ano"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["lembretes"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["saude"], type: "all" }),
           ]);
           toast.success(t("Dados atualizados!", "Data updated!"));
         } catch {
@@ -76,6 +78,7 @@ function AppLayout() {
     { to: "/metas", label: t("Metas", "Goals") },
     { to: "/mercado", label: t("Mercado", "Market") },
     { to: "/insights", label: t("Insights", "Insights") },
+    { to: "/saude", label: t("Saúde", "Health") },
     { to: "/auditoria", label: t("Auditoria", "Audit") },
     { to: "/seguranca", label: t("Segurança", "Security") },
   ] as const;

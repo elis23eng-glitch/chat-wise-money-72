@@ -54,6 +54,7 @@ import {
 } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { PreviaRelatorio } from "@/components/PreviaRelatorio";
+import { LembretesInteligentes } from "@/components/LembretesInteligentes";
 
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({
@@ -486,6 +487,7 @@ function Painel() {
 
   return (
     <div className="space-y-8">
+      <LembretesInteligentes />
       <header>
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
           {t("Painel", "Dashboard")}

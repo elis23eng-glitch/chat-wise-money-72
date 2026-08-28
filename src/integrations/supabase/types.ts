@@ -346,7 +346,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      listar_minhas_sessoes: {
+        Args: never
+        Returns: {
+          atual: boolean
+          atualizada_em: string
+          criada_em: string
+          id: string
+          ip: string
+          user_agent: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

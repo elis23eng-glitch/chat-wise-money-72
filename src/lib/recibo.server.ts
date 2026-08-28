@@ -1,5 +1,3 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject } from "ai";
 import { z } from "zod";
 
 import { CATEGORIAS_GASTO } from "./categorias";

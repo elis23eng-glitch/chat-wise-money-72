@@ -167,7 +167,9 @@ function duvidoso(item: Item) {
 }
 
 function incerto(item: Item, campo: Campo) {
-  return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < limiarDoCampo(campo);
+  return (
+    (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < limiarDoCampo(campo)
+  );
 }
 
 function classeCampo(item: Item, campo: Campo) {

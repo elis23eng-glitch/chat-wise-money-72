@@ -169,9 +169,7 @@ export const criarRegraRecorrente = createServerFn({ method: "POST" })
 
 export const alternarRegraRecorrente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
-    z.object({ id: z.string().uuid(), ativa: z.boolean() }).parse(data),
-  )
+  .validator((data: unknown) => z.object({ id: z.string().uuid(), ativa: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("recurring_rules")

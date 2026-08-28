@@ -77,11 +77,21 @@ export function BuscaAvancada() {
       >
         <label className="block">
           <span className="text-sm font-semibold">{t("De", "From")}</span>
-          <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} className={campo} />
+          <input
+            type="date"
+            value={inicio}
+            onChange={(e) => setInicio(e.target.value)}
+            className={campo}
+          />
         </label>
         <label className="block">
           <span className="text-sm font-semibold">{t("Até", "To")}</span>
-          <input type="date" value={fim} onChange={(e) => setFim(e.target.value)} className={campo} />
+          <input
+            type="date"
+            value={fim}
+            onChange={(e) => setFim(e.target.value)}
+            className={campo}
+          />
         </label>
         <label className="block">
           <span className="text-sm font-semibold">{t("Categoria", "Category")}</span>
@@ -99,7 +109,9 @@ export function BuscaAvancada() {
           </select>
         </label>
         <label className="block">
-          <span className="text-sm font-semibold">{t("Descrição contém", "Description contains")}</span>
+          <span className="text-sm font-semibold">
+            {t("Descrição contém", "Description contains")}
+          </span>
           <input
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
@@ -119,25 +131,47 @@ export function BuscaAvancada() {
         <div className="grid grid-cols-2 gap-3">
           <label className="block">
             <span className="text-sm font-semibold">{t("Valor mín.", "Min amount")}</span>
-            <input inputMode="decimal" value={valorMin} onChange={(e) => setValorMin(e.target.value)} className={campo} />
+            <input
+              inputMode="decimal"
+              value={valorMin}
+              onChange={(e) => setValorMin(e.target.value)}
+              className={campo}
+            />
           </label>
           <label className="block">
             <span className="text-sm font-semibold">{t("Valor máx.", "Max amount")}</span>
-            <input inputMode="decimal" value={valorMax} onChange={(e) => setValorMax(e.target.value)} className={campo} />
+            <input
+              inputMode="decimal"
+              value={valorMax}
+              onChange={(e) => setValorMax(e.target.value)}
+              className={campo}
+            />
           </label>
         </div>
 
         <div className="flex flex-wrap items-center gap-4 md:col-span-3">
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={comComprovante} onChange={(e) => setComComprovante(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={comComprovante}
+              onChange={(e) => setComComprovante(e.target.checked)}
+            />
             {t("Só com comprovante", "With receipt only")}
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={soDuplicados} onChange={(e) => setSoDuplicados(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={soDuplicados}
+              onChange={(e) => setSoDuplicados(e.target.checked)}
+            />
             {t("Só possíveis duplicados", "Possible duplicates only")}
           </label>
           <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={soRevisados} onChange={(e) => setSoRevisados(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={soRevisados}
+              onChange={(e) => setSoRevisados(e.target.checked)}
+            />
             {t("Só revisados manualmente", "Manually reviewed only")}
           </label>
           <button

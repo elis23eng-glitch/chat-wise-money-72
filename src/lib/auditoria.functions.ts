@@ -149,7 +149,12 @@ export const listarAuditorias = createServerFn({ method: "POST" })
         duplicidadeTotal: l.duplicidade_total,
         duplicidadeIgnorada: l.duplicidade_ignorada,
         observacao: l.observacao,
-        edicoes: (l.edicoes ?? []) as { item: string; campo: string; antes: string; depois: string }[],
+        edicoes: (l.edicoes ?? []) as {
+          item: string;
+          campo: string;
+          antes: string;
+          depois: string;
+        }[],
         itens: (l.itens ?? []) as {
           descricao: string;
           valor: number;

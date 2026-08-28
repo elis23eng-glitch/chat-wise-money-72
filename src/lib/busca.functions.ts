@@ -34,7 +34,8 @@ export const buscarLancamentos = createServerFn({ method: "POST" })
       .limit(400);
 
     if (data.categoria) consulta = consulta.eq("categoria", data.categoria);
-    if (data.estabelecimento) consulta = consulta.ilike("estabelecimento", `%${data.estabelecimento}%`);
+    if (data.estabelecimento)
+      consulta = consulta.ilike("estabelecimento", `%${data.estabelecimento}%`);
     if (data.texto) consulta = consulta.ilike("descricao", `%${data.texto}%`);
     if (typeof data.valorMin === "number") consulta = consulta.gte("valor", data.valorMin);
     if (typeof data.valorMax === "number") consulta = consulta.lte("valor", data.valorMax);

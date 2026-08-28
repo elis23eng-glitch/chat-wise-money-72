@@ -205,7 +205,11 @@ function Limites() {
         "Below this the red reprocess warning appears.",
       ),
     },
-    { chave: "limiar_valor", rotulo: t("Valor", "Amount"), ajuda: t("Campo valor.", "Amount field.") },
+    {
+      chave: "limiar_valor",
+      rotulo: t("Valor", "Amount"),
+      ajuda: t("Campo valor.", "Amount field."),
+    },
     { chave: "limiar_data", rotulo: t("Data", "Date"), ajuda: t("Campo data.", "Date field.") },
     {
       chave: "limiar_estabelecimento",
@@ -305,9 +309,7 @@ function Recorrentes() {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="font-display text-xl">
-          {t("Contas que se repetem", "Bills that repeat")}
-        </h3>
+        <h3 className="font-display text-xl">{t("Contas que se repetem", "Bills that repeat")}</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           {t(
             "Encontramos estes gastos em mais de um mês. Crie uma regra e a Nina lembra você no próximo ciclo — o registro só acontece depois da sua confirmação.",
@@ -329,7 +331,9 @@ function Recorrentes() {
                   {categoriaLabel(s.categoria, idioma)} ·{" "}
                   {t(`${s.meses} meses`, `${s.meses} months`)} ·{" "}
                   {t(`dia ${s.diaDoMes}`, `day ${s.diaDoMes}`)} ·{" "}
-                  {s.variacao === "estável" ? t("valor estável", "stable amount") : t("valor varia", "amount varies")}
+                  {s.variacao === "estável"
+                    ? t("valor estável", "stable amount")
+                    : t("valor varia", "amount varies")}
                 </p>
               </div>
               <span className="ml-auto font-display text-lg">{brl(s.valorMedio)}</span>
@@ -425,7 +429,11 @@ function Auditoria() {
 
   const abas = [
     { id: "historico" as const, rotulo: t("Histórico", "History"), icone: FileClock },
-    { id: "limites" as const, rotulo: t("Limites de confiança", "Confidence thresholds"), icone: SlidersHorizontal },
+    {
+      id: "limites" as const,
+      rotulo: t("Limites de confiança", "Confidence thresholds"),
+      icone: SlidersHorizontal,
+    },
     { id: "recorrentes" as const, rotulo: t("Contas fixas", "Recurring bills"), icone: Repeat },
   ];
 

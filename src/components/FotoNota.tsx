@@ -377,7 +377,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     (itens ?? []).length > 0
       ? (itens ?? []).reduce((s, i) => s + (i.confianca ?? 1), 0) / (itens ?? []).length
       : 1;
-  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < BAIXA;
+  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < LIMIARES.alerta;
   const primeiro = itens?.[0];
   const primeiroDuvidoso = duvidososLista[0];
   const baseLote = soDuvidosos ? primeiroDuvidoso : primeiro;
@@ -703,7 +703,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                       {(item.confianca ?? 1) < 1 && (
                         <p
                           className={`mb-2 text-xs font-semibold ${
-                            (item.confianca ?? 1) < BAIXA
+                            (item.confianca ?? 1) < LIMIARES.geral
                               ? "text-destructive"
                               : "text-muted-foreground"
                           }`}

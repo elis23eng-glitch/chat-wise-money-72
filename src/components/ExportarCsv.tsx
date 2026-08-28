@@ -4,6 +4,7 @@ import { Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { getDadosCsv } from "@/lib/exportar.functions";
+import { categoriaLabel } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 
 type Periodo = "mes" | "ano" | "tudo";
@@ -30,7 +31,7 @@ function csvCampo(valor: string | number) {
 
 /** Exporta gastos, entradas e totais por categoria em um arquivo CSV. */
 export function ExportarCsv() {
-  const { t } = useIdioma();
+  const { t, idioma } = useIdioma();
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [ocupado, setOcupado] = useState(false);
   const buscar = useServerFn(getDadosCsv);
@@ -52,7 +53,7 @@ export function ExportarCsv() {
         t("data", "date"),
         t("descricao", "description"),
         t("categoria", "category"),
-        t("valor", "amount"),
+        t("valor", "amount_brl"),
         t("estabelecimento", "merchant"),
         t("hora", "time"),
         t("tem_comprovante", "has_receipt"),
@@ -63,7 +64,7 @@ export function ExportarCsv() {
           l.tipo === "gasto" ? t("gasto", "expense") : t("entrada", "income"),
           l.data,
           l.descricao,
-          l.categoria,
+          categoriaLabel(l.categoria, idioma),
           l.valor.toFixed(2),
           l.estabelecimento,
           l.hora,
@@ -76,13 +77,13 @@ export function ExportarCsv() {
       const resumo = [
         "",
         t("RESUMO POR CATEGORIA", "SUMMARY BY CATEGORY"),
-        [t("tipo", "type"), t("categoria", "category"), t("itens", "items"), t("total", "total")].join(
+        [t("tipo", "type"), t("categoria", "category"), t("itens", "items"), t("total", "total_brl")].join(
           ";",
         ),
         ...categorias.map((c) =>
           [
             c.tipo === "gasto" ? t("gasto", "expense") : t("entrada", "income"),
-            c.categoria,
+            categoriaLabel(c.categoria, idioma),
             c.itens,
             c.total.toFixed(2),
           ]

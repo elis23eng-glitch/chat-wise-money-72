@@ -22,12 +22,18 @@ function primeiroDia(offset = 0) {
     .slice(0, 10);
 }
 
+/**
+ * Marcadores resolvidos no cliente (format.ts -> preencherTokens), para que o
+ * valor apareça em R$ no português e convertido em US$ no inglês.
+ */
 function moedaPt(v: number) {
-  return `R$ ${v.toFixed(2).replace(".", ",")}`;
+  return `{{m:${v.toFixed(2)}}}`;
 }
 
-function moedaEn(v: number) {
-  return `R$ ${v.toFixed(2)}`;
+const moedaEn = moedaPt;
+
+function catToken(nome: string) {
+  return `{{c:${nome}}}`;
 }
 
 /** Calcula a pontuação de saúde financeira (0 a 100) e explica cada fator. */
@@ -120,10 +126,10 @@ export async function calcularSaude(supabase: Db, userId: string) {
     maximo: 15,
     bom: pontosConc >= 10,
     detalhe_pt: maior
-      ? `A categoria "${maior[0]}" representa ${Math.round(fatia * 100)}% dos seus gastos do mês.`
+      ? `A categoria "${catToken(maior[0])}" representa ${Math.round(fatia * 100)}% dos seus gastos do mês.`
       : "Ainda não há gastos suficientes neste mês para avaliar o equilíbrio.",
     detalhe_en: maior
-      ? `The "${maior[0]}" category is ${Math.round(fatia * 100)}% of this month's spending.`
+      ? `The "${catToken(maior[0])}" category is ${Math.round(fatia * 100)}% of this month's spending.`
       : "Not enough expenses this month to evaluate the balance.",
   });
 

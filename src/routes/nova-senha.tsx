@@ -74,7 +74,9 @@ function NovaSenha() {
         </div>
 
         <div className="surface-card p-7 shadow-soft">
-          <h1 className="font-display text-3xl">{t("Criar uma nova senha", "Create a new password")}</h1>
+          <h1 className="font-display text-3xl">
+            {t("Criar uma nova senha", "Create a new password")}
+          </h1>
 
           {!pronto ? (
             <p className="mt-3 text-muted-foreground">
@@ -103,7 +105,9 @@ function NovaSenha() {
                 disabled={enviando}
                 className="w-full rounded-full bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground transition-colors hover:bg-primary-deep disabled:opacity-60"
               >
-                {enviando ? t("Um instante…", "One moment…") : t("Salvar nova senha", "Save new password")}
+                {enviando
+                  ? t("Um instante…", "One moment…")
+                  : t("Salvar nova senha", "Save new password")}
               </button>
             </form>
           )}

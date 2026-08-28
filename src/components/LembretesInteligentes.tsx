@@ -33,8 +33,7 @@ export function LembretesInteligentes() {
       </div>
       <ul className="mt-3 space-y-3">
         {data.map((l) => {
-          const Icone =
-            l.tom === "atencao" ? TriangleAlert : l.tom === "bom" ? CheckCircle2 : Info;
+          const Icone = l.tom === "atencao" ? TriangleAlert : l.tom === "bom" ? CheckCircle2 : Info;
           const cor =
             l.tom === "atencao"
               ? "text-destructive"

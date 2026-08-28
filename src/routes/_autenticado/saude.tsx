@@ -40,9 +40,7 @@ function Saude() {
   const { data, isLoading } = useQuery({ queryKey: ["saude"], queryFn: () => buscar() });
 
   if (isLoading || !data) {
-    return (
-      <p className="text-muted-foreground">{t("Calculando…", "Calculating…")}</p>
-    );
+    return <p className="text-muted-foreground">{t("Calculando…", "Calculating…")}</p>;
   }
 
   const cor =

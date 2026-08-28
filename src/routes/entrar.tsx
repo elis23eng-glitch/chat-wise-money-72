@@ -46,9 +46,7 @@ function Entrar() {
   useEffect(() => {
     const salvo = window.localStorage.getItem("wise-money-email");
     if (salvo) setEmail(salvo);
-    setManterConectado(
-      window.localStorage.getItem("wise-money-manter-conectado") === "1",
-    );
+    setManterConectado(window.localStorage.getItem("wise-money-manter-conectado") === "1");
   }, []);
 
   useEffect(() => {

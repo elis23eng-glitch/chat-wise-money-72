@@ -356,6 +356,10 @@ function MinhaSeguranca() {
         )}
       </section>
 
+      <CodigosRecuperacao />
+      <HistoricoAcessos />
+      <DispositivosConfiaveis />
+
       {/* Privacidade */}
       <section className="surface-card mt-6 p-6 shadow-soft">
         <h2 className="font-display text-2xl">

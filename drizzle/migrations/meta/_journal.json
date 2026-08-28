@@ -43,6 +43,13 @@
       "when": 1787928988796,
       "tag": "0005_expenses_receipt_metadata",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787929586625,
+      "tag": "0006_expenses_comprovante",
+      "breakpoints": true
     }
   ]
 }

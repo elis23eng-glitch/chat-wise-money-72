@@ -284,7 +284,10 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               <button
                 type="button"
                 disabled={leitura.isPending}
-                onClick={() => leitura.mutate({ ajuste: ajuste.trim() || undefined })}
+                onClick={() => {
+                  const texto = ajuste.trim();
+                  leitura.mutate(texto ? { ajuste: texto } : {});
+                }}
                 className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground disabled:opacity-50"
               >
                 {leitura.isPending ? (

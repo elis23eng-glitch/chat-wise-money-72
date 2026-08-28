@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, Loader2, RefreshCw, TriangleAlert, WifiOff } from "lucide-react";
 
-import { estaOffline, tentarQuandoVoltarConexao, verificarAtualizacaoAgora } from "@/lib/atualizar-app";
+import {
+  estaOffline,
+  tentarQuandoVoltarConexao,
+  verificarAtualizacaoAgora,
+} from "@/lib/atualizar-app";
 import { limparEventosSw, resumoPorVersaoData, VERSAO_APP } from "@/lib/eventos-sw";
 import type { ResumoPorVersaoData } from "@/lib/eventos-sw";
 import { useIdioma } from "@/lib/i18n";

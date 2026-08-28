@@ -57,6 +57,7 @@ function Conversa() {
   const limpar = useServerFn(clearMessages);
   const [texto, setTexto] = useState("");
   const [ajudaAberta, setAjudaAberta] = useState(false);
+  const [ditado, setDitado] = useState<string | null>(null);
   const { t, idioma } = useIdioma();
 
   const COMANDOS_VOZ = [

@@ -22,7 +22,7 @@ const CHAVE = "wise-money:eventos-sw";
 const LIMITE = 200;
 
 /** Versão do app usada nos caches e no registro de eventos. */
-export const VERSAO_APP = "v3";
+export const VERSAO_APP = "v4";
 
 export function lerEventosSw(): EventoSw[] {
   if (typeof window === "undefined") return [];

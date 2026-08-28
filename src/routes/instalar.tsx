@@ -17,9 +17,12 @@ export const Route = createFileRoute("/instalar")({
       {
         property: "og:description",
         content: "Guia com letras grandes para instalar o assistente financeiro no seu celular.",
-      }
+      },
       { name: "twitter:title", content: "Instalar o Wise Money no celular" },
-      { name: "twitter:description", content: "Guia com letras grandes para instalar o assistente financeiro no seu celular." },,
+      {
+        name: "twitter:description",
+        content: "Guia com letras grandes para instalar o assistente financeiro no seu celular.",
+      },
     ],
   }),
   component: ComoInstalar,

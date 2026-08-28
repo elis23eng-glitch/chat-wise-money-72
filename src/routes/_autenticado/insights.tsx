@@ -19,9 +19,12 @@ export const Route = createFileRoute("/_autenticado/insights")({
       {
         property: "og:description",
         content: "Onde seu dinheiro está indo e o que dá para ajustar, explicado de forma simples.",
-      }
+      },
       { name: "twitter:title", content: "Insights sobre os seus gastos" },
-      { name: "twitter:description", content: "Onde seu dinheiro está indo e o que dá para ajustar, explicado de forma simples." },,
+      {
+        name: "twitter:description",
+        content: "Onde seu dinheiro está indo e o que dá para ajustar, explicado de forma simples.",
+      },
     ],
   }),
   component: Insights,

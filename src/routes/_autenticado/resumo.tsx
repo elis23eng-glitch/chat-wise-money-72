@@ -295,11 +295,14 @@ function Resumo() {
                   <p className="truncate font-medium">{g.descricao}</p>
                   <p className="text-xs capitalize text-muted-foreground">
                     {categoriaLabel(g.categoria, idioma)} · {dataCurta(g.data)}
+                    {g.estabelecimento ? ` · ${g.estabelecimento}` : ""}
                   </p>
                 </div>
                 <span className="ml-auto font-display text-lg">{brl(Number(g.valor))}</span>
+                {g.comprovante && <VerComprovante caminho={g.comprovante} />}
                 <button
                   aria-label={t("Corrigir gasto", "Correct expense")}
+
                   onClick={() =>
                     setEditando({
                       tipo: "gasto",

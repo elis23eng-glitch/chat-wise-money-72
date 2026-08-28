@@ -77,9 +77,16 @@ for (const vp of VIEWPORTS) {
           veredito = `❌ tamanho diferente (${imgBase.width}x${imgBase.height} → ${imgAtual.width}x${imgAtual.height})`;
         } else {
           const diff = new PNG({ width: imgBase.width, height: imgBase.height });
-          const px = pixelmatch(imgBase.data, imgAtual.data, diff.data, imgBase.width, imgBase.height, {
-            threshold: 0.15,
-          });
+          const px = pixelmatch(
+            imgBase.data,
+            imgAtual.data,
+            diff.data,
+            imgBase.width,
+            imgBase.height,
+            {
+              threshold: 0.15,
+            },
+          );
           const pct = (px / (imgBase.width * imgBase.height)) * 100;
           if (pct > LIMITE_PCT) {
             falhas += 1;
@@ -99,7 +106,9 @@ for (const vp of VIEWPORTS) {
       linhas.push(`| \`${rota}\` | ${vp.nome} | ${veredito} |`);
     } catch (e) {
       falhas += 1;
-      linhas.push(`| \`${rota}\` | ${vp.nome} | ❌ erro: ${e instanceof Error ? e.message : String(e)} |`);
+      linhas.push(
+        `| \`${rota}\` | ${vp.nome} | ❌ erro: ${e instanceof Error ? e.message : String(e)} |`,
+      );
     }
   }
 

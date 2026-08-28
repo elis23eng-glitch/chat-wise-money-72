@@ -159,6 +159,18 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const ler = useServerFn(lerRecibo);
   const registrar = useServerFn(registrarDespesasDoRecibo);
   const checarDuplicidade = useServerFn(verificarDuplicidadeRecibo);
+  const auditar = useServerFn(registrarAuditoria);
+  const obterLim = useServerFn(obterLimiares);
+
+  const { data: limiares } = useQuery({ queryKey: ["limiares"], queryFn: () => obterLim() });
+  if (limiares) {
+    LIMIARES.geral = limiares.limiar_geral;
+    LIMIARES.alerta = limiares.alerta_medio;
+    LIMIARES.valor = limiares.limiar_valor;
+    LIMIARES.data = limiares.limiar_data;
+    LIMIARES.estabelecimento = limiares.limiar_estabelecimento;
+    LIMIARES.categoria = limiares.limiar_categoria;
+  }
 
   const [previa, setPrevia] = useState<string | null>(null);
   const [mime, setMime] = useState<string>("image/jpeg");

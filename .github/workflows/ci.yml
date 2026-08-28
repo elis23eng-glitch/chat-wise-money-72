@@ -267,9 +267,17 @@ jobs:
         run: bunx playwright install --with-deps chromium
 
       - name: Subir o app
+        env:
+          # Valores fictícios: o app precisa das variáveis para iniciar,
+          # mas o teste só verifica marca, cache e service worker.
+          VITE_SUPABASE_URL: https://exemplo-ci.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
+          VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci
         run: |
           bun run dev &
           for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 2; done
+          curl -sf -o /dev/null http://localhost:8080/
+
 
       - name: Simular usuário com o app instalado
         run: bun scripts/e2e-atualizacao-pwa.mjs

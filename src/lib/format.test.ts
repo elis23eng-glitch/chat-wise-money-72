@@ -141,7 +141,7 @@ describe("categoriaLabel — paridade de traduções", () => {
 
 describe("preencherTokens — valores e categorias vindos do servidor", () => {
   it("troca {{m:}} por moeda e {{c:}} por categoria em português", () => {
-    expect(preencherTokens('{{c:alimentação}} custou {{m:10.50}}', "pt")).toContain("alimentação");
+    expect(preencherTokens("{{c:alimentação}} custou {{m:10.50}}", "pt")).toContain("alimentação");
     expect(preencherTokens("custou {{m:10.50}}", "pt")).toContain("R$");
   });
 

@@ -42,9 +42,7 @@ export function ExportarCsv() {
       const { inicio, fim } = intervalo(periodo);
       const { linhas, categorias } = await buscar({ data: { inicio, fim } });
       if (linhas.length === 0) {
-        toast.info(
-          t("Não há lançamentos neste período.", "There are no entries in this period."),
-        );
+        toast.info(t("Não há lançamentos neste período.", "There are no entries in this period."));
         return;
       }
 
@@ -77,9 +75,12 @@ export function ExportarCsv() {
       const resumo = [
         "",
         t("RESUMO POR CATEGORIA", "SUMMARY BY CATEGORY"),
-        [t("tipo", "type"), t("categoria", "category"), t("itens", "items"), t("total", "total_brl")].join(
-          ";",
-        ),
+        [
+          t("tipo", "type"),
+          t("categoria", "category"),
+          t("itens", "items"),
+          t("total", "total_brl"),
+        ].join(";"),
         ...categorias.map((c) =>
           [
             c.tipo === "gasto" ? t("gasto", "expense") : t("entrada", "income"),
@@ -122,7 +123,9 @@ export function ExportarCsv() {
 
   return (
     <div className="surface-card p-5">
-      <p className="font-display text-lg">{t("Baixar planilha (CSV)", "Download spreadsheet (CSV)")}</p>
+      <p className="font-display text-lg">
+        {t("Baixar planilha (CSV)", "Download spreadsheet (CSV)")}
+      </p>
       <p className="mt-1 text-sm text-muted-foreground">
         {t(
           "Um arquivo com seus gastos, entradas e o total por categoria para abrir no Excel ou Google Planilhas.",

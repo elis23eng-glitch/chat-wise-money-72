@@ -92,7 +92,15 @@ export async function calcularSaude(supabase: Db, userId: string) {
   // 2. Comparação com o mês anterior (20 pontos)
   const variacao = gastoAnterior > 0 ? (gastoMes - gastoAnterior) / gastoAnterior : 0;
   const pontosVar =
-    gastoAnterior === 0 ? 12 : variacao <= -0.1 ? 20 : variacao <= 0.05 ? 16 : variacao <= 0.2 ? 9 : 3;
+    gastoAnterior === 0
+      ? 12
+      : variacao <= -0.1
+        ? 20
+        : variacao <= 0.05
+          ? 16
+          : variacao <= 0.2
+            ? 9
+            : 3;
   fatores.push({
     chave: "tendencia",
     rotulo_pt: "Comparado ao mês passado",
@@ -180,7 +188,8 @@ export async function calcularSaude(supabase: Db, userId: string) {
   });
 
   const pontuacao = fatores.reduce((s, f) => s + f.pontos, 0);
-  const nivel = pontuacao >= 75 ? "otimo" : pontuacao >= 55 ? "bom" : pontuacao >= 35 ? "atencao" : "cuidado";
+  const nivel =
+    pontuacao >= 75 ? "otimo" : pontuacao >= 55 ? "bom" : pontuacao >= 35 ? "atencao" : "cuidado";
 
   return {
     pontuacao,

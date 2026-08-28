@@ -14,7 +14,9 @@ import {
 /** Registra um novo acesso e avisa se o aparelho é desconhecido. */
 export const registrarAcesso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { deviceId: string }) => ({ deviceId: String(data.deviceId).slice(0, 80) }))
+  .inputValidator((data: { deviceId: string }) => ({
+    deviceId: String(data.deviceId).slice(0, 80),
+  }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const ua = getRequestHeader("user-agent") ?? null;

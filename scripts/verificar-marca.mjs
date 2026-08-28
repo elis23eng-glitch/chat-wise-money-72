@@ -6,7 +6,19 @@
 import { appendFileSync } from "node:fs";
 
 const BASE = process.env.APP_URL ?? "https://chat-wise-money-72.lovable.app";
-const ROTAS = ["/", "/entrar", "/instalar", "/resumo", "/painel", "/metas", "/ano", "/conversa", "/saude", "/auditoria", "/seguranca"];
+const ROTAS = [
+  "/",
+  "/entrar",
+  "/instalar",
+  "/resumo",
+  "/painel",
+  "/metas",
+  "/ano",
+  "/conversa",
+  "/saude",
+  "/auditoria",
+  "/seguranca",
+];
 const ESPERADO = /wise\s*money/i;
 const PROIBIDO = /mergulho/i;
 

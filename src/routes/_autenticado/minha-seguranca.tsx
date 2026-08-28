@@ -374,6 +374,7 @@ function MinhaSeguranca() {
           "Sua conta será desconectada em todos os aparelhos, inclusive neste. Você poderá entrar novamente com seu e-mail e senha.",
           "Your account will be signed out everywhere, including here. You can sign in again with your email and password.",
         )}
+        rotuloConfirmar={t("Sair de todos", "Sign out everywhere")}
         carregando={saindo}
         aoConfirmar={sairDeTodos}
         aoCancelar={() => setConfirmarTodos(false)}

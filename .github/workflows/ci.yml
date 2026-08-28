@@ -226,3 +226,54 @@ jobs:
             Commit: ${{ github.sha }}
 
             ${{ steps.alerta.outputs.detalhes }}
+
+  marca-wise-money:
+    name: Verificação de marca (Wise Money)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Conferir título, meta tags e DOM em todas as rotas
+        run: bun scripts/verificar-marca.mjs
+        env:
+          APP_URL: https://chat-wise-money-72.lovable.app
+
+  e2e-atualizacao:
+    name: E2E — app instalado atualiza sem reinstalar
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+
+      - name: Instalar navegador do Playwright
+        run: bunx playwright install --with-deps chromium
+
+      - name: Subir o app
+        run: |
+          bun run build
+          bun .output/server/index.mjs &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/ && break; sleep 2; done
+        env:
+          VITE_SUPABASE_URL: https://exemplo-ci.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
+          VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci
+          PORT: "3000"
+
+      - name: Simular usuário com o app instalado
+        run: bun scripts/e2e-atualizacao-pwa.mjs
+        env:
+          APP_URL: http://localhost:3000

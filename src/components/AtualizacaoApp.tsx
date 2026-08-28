@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Loader2, RefreshCw, TriangleAlert, WifiOff } from "lucide-react";
 
 import {
@@ -6,9 +6,23 @@ import {
   tentarQuandoVoltarConexao,
   verificarAtualizacaoAgora,
 } from "@/lib/atualizar-app";
-import { limparEventosSw, resumoPorVersaoData, VERSAO_APP } from "@/lib/eventos-sw";
-import type { ResumoPorVersaoData } from "@/lib/eventos-sw";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+
+import { lerEventosSw, limparEventosSw, resumoPorVersaoData, VERSAO_APP } from "@/lib/eventos-sw";
+import type { EventoSw, ResumoPorVersaoData } from "@/lib/eventos-sw";
 import { useIdioma } from "@/lib/i18n";
+
+type Periodo = "24h" | "7d" | "30d";
+const DIAS_POR_PERIODO: Record<Periodo, number> = { "24h": 1, "7d": 7, "30d": 30 };
 
 type Estado = "parado" | "verificando" | "atualizando" | "ok" | "offline" | "erro" | "sem-suporte";
 
@@ -24,9 +38,11 @@ export function AtualizacaoApp() {
   const [estado, setEstado] = useState<Estado>("parado");
   const [detalhe, setDetalhe] = useState("");
   const [aguardandoConexao, setAguardandoConexao] = useState(false);
-  const [linhas, setLinhas] = useState<ResumoPorVersaoData[]>([]);
+  const [eventos, setEventos] = useState<EventoSw[]>([]);
+  const [periodo, setPeriodo] = useState<Periodo>("7d");
+  const [versao, setVersao] = useState<string>("todas");
 
-  const recarregarResumo = useCallback(() => setLinhas(resumoPorVersaoData()), []);
+  const recarregarResumo = useCallback(() => setEventos(lerEventosSw()), []);
 
   useEffect(() => {
     recarregarResumo();
@@ -70,6 +86,24 @@ export function AtualizacaoApp() {
       void verificar();
     });
   }, [aguardandoConexao, verificar]);
+
+  const versoes = useMemo(
+    () => [...new Set(eventos.map((e) => e.versao ?? "?"))].sort(),
+    [eventos],
+  );
+
+  const filtrados = useMemo(() => {
+    const limite = Date.now() - DIAS_POR_PERIODO[periodo] * 24 * 60 * 60 * 1000;
+    return eventos.filter(
+      (e) =>
+        new Date(e.em).getTime() >= limite && (versao === "todas" || (e.versao ?? "?") === versao),
+    );
+  }, [eventos, periodo, versao]);
+
+  const linhas: ResumoPorVersaoData[] = useMemo(() => resumoPorVersaoData(filtrados), [filtrados]);
+
+  const totalSucesso = linhas.reduce((soma, l) => soma + l.sucesso, 0);
+  const totalErro = linhas.reduce((soma, l) => soma + l.erro, 0);
 
   const ocupado = estado === "verificando" || estado === "atualizando";
 
@@ -170,15 +204,83 @@ export function AtualizacaoApp() {
             ({t("versão atual", "current version")} {VERSAO_APP})
           </span>
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["24h", "7d", "30d"] as Periodo[]).map((opcao) => (
+            <button
+              key={opcao}
+              type="button"
+              onClick={() => setPeriodo(opcao)}
+              aria-pressed={periodo === opcao}
+              className={`min-h-11 rounded-full px-4 py-2 text-base font-semibold ${
+                periodo === opcao
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border text-muted-foreground"
+              }`}
+            >
+              {opcao === "24h"
+                ? t("Últimas 24h", "Last 24h")
+                : opcao === "7d"
+                  ? t("7 dias", "7 days")
+                  : t("30 dias", "30 days")}
+            </button>
+          ))}
+          {versoes.length > 1 ? (
+            <select
+              value={versao}
+              onChange={(e) => setVersao(e.target.value)}
+              aria-label={t("Filtrar por versão", "Filter by version")}
+              className="min-h-11 rounded-full border border-border bg-background px-4 text-base"
+            >
+              <option value="todas">{t("Todas as versões", "All versions")}</option>
+              {versoes.map((v) => (
+                <option key={v} value={v}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          ) : null}
+        </div>
+
+        <p className="mt-3 text-base text-muted-foreground">
+          {t("Sucesso", "Success")}: <strong className="text-primary">{totalSucesso}</strong> ·{" "}
+          {t("Erro", "Error")}: <strong className="text-destructive">{totalErro}</strong>
+        </p>
+
         {linhas.length === 0 ? (
           <p className="mt-2 text-base text-muted-foreground">
             {t(
-              "Ainda não há registros neste aparelho.",
-              "There are no records on this device yet.",
+              "Nenhum registro neste período neste aparelho.",
+              "No records for this period on this device.",
             )}
           </p>
         ) : (
           <>
+            <div className="mt-4 h-56 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[...linhas].reverse().map((l) => ({ ...l, rotulo: dataLocal(l.data) }))}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="rotulo" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={28} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="sucesso"
+                    name={t("Sucesso", "Success")}
+                    fill="hsl(var(--primary))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                  <Bar
+                    dataKey="erro"
+                    name={t("Erro", "Error")}
+                    fill="hsl(var(--destructive))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
             <table className="mt-3 w-full text-left text-base">
               <thead className="text-sm uppercase text-muted-foreground">
                 <tr>
@@ -203,7 +305,7 @@ export function AtualizacaoApp() {
               type="button"
               onClick={() => {
                 limparEventosSw();
-                setLinhas([]);
+                setEventos([]);
               }}
               className="mt-3 text-sm font-semibold text-muted-foreground underline"
             >

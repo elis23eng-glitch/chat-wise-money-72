@@ -5,6 +5,7 @@ type Props = {
   titulo: string;
   descricao: string;
   carregando?: boolean;
+  rotuloConfirmar?: string;
   aoConfirmar: () => void;
   aoCancelar: () => void;
 };

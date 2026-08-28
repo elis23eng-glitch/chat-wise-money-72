@@ -9,6 +9,8 @@ const entradaSchema = z.object({
   imagem: z.string().min(100).max(9_000_000),
   idioma: z.enum(["pt", "en"]).optional(),
   ajuste: z.string().max(500).optional(),
+  mime: z.string().max(120).optional(),
+  nomeArquivo: z.string().max(160).optional(),
 });
 
 const itemSchema = z.object({
@@ -33,6 +35,8 @@ export const lerRecibo = createServerFn({ method: "POST" })
       hoje,
       idioma: data.idioma ?? "pt",
       ...(data.ajuste ? { ajuste: data.ajuste } : {}),
+      ...(data.mime ? { mime: data.mime } : {}),
+      ...(data.nomeArquivo ? { nomeArquivo: data.nomeArquivo } : {}),
     });
     return {
       ...leitura,
@@ -46,7 +50,24 @@ export const lerRecibo = createServerFn({ method: "POST" })
     };
   });
 
-/** Procura despesas já registradas que combinem com o comprovante lido. */
+/** Junta data + hora num instante comparável (meia-noite quando não há hora). */
+function instante(dia: string, hora: string | null | undefined) {
+  const [h, m] = (hora ?? "00:00").split(":");
+  return new Date(
+    `${dia}T${(h ?? "00").padStart(2, "0")}:${(m ?? "00").padStart(2, "0")}:00Z`,
+  ).getTime();
+}
+
+function somarDias(dia: string, dias: number) {
+  const d = new Date(`${dia}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + dias);
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Procura despesas já registradas que combinem com o comprovante lido.
+ * As regras são escolhidas pela pessoa: janela de horas e o que comparar.
+ */
 export const verificarDuplicidadeRecibo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: unknown) =>
@@ -56,26 +77,46 @@ export const verificarDuplicidadeRecibo = createServerFn({ method: "POST" })
         estabelecimento: z.string().max(120).nullable().optional(),
         hora: z.string().max(10).nullable().optional(),
         valores: z.array(z.number().positive()).min(1).max(40),
+        /** 0 = só o mesmo dia. Até 30 dias (720h). */
+        janelaHoras: z.number().min(0).max(720).optional(),
+        compararValor: z.boolean().optional(),
+        compararEstabelecimento: z.boolean().optional(),
+        compararDescricao: z.boolean().optional(),
+        descricoes: z.array(z.string().max(160)).max(40).optional(),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    const janela = data.janelaHoras ?? 0;
+    const compararValor = data.compararValor ?? true;
+    const compararEstab = data.compararEstabelecimento ?? true;
+    const compararDesc = data.compararDescricao ?? false;
+
+    const margemDias = Math.max(0, Math.ceil(janela / 24));
     const { data: linhas, error } = await context.supabase
       .from("expenses")
       .select("id, descricao, valor, data, estabelecimento, hora")
       .eq("user_id", context.userId)
-      .eq("data", data.data);
+      .gte("data", somarDias(data.data, -margemDias))
+      .lte("data", somarDias(data.data, margemDias));
     if (error) throw new Error(error.message);
 
     const nome = (data.estabelecimento ?? "").trim().toLowerCase();
     const centavos = (v: number) => Math.round(v * 100);
     const alvos = new Set(data.valores.map(centavos));
+    const descs = new Set((data.descricoes ?? []).map((d) => d.trim().toLowerCase()));
+    const base = instante(data.data, data.hora ?? null);
 
     const iguais = (linhas ?? []).filter((l) => {
-      if (!alvos.has(centavos(Number(l.valor)))) return false;
-      if (nome && (l.estabelecimento ?? "").trim().toLowerCase() !== nome) return false;
-      if (data.hora && l.hora && l.hora !== data.hora) return false;
-      return true;
+      if (compararValor && !alvos.has(centavos(Number(l.valor)))) return false;
+      if (compararEstab && nome && (l.estabelecimento ?? "").trim().toLowerCase() !== nome)
+        return false;
+      if (compararDesc && descs.size > 0 && !descs.has((l.descricao ?? "").trim().toLowerCase()))
+        return false;
+
+      if (janela === 0) return l.data === data.data;
+      const diffH = Math.abs(instante(l.data, l.hora) - base) / 3_600_000;
+      return diffH <= janela;
     });
 
     return {
@@ -85,6 +126,7 @@ export const verificarDuplicidadeRecibo = createServerFn({ method: "POST" })
         id: l.id,
         descricao: l.descricao ?? "",
         valor: Number(l.valor),
+        data: l.data,
         hora: l.hora,
         estabelecimento: l.estabelecimento,
       })),
@@ -98,6 +140,7 @@ export const registrarDespesasDoRecibo = createServerFn({ method: "POST" })
       .object({
         itens: z.array(itemSchema).min(1).max(40),
         imagem: z.string().min(100).max(9_000_000).optional(),
+        mime: z.string().max(120).optional(),
       })
       .parse(data),
   )
@@ -105,12 +148,16 @@ export const registrarDespesasDoRecibo = createServerFn({ method: "POST" })
     let comprovante: string | null = null;
 
     if (data.imagem) {
+      const cabecalho = data.imagem.slice(0, data.imagem.indexOf(","));
+      const tipo =
+        data.mime ?? (/^data:([^;]+)/.exec(cabecalho)?.[1] as string | undefined) ?? "image/jpeg";
+      const extensao = tipo === "application/pdf" ? "pdf" : tipo === "image/png" ? "png" : "jpg";
       const base64 = data.imagem.split(",").pop() ?? "";
       const binario = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-      const caminho = `${context.userId}/${crypto.randomUUID()}.jpg`;
+      const caminho = `${context.userId}/${crypto.randomUUID()}.${extensao}`;
       const { error: erroUpload } = await context.supabase.storage
         .from("comprovantes")
-        .upload(caminho, binario, { contentType: "image/jpeg", upsert: false });
+        .upload(caminho, binario, { contentType: tipo, upsert: false });
       if (!erroUpload) comprovante = caminho;
     }
 
@@ -142,4 +189,53 @@ export const urlComprovante = createServerFn({ method: "POST" })
       .createSignedUrl(data.caminho, 60 * 30);
     if (error || !assinado) throw new Error(error?.message ?? "Não consegui abrir o comprovante");
     return { url: assinado.signedUrl };
+  });
+
+/** Lista as despesas com comprovante anexado num período, já com link temporário. */
+export const listarComprovantes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: unknown) =>
+    z
+      .object({
+        inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        fim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: linhas, error } = await context.supabase
+      .from("expenses")
+      .select("id, descricao, valor, data, categoria, estabelecimento, hora, comprovante")
+      .eq("user_id", context.userId)
+      .not("comprovante", "is", null)
+      .gte("data", data.inicio)
+      .lte("data", data.fim)
+      .order("data", { ascending: true });
+    if (error) throw new Error(error.message);
+
+    const caminhos = [...new Set((linhas ?? []).map((l) => l.comprovante!).filter(Boolean))];
+    const urls = new Map<string, string>();
+    if (caminhos.length > 0) {
+      const { data: assinados } = await context.supabase.storage
+        .from("comprovantes")
+        .createSignedUrls(caminhos, 60 * 30);
+      for (const a of assinados ?? []) {
+        if (a.path && a.signedUrl) urls.set(a.path, a.signedUrl);
+      }
+    }
+
+    return {
+      itens: (linhas ?? []).map((l) => ({
+        id: l.id,
+        descricao: l.descricao ?? "",
+        valor: Number(l.valor),
+        data: l.data,
+        categoria: l.categoria,
+        estabelecimento: l.estabelecimento,
+        hora: l.hora,
+        caminho: l.comprovante!,
+        url: urls.get(l.comprovante!) ?? null,
+        pdf: l.comprovante!.toLowerCase().endsWith(".pdf"),
+      })),
+    };
   });

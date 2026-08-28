@@ -69,6 +69,9 @@ export async function lerReciboDaImagem(options: {
   hoje: string;
   idioma?: "pt" | "en";
   ajuste?: string;
+  /** Tipo do arquivo enviado. PDFs vão como documento; o resto como imagem. */
+  mime?: string;
+  nomeArquivo?: string;
 }): Promise<LeituraRecibo> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
@@ -82,6 +85,19 @@ export async function lerReciboDaImagem(options: {
   const formato = `Responda SOMENTE com um JSON válido neste formato:
 {"estabelecimento": string|null, "data": "AAAA-MM-DD"|null, "hora": "HH:MM"|null, "local": string|null, "observacao": string,
  "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null, "confianca": number, "campos_incertos": string[]}]}`;
+
+  const ehPdf =
+    options.mime === "application/pdf" || options.imagem.startsWith("data:application/pdf");
+
+  const anexo = ehPdf
+    ? {
+        type: "file",
+        file: {
+          filename: options.nomeArquivo || "comprovante.pdf",
+          file_data: options.imagem,
+        },
+      }
+    : { type: "image_url", image_url: { url: options.imagem } };
 
   const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -100,13 +116,13 @@ export async function lerReciboDaImagem(options: {
           content: [
             {
               type: "text",
-              text: `Hoje é ${options.hoje}. Leia a imagem e extraia as despesas.${
+              text: `Hoje é ${options.hoje}. Leia ${ehPdf ? "o documento" : "a imagem"} e extraia as despesas.${
                 ajuste
                   ? `\n\nA leitura anterior saiu errada. Correções e instruções da pessoa (siga com atenção): ${ajuste}`
                   : ""
               }`,
             },
-            { type: "image_url", image_url: { url: options.imagem } },
+            anexo,
           ],
         },
       ],

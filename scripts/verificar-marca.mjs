@@ -23,7 +23,9 @@ for (const rota of ROTAS) {
   try {
     const { status, html } = await texto(url);
     const titulo = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] ?? "";
-    const metas = [...html.matchAll(/<meta[^>]*content="([^"]*)"[^>]*>/gi)].map((m) => m[1]).join(" ");
+    const metas = [...html.matchAll(/<meta[^>]*content="([^"]*)"[^>]*>/gi)]
+      .map((m) => m[1])
+      .join(" ");
 
     const problemas = [];
     if (PROIBIDO.test(html)) problemas.push("marca antiga no DOM");
@@ -51,7 +53,9 @@ const resumo = [
   "| --- | --- | --- | --- |",
   ...linhas,
   "",
-  falhas > 0 ? `❌ Problemas de marca em ${falhas} rota(s).` : "✅ Marca correta em todas as rotas.",
+  falhas > 0
+    ? `❌ Problemas de marca em ${falhas} rota(s).`
+    : "✅ Marca correta em todas as rotas.",
   "",
 ].join("\n");
 

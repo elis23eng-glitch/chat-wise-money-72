@@ -55,7 +55,9 @@ try {
     await navigator.serviceWorker.ready;
     return r.scope;
   });
-  await pagina.waitForFunction(() => !!navigator.serviceWorker.controller, null, { timeout: 15000 });
+  await pagina.waitForFunction(() => !!navigator.serviceWorker.controller, null, {
+    timeout: 15000,
+  });
 
   // 2. Usuário abre o app instalado: ainda veria a marca antiga em cache.
   await pagina.goto(BASE, { waitUntil: "domcontentloaded" });

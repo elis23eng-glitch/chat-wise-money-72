@@ -143,7 +143,6 @@ jobs:
       contents: read
       issues: write
 
-
   regressao-visual:
     name: Regressão visual (screenshots por rota)
     runs-on: ubuntu-latest

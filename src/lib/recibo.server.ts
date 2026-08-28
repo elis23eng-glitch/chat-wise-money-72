@@ -1,5 +1,3 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject } from "ai";
 import { z } from "zod";
 
 import { CATEGORIAS_GASTO } from "./categorias";
@@ -9,12 +7,17 @@ export const itemReciboSchema = z.object({
   valor: z.number().positive(),
   categoria: z.enum(CATEGORIAS_GASTO),
   data: z.string(),
+  estabelecimento: z.string().max(120).nullable(),
+  hora: z.string().max(10).nullable(),
+  local: z.string().max(160).nullable(),
 });
 
 const respostaSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),
   data: z.string().nullable(),
-  itens: z.array(itemReciboSchema).max(30),
+  hora: z.string().max(10).nullable(),
+  local: z.string().max(160).nullable(),
+  itens: z.array(itemReciboSchema).max(40),
   observacao: z.string().max(300),
 });
 
@@ -23,56 +26,83 @@ export type LeituraRecibo = z.infer<typeof respostaSchema>;
 
 const PROMPT = `Você é a Nina, assistente financeira brasileira. Recebe a foto de uma nota fiscal, cupom fiscal, recibo, boleto ou de uma anotação feita à mão numa agenda de papel.
 
-Sua tarefa: extrair as DESPESAS visíveis e devolvê-las prontas para registro.
+Sua tarefa: extrair TODAS as despesas visíveis e devolvê-las prontas para registro.
 
 Regras:
-- Use os valores em reais (número, sem símbolo). Converta vírgula decimal corretamente (12,50 -> 12.5).
-- Se a nota tiver muitos itens pequenos de supermercado, agrupe em um único lançamento com a descrição do estabelecimento e o valor TOTAL da compra. Nunca some errado.
+- Uma foto pode conter VÁRIAS despesas. Crie um lançamento para CADA item/produto/serviço com valor próprio que estiver legível.
+- Não devolva o total da nota como um lançamento à parte quando já listou os itens: isso duplicaria valores. Só use um lançamento único com o total quando os itens individuais não estiverem legíveis.
 - Se for uma anotação manual com várias linhas (ex.: "padaria 12, ônibus 8"), crie um lançamento por linha.
-- Nunca inclua o total junto dos itens individuais: escolha um dos dois formatos, sem duplicar valores.
-- data no formato AAAA-MM-DD. Se a foto não mostrar a data, use a data de hoje informada abaixo.
+- Valores em reais como número (12,50 -> 12.5). Multiplique quantidade x preço unitário quando a linha mostrar os dois.
+- data no formato AAAA-MM-DD. Sem data na foto, use a data de hoje informada abaixo.
+- hora no formato HH:MM quando aparecer no cupom; senão null.
+- estabelecimento: nome da loja/empresa da nota; local: endereço, bairro ou cidade impressos. Se não aparecerem, null.
+- Repita estabelecimento, hora e local em cada item extraído da mesma nota.
 - categoria deve ser uma das permitidas; na dúvida use "outros".
-- descricao curta e clara em linguagem simples (ex.: "Mercado Bom Preço").
-- Se a imagem não tiver nenhuma despesa legível, devolva itens vazio e explique com gentileza em observacao.
-- observacao: uma frase curta, acolhedora, dizendo o que você entendeu.`;
+- descricao curta e clara (ex.: "Arroz 5kg — Mercado Bom Preço").
+- Se nada estiver legível, devolva itens vazio e explique com gentileza em observacao.
+- observacao: uma frase curta e acolhedora dizendo o que você entendeu.`;
 
 export async function lerReciboDaImagem(options: {
   imagem: string;
   hoje: string;
   idioma?: "pt" | "en";
+  ajuste?: string;
 }): Promise<LeituraRecibo> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
-  const lovable = createOpenAI({
-    baseURL: "https://ai.gateway.lovable.dev/v1",
-    apiKey,
+  const ajuste = options.ajuste?.trim();
+  const sistema =
+    options.idioma === "en"
+      ? `${PROMPT}\n\nO usuário escolheu inglês: escreva descricao e observacao em inglês simples, mas mantenha a categoria em português.`
+      : PROMPT;
+
+  const formato = `Responda SOMENTE com um JSON válido neste formato:
+{"estabelecimento": string|null, "data": "AAAA-MM-DD"|null, "hora": "HH:MM"|null, "local": string|null, "observacao": string,
+ "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null}]}`;
+
+  const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
     headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
       "Lovable-API-Key": apiKey,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
     },
+    body: JSON.stringify({
+      model: "google/gemini-3.7-flash",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: `${sistema}\n\n${formato}` },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Hoje é ${options.hoje}. Leia a imagem e extraia as despesas.${
+                ajuste
+                  ? `\n\nA leitura anterior saiu errada. Correções e instruções da pessoa (siga com atenção): ${ajuste}`
+                  : ""
+              }`,
+            },
+            { type: "image_url", image_url: { url: options.imagem } },
+          ],
+        },
+      ],
+    }),
   });
 
-  const { object } = await generateObject({
-    model: lovable("google/gemini-2.5-flash"),
-    schema: respostaSchema,
-    system:
-      options.idioma === "en"
-        ? `${PROMPT}\n\nO usuário escolheu inglês: escreva descricao e observacao em inglês simples, mas mantenha a categoria em português.`
-        : PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `Hoje é ${options.hoje}. Leia a imagem e extraia as despesas.`,
-          },
-          { type: "image", image: options.imagem },
-        ],
-      },
-    ],
-  });
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    if (resposta.status === 429) throw new Error("Muitas leituras seguidas. Tente em instantes.");
+    if (resposta.status === 402) throw new Error("Os créditos de IA acabaram.");
+    throw new Error(`Falha ao ler a imagem (${resposta.status}): ${detalhe.slice(0, 200)}`);
+  }
 
-  return object;
+  const json = (await resposta.json()) as { choices?: { message?: { content?: string } }[] };
+  const texto = json.choices?.[0]?.message?.content ?? "";
+  const limpo = texto
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
+  return respostaSchema.parse(JSON.parse(limpo));
 }

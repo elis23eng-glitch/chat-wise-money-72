@@ -89,7 +89,10 @@ export type Database = {
           created_at: string
           data: string
           descricao: string
+          estabelecimento: string | null
+          hora: string | null
           id: string
+          local: string | null
           user_id: string
           valor: number
         }
@@ -98,7 +101,10 @@ export type Database = {
           created_at?: string
           data?: string
           descricao?: string
+          estabelecimento?: string | null
+          hora?: string | null
           id?: string
+          local?: string | null
           user_id: string
           valor: number
         }
@@ -107,7 +113,10 @@ export type Database = {
           created_at?: string
           data?: string
           descricao?: string
+          estabelecimento?: string | null
+          hora?: string | null
           id?: string
+          local?: string | null
           user_id?: string
           valor?: number
         }

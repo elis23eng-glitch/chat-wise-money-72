@@ -2,6 +2,16 @@ import { z } from "zod";
 
 import { CATEGORIAS_GASTO } from "./categorias";
 
+export const CAMPOS_RECIBO = [
+  "descricao",
+  "valor",
+  "categoria",
+  "data",
+  "estabelecimento",
+  "hora",
+  "local",
+] as const;
+
 export const itemReciboSchema = z.object({
   descricao: z.string().max(120),
   valor: z.number().positive(),
@@ -10,7 +20,10 @@ export const itemReciboSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),
   hora: z.string().max(10).nullable(),
   local: z.string().max(160).nullable(),
+  confianca: z.number().min(0).max(1).default(0.8),
+  campos_incertos: z.array(z.enum(CAMPOS_RECIBO)).max(7).default([]),
 });
+
 
 const respostaSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),

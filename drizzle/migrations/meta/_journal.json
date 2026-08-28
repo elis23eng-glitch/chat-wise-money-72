@@ -36,6 +36,13 @@
       "when": 1787845992195,
       "tag": "0004_revoke_execute_handle_new_user",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787928988796,
+      "tag": "0005_expenses_receipt_metadata",
+      "breakpoints": true
     }
   ]
 }

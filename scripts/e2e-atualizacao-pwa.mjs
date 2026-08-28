@@ -76,7 +76,11 @@ try {
   );
 
   await pagina.goto(BASE, { waitUntil: "domcontentloaded" });
-  await pagina.waitForLoadState("networkidle").catch(() => undefined);
+  // O app pode recarregar sozinho uma vez quando o novo service worker assume:
+  // espera a página estabilizar antes de ler o conteúdo.
+  await pagina.waitForTimeout(4000);
+  await pagina.waitForLoadState("load").catch(() => undefined);
+  await pagina.locator("h1").first().waitFor({ timeout: 20000 });
 
   const titulo = await pagina.title();
   const html = await pagina.content();

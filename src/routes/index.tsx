@@ -18,7 +18,9 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content:
           "Registre gastos falando naturalmente, veja resumos claros e aprenda a economizar no seu ritmo.",
-      },
+      }
+      { name: "twitter:title", content: "Wise Money — organize seu dinheiro conversando" },
+      { name: "twitter:description", content: "Registre gastos falando naturalmente, veja resumos claros e aprenda a economizar no seu ritmo." },,
     ],
   }),
   component: BoasVindas,

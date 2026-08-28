@@ -68,7 +68,9 @@ export const Route = createFileRoute("/_autenticado/painel")({
       {
         property: "og:description",
         content: "Gráficos simples com a evolução dos seus gastos, categorias e metas.",
-      },
+      }
+      { name: "twitter:title", content: "Painel financeiro" },
+      { name: "twitter:description", content: "Gráficos simples com a evolução dos seus gastos, categorias e metas." },,
     ],
   }),
   component: Painel,

@@ -18,7 +18,9 @@ export const Route = createFileRoute("/_autenticado/mercado")({
       {
         property: "og:description",
         content: "Cotações atualizadas e explicações sobre poupança, Tesouro, CDB e fundos.",
-      },
+      }
+      { name: "twitter:title", content: "Mercado em linguagem simples" },
+      { name: "twitter:description", content: "Cotações atualizadas e explicações sobre poupança, Tesouro, CDB e fundos." },,
     ],
   }),
   component: Mercado,

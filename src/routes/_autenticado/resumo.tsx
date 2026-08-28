@@ -29,7 +29,9 @@ export const Route = createFileRoute("/_autenticado/resumo")({
       {
         property: "og:description",
         content: "Total do mês, gastos por categoria e comparação com o mês passado.",
-      },
+      }
+      { name: "twitter:title", content: "Resumo dos seus gastos" },
+      { name: "twitter:description", content: "Total do mês, gastos por categoria e comparação com o mês passado." },,
     ],
   }),
   component: Resumo,

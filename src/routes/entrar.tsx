@@ -21,7 +21,9 @@ export const Route = createFileRoute("/entrar")({
       {
         property: "og:description",
         content: "Acesse sua conta e continue organizando seu dinheiro por conversa.",
-      },
+      }
+      { name: "twitter:title", content: "Entrar no Wise Money" },
+      { name: "twitter:description", content: "Acesse sua conta e continue organizando seu dinheiro por conversa." },,
     ],
   }),
   component: Entrar,

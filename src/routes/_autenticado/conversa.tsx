@@ -38,7 +38,9 @@ export const Route = createFileRoute("/_autenticado/conversa")({
       {
         property: "og:description",
         content: "Registre gastos e entenda seu dinheiro conversando em linguagem simples.",
-      },
+      }
+      { name: "twitter:title", content: "Conversa com seu agente financeiro" },
+      { name: "twitter:description", content: "Registre gastos e entenda seu dinheiro conversando em linguagem simples." },,
     ],
   }),
   component: Conversa,

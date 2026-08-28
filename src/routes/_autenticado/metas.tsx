@@ -21,7 +21,9 @@ export const Route = createFileRoute("/_autenticado/metas")({
       {
         property: "og:description",
         content: "Defina objetivos, guarde um pouco por vez e veja o quanto já caminhou.",
-      },
+      }
+      { name: "twitter:title", content: "Minhas metas financeiras" },
+      { name: "twitter:description", content: "Defina objetivos, guarde um pouco por vez e veja o quanto já caminhou." },,
     ],
   }),
   component: Metas,

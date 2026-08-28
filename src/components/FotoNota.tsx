@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Loader2, Trash2 } from "lucide-react";
+import { Camera, History, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -8,7 +8,22 @@ import { CATEGORIAS_GASTO, CATEGORIA_EN, type CategoriaGasto } from "@/lib/categ
 import { useIdioma } from "@/lib/i18n";
 import { lerRecibo, registrarDespesasDoRecibo } from "@/lib/recibo.functions";
 
-type Item = { descricao: string; valor: number; categoria: CategoriaGasto; data: string };
+type Item = {
+  descricao: string;
+  valor: number;
+  categoria: CategoriaGasto;
+  data: string;
+  estabelecimento: string | null;
+  hora: string | null;
+  local: string | null;
+};
+
+type Tentativa = {
+  em: string;
+  ajuste: string | null;
+  observacao: string;
+  itens: Item[];
+};
 
 /** Reduz a foto para no máximo 1400px e converte em JPEG base64. */
 async function prepararImagem(arquivo: File): Promise<string> {
@@ -44,17 +59,38 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const [previa, setPrevia] = useState<string | null>(null);
   const [itens, setItens] = useState<Item[] | null>(null);
   const [observacao, setObservacao] = useState("");
+  const [ajuste, setAjuste] = useState("");
+  const [historico, setHistorico] = useState<Tentativa[]>([]);
+  const [historicoAberto, setHistoricoAberto] = useState(false);
 
   const leitura = useMutation({
-    mutationFn: async (arquivo: File) => {
-      const imagem = await prepararImagem(arquivo);
+    mutationFn: async (entrada: { arquivo?: File; ajuste?: string }) => {
+      const imagem = entrada.arquivo ? await prepararImagem(entrada.arquivo) : previa;
+      if (!imagem) throw new Error("sem imagem");
       setPrevia(imagem);
-      return ler({ data: { imagem, idioma: idioma === "en" ? "en" : "pt" } });
+      return ler({
+        data: {
+          imagem,
+          idioma: idioma === "en" ? "en" : "pt",
+          ...(entrada.ajuste ? { ajuste: entrada.ajuste } : {}),
+        },
+      });
     },
-    onSuccess: (r) => {
-      setItens(r.itens as Item[]);
+    onSuccess: (r, entrada) => {
+      const lista = r.itens as Item[];
+      setItens(lista);
       setObservacao(r.observacao);
-      if (r.itens.length === 0) {
+      setHistorico((h) => [
+        ...h,
+        {
+          em: new Date().toISOString(),
+          ajuste: entrada.ajuste ?? null,
+          observacao: r.observacao,
+          itens: lista,
+        },
+      ]);
+      setAjuste("");
+      if (lista.length === 0) {
         toast.info(
           t("Não consegui ler despesas nessa foto", "I could not read any expense in this photo"),
         );
@@ -83,6 +119,9 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     setItens(null);
     setPrevia(null);
     setObservacao("");
+    setAjuste("");
+    setHistorico([]);
+    setHistoricoAberto(false);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -93,7 +132,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   }
 
   const total = (itens ?? []).reduce((s, i) => s + (Number.isFinite(i.valor) ? i.valor : 0), 0);
-  const ocupado = leitura.isPending || salvar.isPending;
+  const local = itens?.find((i) => i.estabelecimento || i.hora || i.local);
 
   return (
     <>
@@ -105,12 +144,12 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
         className="sr-only"
         onChange={(e) => {
           const arquivo = e.target.files?.[0];
-          if (arquivo) leitura.mutate(arquivo);
+          if (arquivo) leitura.mutate({ arquivo });
         }}
       />
       <button
         type="button"
-        disabled={disabled || ocupado}
+        disabled={disabled || leitura.isPending || salvar.isPending}
         onClick={() => inputRef.current?.click()}
         className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-50"
       >
@@ -132,6 +171,18 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             </h2>
             {observacao && <p className="mt-1 text-sm text-muted-foreground">{observacao}</p>}
 
+            {local && (
+              <p className="mt-2 rounded-2xl bg-primary/10 px-3 py-2 text-sm text-foreground">
+                {[
+                  local.estabelecimento,
+                  local.hora ? `${t("às", "at")} ${local.hora}` : null,
+                  local.local,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
+
             {previa && (
               <img
                 src={previa}
@@ -140,7 +191,14 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               />
             )}
 
-            <div className="mt-4 space-y-3">
+            <p className="mt-4 text-sm font-semibold text-muted-foreground">
+              {t(
+                `${itens.length} despesa(s) encontrada(s) — ajuste o que precisar`,
+                `${itens.length} expense(s) found — edit anything you need`,
+              )}
+            </p>
+
+            <div className="mt-2 space-y-3">
               {itens.map((item, i) => (
                 <div key={i} className="rounded-2xl bg-secondary/60 p-3">
                   <input
@@ -168,9 +226,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                     />
                     <select
                       value={item.categoria}
-                      onChange={(e) =>
-                        atualizar(i, { categoria: e.target.value as CategoriaGasto })
-                      }
+                      onChange={(e) => atualizar(i, { categoria: e.target.value as CategoriaGasto })}
                       aria-label={t("Categoria", "Category")}
                       className="col-span-2 rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
                     >
@@ -180,6 +236,20 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                         </option>
                       ))}
                     </select>
+                    <input
+                      value={item.estabelecimento ?? ""}
+                      onChange={(e) => atualizar(i, { estabelecimento: e.target.value || null })}
+                      placeholder={t("Estabelecimento", "Place")}
+                      aria-label={t("Estabelecimento", "Place")}
+                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                    />
+                    <input
+                      value={item.hora ?? ""}
+                      onChange={(e) => atualizar(i, { hora: e.target.value || null })}
+                      placeholder={t("Horário", "Time")}
+                      aria-label={t("Horário", "Time")}
+                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                    />
                   </div>
                   <button
                     type="button"
@@ -196,6 +266,79 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             <p className="mt-4 font-display text-lg">
               {t("Total", "Total")}: R$ {total.toFixed(2).replace(".", ",")}
             </p>
+
+            <div className="mt-4 rounded-2xl border border-primary/15 p-3">
+              <p className="text-sm font-semibold">
+                {t("A leitura saiu errada?", "Did the reading come out wrong?")}
+              </p>
+              <textarea
+                value={ajuste}
+                onChange={(e) => setAjuste(e.target.value)}
+                rows={2}
+                placeholder={t(
+                  "Ex.: o total é 87,90 e são 4 itens; a data é 12/08",
+                  "E.g.: the total is 87.90 with 4 items; the date is Aug 12",
+                )}
+                className="mt-2 w-full rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+              />
+              <button
+                type="button"
+                disabled={leitura.isPending}
+                onClick={() => leitura.mutate({ ajuste: ajuste.trim() || undefined })}
+                className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground disabled:opacity-50"
+              >
+                {leitura.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                {t("Ler a foto de novo", "Read the photo again")}
+              </button>
+            </div>
+
+            {historico.length > 1 && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={() => setHistoricoAberto((a) => !a)}
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
+                >
+                  <History className="size-4" />
+                  {t(
+                    `Histórico de leituras (${historico.length})`,
+                    `Reading history (${historico.length})`,
+                  )}
+                </button>
+                {historicoAberto && (
+                  <ul className="mt-2 space-y-2">
+                    {historico.map((h, i) => (
+                      <li key={h.em} className="rounded-2xl bg-secondary/60 p-3 text-sm">
+                        <p className="font-semibold">
+                          {t(`Leitura ${i + 1}`, `Reading ${i + 1}`)} ·{" "}
+                          {new Date(h.em).toLocaleTimeString(idioma === "en" ? "en-US" : "pt-BR")} ·{" "}
+                          {t(`${h.itens.length} item(ns)`, `${h.itens.length} item(s)`)}
+                        </p>
+                        {h.ajuste && (
+                          <p className="mt-1 text-muted-foreground">
+                            {t("Ajuste pedido:", "Adjustment asked:")} {h.ajuste}
+                          </p>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setItens(h.itens);
+                            setObservacao(h.observacao);
+                          }}
+                          className="mt-2 min-h-11 rounded-full bg-background px-4 text-sm font-semibold text-primary"
+                        >
+                          {t("Usar esta leitura", "Use this reading")}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="mt-4 flex flex-col gap-2 sm:flex-row-reverse">
               <button

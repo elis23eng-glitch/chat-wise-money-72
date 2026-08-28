@@ -54,6 +54,7 @@ import {
 } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { PreviaRelatorio } from "@/components/PreviaRelatorio";
+import { LembretesInteligentes } from "@/components/LembretesInteligentes";
 
 export const Route = createFileRoute("/_autenticado/painel")({
   head: () => ({

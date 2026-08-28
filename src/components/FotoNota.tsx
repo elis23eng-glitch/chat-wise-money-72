@@ -1,6 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Camera, History, Loader2, RefreshCw, Trash2, Wand2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Camera,
+  CheckCircle2,
+  FileUp,
+  History,
+  Loader2,
+  RefreshCw,
+  ShieldQuestion,
+  Trash2,
+  Wand2,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,8 +47,30 @@ type Tentativa = {
 type Duplicidade = {
   duplicado: boolean;
   total: number;
-  exemplos: { id: string; descricao: string; valor: number; hora: string | null }[];
+  exemplos: {
+    id: string;
+    descricao: string;
+    valor: number;
+    data?: string;
+    hora: string | null;
+  }[];
 };
+
+type Regras = {
+  janelaHoras: number;
+  compararValor: boolean;
+  compararEstabelecimento: boolean;
+  compararDescricao: boolean;
+};
+
+const REGRAS_PADRAO: Regras = {
+  janelaHoras: 0,
+  compararValor: true,
+  compararEstabelecimento: true,
+  compararDescricao: false,
+};
+
+const JANELAS = [0, 1, 3, 6, 12, 24, 72, 168] as const;
 
 /** Reduz a foto para no máximo 1400px e converte em JPEG base64. */
 async function prepararImagem(arquivo: File): Promise<string> {
@@ -63,7 +96,34 @@ async function prepararImagem(arquivo: File): Promise<string> {
   }
 }
 
+function lerComoDataUrl(arquivo: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result));
+    leitor.onerror = () => reject(new Error("leitura"));
+    leitor.readAsDataURL(arquivo);
+  });
+}
+
+/** Fotos são comprimidas; PDFs vão inteiros para a Nina ler. */
+async function prepararArquivo(arquivo: File) {
+  const ehPdf = arquivo.type === "application/pdf" || /\.pdf$/i.test(arquivo.name);
+  if (ehPdf) {
+    if (arquivo.size > 6_000_000) throw new Error("grande");
+    return {
+      dados: await lerComoDataUrl(arquivo),
+      mime: "application/pdf",
+      nome: arquivo.name,
+    };
+  }
+  return { dados: await prepararImagem(arquivo), mime: "image/jpeg", nome: arquivo.name };
+}
+
 const BAIXA = 0.7;
+
+function duvidoso(item: Item) {
+  return (item.confianca ?? 1) < BAIXA || (item.campos_incertos ?? []).length > 0;
+}
 
 function incerto(item: Item, campo: Campo) {
   return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < BAIXA;
@@ -79,11 +139,14 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const { t, idioma } = useIdioma();
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
+  const arquivoRef = useRef<HTMLInputElement>(null);
   const ler = useServerFn(lerRecibo);
   const registrar = useServerFn(registrarDespesasDoRecibo);
   const checarDuplicidade = useServerFn(verificarDuplicidadeRecibo);
 
   const [previa, setPrevia] = useState<string | null>(null);
+  const [mime, setMime] = useState<string>("image/jpeg");
+  const [nomeArquivo, setNomeArquivo] = useState<string>("");
   const [itens, setItens] = useState<Item[] | null>(null);
   const [observacao, setObservacao] = useState("");
   const [ajuste, setAjuste] = useState("");
@@ -92,16 +155,62 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const [anexar, setAnexar] = useState(true);
   const [duplicidade, setDuplicidade] = useState<Duplicidade | null>(null);
   const [ignorarDuplicidade, setIgnorarDuplicidade] = useState(false);
+  const [regras, setRegras] = useState<Regras>(REGRAS_PADRAO);
+  const [regrasAbertas, setRegrasAbertas] = useState(false);
+  const [soDuvidosos, setSoDuvidosos] = useState(false);
+  const [falhouLeitura, setFalhouLeitura] = useState(false);
+  const [checando, setChecando] = useState(false);
+
+  const ehPdf = mime === "application/pdf";
+
+  async function rodarDuplicidade(lista: Item[], regrasAtuais: Regras) {
+    const primeiroItem = lista[0];
+    if (!primeiroItem) return;
+    setChecando(true);
+    try {
+      const d = await checarDuplicidade({
+        data: {
+          data: primeiroItem.data,
+          estabelecimento: primeiroItem.estabelecimento ?? null,
+          hora: primeiroItem.hora ?? null,
+          valores: lista.map((i) => i.valor),
+          descricoes: lista.map((i) => i.descricao),
+          janelaHoras: regrasAtuais.janelaHoras,
+          compararValor: regrasAtuais.compararValor,
+          compararEstabelecimento: regrasAtuais.compararEstabelecimento,
+          compararDescricao: regrasAtuais.compararDescricao,
+        },
+      });
+      setDuplicidade(d as Duplicidade);
+      setIgnorarDuplicidade(false);
+    } catch {
+      setDuplicidade(null);
+    } finally {
+      setChecando(false);
+    }
+  }
 
   const leitura = useMutation({
     mutationFn: async (entrada: { arquivo?: File; ajuste?: string }) => {
-      const imagem = entrada.arquivo ? await prepararImagem(entrada.arquivo) : previa;
+      let imagem = previa;
+      let tipo = mime;
+      let nome = nomeArquivo;
+      if (entrada.arquivo) {
+        const preparado = await prepararArquivo(entrada.arquivo);
+        imagem = preparado.dados;
+        tipo = preparado.mime;
+        nome = preparado.nome;
+        setPrevia(imagem);
+        setMime(tipo);
+        setNomeArquivo(nome);
+      }
       if (!imagem) throw new Error("sem imagem");
-      setPrevia(imagem);
       return ler({
         data: {
           imagem,
           idioma: idioma === "en" ? "en" : "pt",
+          mime: tipo,
+          nomeArquivo: nome || "comprovante",
           ...(entrada.ajuste ? { ajuste: entrada.ajuste } : {}),
         },
       });
@@ -112,6 +221,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
       setObservacao(r.observacao);
       setDuplicidade(null);
       setIgnorarDuplicidade(false);
+      setSoDuvidosos(false);
       setHistorico((h) => [
         ...h,
         {
@@ -123,36 +233,36 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
       ]);
       setAjuste("");
       if (lista.length === 0) {
+        setFalhouLeitura(true);
         toast.info(
-          t("Não consegui ler despesas nessa foto", "I could not read any expense in this photo"),
+          t("Não consegui ler despesas nesse arquivo", "I could not read any expense in this file"),
         );
       } else {
-        const primeiro = lista[0]!;
-        void checarDuplicidade({
-          data: {
-            data: primeiro.data,
-            estabelecimento: primeiro.estabelecimento ?? null,
-            hora: primeiro.hora ?? null,
-            valores: lista.map((i) => i.valor),
-          },
-        })
-          .then((d) => setDuplicidade(d as Duplicidade))
-          .catch(() => setDuplicidade(null));
+        setFalhouLeitura(false);
+        void rodarDuplicidade(lista, regras);
       }
     },
-    onError: () =>
+    onError: (erro) => {
+      setFalhouLeitura(true);
+      if (erro instanceof Error && erro.message === "grande") {
+        toast.error(
+          t("Esse PDF é muito grande (máx. 6 MB).", "This PDF is too large (max 6 MB)."),
+        );
+        return;
+      }
       toast.error(
         t(
-          "Não consegui ler a foto. Tente com mais luz e o papel esticado.",
-          "I could not read the photo. Try again with more light and the paper flat.",
+          "Não consegui ler o arquivo. Tente com mais luz e o papel esticado.",
+          "I could not read the file. Try again with more light and the paper flat.",
         ),
-      ),
+      );
+    },
   });
 
   const salvar = useMutation({
     mutationFn: async (lista: Item[]) =>
       registrar({
-        data: { itens: lista, ...(anexar && previa ? { imagem: previa } : {}) },
+        data: { itens: lista, ...(anexar && previa ? { imagem: previa, mime } : {}) },
       }),
     onSuccess: (r) => {
       toast.success(t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`));
@@ -165,6 +275,8 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   function fechar() {
     setItens(null);
     setPrevia(null);
+    setMime("image/jpeg");
+    setNomeArquivo("");
     setObservacao("");
     setAjuste("");
     setHistorico([]);
@@ -172,7 +284,12 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     setDuplicidade(null);
     setIgnorarDuplicidade(false);
     setAnexar(true);
+    setSoDuvidosos(false);
+    setFalhouLeitura(false);
+    setRegras(REGRAS_PADRAO);
+    setRegrasAbertas(false);
     if (inputRef.current) inputRef.current.value = "";
+    if (arquivoRef.current) arquivoRef.current.value = "";
   }
 
   function atualizar(i: number, campo: Partial<Item>) {
@@ -193,29 +310,66 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     );
   }
 
-  function aplicarEmTodos(campo: "estabelecimento" | "categoria" | "data", valor: string) {
+  /** Aplica um valor em todos os itens — ou só nos duvidosos, quando pedido. */
+  function aplicarEmTodos(
+    campo: "estabelecimento" | "categoria" | "data",
+    valor: string,
+    apenasDuvidosos = false,
+  ) {
     setItens((atual) =>
       atual
-        ? atual.map((item) => ({
-            ...item,
-            ...(campo === "estabelecimento"
-              ? { estabelecimento: valor || null }
-              : campo === "categoria"
-                ? { categoria: valor as CategoriaGasto }
-                : { data: valor }),
-            campos_incertos: (item.campos_incertos ?? []).filter((c) => c !== campo),
-          }))
+        ? atual.map((item) =>
+            apenasDuvidosos && !duvidoso(item)
+              ? item
+              : {
+                  ...item,
+                  ...(campo === "estabelecimento"
+                    ? { estabelecimento: valor || null }
+                    : campo === "categoria"
+                      ? { categoria: valor as CategoriaGasto }
+                      : { data: valor }),
+                  campos_incertos: (item.campos_incertos ?? []).filter((c) => c !== campo),
+                },
+          )
         : atual,
     );
-    toast.success(t("Aplicado em todos os itens.", "Applied to every item."));
+    toast.success(
+      apenasDuvidosos
+        ? t("Aplicado nos itens duvidosos.", "Applied to the uncertain items.")
+        : t("Aplicado em todos os itens.", "Applied to every item."),
+    );
+  }
+
+  /** Marca os itens duvidosos como conferidos (tira o alerta vermelho). */
+  function marcarConferidos() {
+    setItens((atual) =>
+      atual ? atual.map((i) => ({ ...i, confianca: 1, campos_incertos: [] })) : atual,
+    );
+    setSoDuvidosos(false);
+    toast.success(t("Itens marcados como conferidos.", "Items marked as checked."));
+  }
+
+  function removerDuvidosos() {
+    setItens((atual) => (atual ? atual.filter((i) => !duvidoso(i)) : atual));
+    setSoDuvidosos(false);
+    toast.success(t("Itens duvidosos removidos.", "Uncertain items removed."));
   }
 
   const total = (itens ?? []).reduce((s, i) => s + (Number.isFinite(i.valor) ? i.valor : 0), 0);
   const local = itens?.find((i) => i.estabelecimento || i.hora || i.local);
-  const baixaConfianca = (itens ?? []).filter(
-    (i) => (i.confianca ?? 1) < BAIXA || (i.campos_incertos ?? []).length > 0,
-  ).length;
+  const duvidososLista = (itens ?? []).filter(duvidoso);
+  const baixaConfianca = duvidososLista.length;
+  const confiancaMedia =
+    (itens ?? []).length > 0
+      ? (itens ?? []).reduce((s, i) => s + (i.confianca ?? 1), 0) / (itens ?? []).length
+      : 1;
+  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < BAIXA;
   const primeiro = itens?.[0];
+  const primeiroDuvidoso = duvidososLista[0];
+  const baseLote = soDuvidosos ? primeiroDuvidoso : primeiro;
+  const visiveis = (itens ?? [])
+    .map((item, indice) => ({ item, indice }))
+    .filter(({ item }) => !soDuvidosos || duvidoso(item));
   const bloqueado = Boolean(duplicidade?.duplicado) && !ignorarDuplicidade;
 
   return (
@@ -225,6 +379,16 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
         type="file"
         accept="image/*"
         capture="environment"
+        className="sr-only"
+        onChange={(e) => {
+          const arquivo = e.target.files?.[0];
+          if (arquivo) leitura.mutate({ arquivo });
+        }}
+      />
+      <input
+        ref={arquivoRef}
+        type="file"
+        accept="image/*,application/pdf,.pdf"
         className="sr-only"
         onChange={(e) => {
           const arquivo = e.target.files?.[0];
@@ -243,17 +407,56 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
           <Camera className="size-5" />
         )}
         {leitura.isPending
-          ? t("Lendo a foto…", "Reading the photo…")
+          ? t("Lendo…", "Reading…")
           : t("Foto da nota", "Photo of receipt")}
       </button>
+      <button
+        type="button"
+        disabled={disabled || leitura.isPending || salvar.isPending}
+        onClick={() => arquivoRef.current?.click()}
+        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-50"
+      >
+        <FileUp className="size-5" />
+        {t("Importar arquivo (PDF/foto)", "Import file (PDF/photo)")}
+      </button>
 
-      {itens && (
+      {(itens || falhouLeitura) && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-0 sm:items-center sm:p-6">
           <div className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-card p-5 shadow-xl sm:rounded-3xl">
             <h2 className="font-display text-xl">
               {t("Confira antes de registrar", "Check before saving")}
             </h2>
             {observacao && <p className="mt-1 text-sm text-muted-foreground">{observacao}</p>}
+
+            {(falhouLeitura || alertaGeral) && (
+              <div className="mt-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
+                  <AlertTriangle className="size-4" />
+                  {falhouLeitura
+                    ? t(
+                        "A leitura falhou: não consegui identificar despesas nesse arquivo.",
+                        "The reading failed: I could not find expenses in this file.",
+                      )
+                    : t(
+                        `Leitura pouco confiável (${Math.round(confiancaMedia * 100)}% em média). Vale reprocessar.`,
+                        `Low overall confidence (${Math.round(confiancaMedia * 100)}% average). Worth reprocessing.`,
+                      )}
+                </p>
+                <button
+                  type="button"
+                  disabled={leitura.isPending || !previa}
+                  onClick={() => leitura.mutate({})}
+                  className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-destructive px-4 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
+                >
+                  {leitura.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-4" />
+                  )}
+                  {t("Reprocessar agora", "Reprocess now")}
+                </button>
+              </div>
+            )}
 
             {local && (
               <p className="mt-2 rounded-2xl bg-primary/10 px-3 py-2 text-sm text-foreground">
@@ -267,12 +470,97 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               </p>
             )}
 
-            {previa && (
-              <img
-                src={previa}
-                alt={t("Foto da nota enviada", "Photo of the receipt you sent")}
-                className="mt-3 max-h-40 w-full rounded-2xl object-contain"
-              />
+            {previa &&
+              (ehPdf ? (
+                <p className="mt-3 rounded-2xl bg-secondary/60 px-3 py-2 text-sm">
+                  {t("Arquivo PDF:", "PDF file:")} {nomeArquivo}
+                </p>
+              ) : (
+                <img
+                  src={previa}
+                  alt={t("Comprovante enviado", "Receipt you sent")}
+                  className="mt-3 max-h-40 w-full rounded-2xl object-contain"
+                />
+              ))}
+
+            {/* Regras de duplicidade configuráveis */}
+            {itens && itens.length > 0 && (
+              <div className="mt-3 rounded-2xl border border-primary/15 p-3">
+                <button
+                  type="button"
+                  onClick={() => setRegrasAbertas((a) => !a)}
+                  className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary"
+                >
+                  <ShieldQuestion className="size-4" />
+                  {t("Regras de duplicidade", "Duplicate rules")}
+                </button>
+                {regrasAbertas && (
+                  <div className="mt-2 space-y-3">
+                    <label className="block text-sm font-semibold">
+                      {t("Comparar dentro de", "Compare within")}
+                      <select
+                        value={regras.janelaHoras}
+                        onChange={(e) =>
+                          setRegras((r) => ({ ...r, janelaHoras: Number(e.target.value) }))
+                        }
+                        className="mt-1 w-full rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base font-normal"
+                      >
+                        {JANELAS.map((h) => (
+                          <option key={h} value={h}>
+                            {h === 0
+                              ? t("apenas o mesmo dia", "same day only")
+                              : t(`${h} hora(s)`, `${h} hour(s)`)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {(
+                      [
+                        ["compararValor", t("Mesmo valor", "Same amount")],
+                        [
+                          "compararEstabelecimento",
+                          t("Mesmo estabelecimento", "Same place"),
+                        ],
+                        ["compararDescricao", t("Mesma descrição", "Same description")],
+                      ] as const
+                    ).map(([chave, rotulo]) => (
+                      <label key={chave} className="flex items-center gap-2 text-sm font-semibold">
+                        <input
+                          type="checkbox"
+                          checked={regras[chave]}
+                          onChange={(e) =>
+                            setRegras((r) => ({ ...r, [chave]: e.target.checked }))
+                          }
+                          className="size-5"
+                        />
+                        {rotulo}
+                      </label>
+                    ))}
+                    <button
+                      type="button"
+                      disabled={checando}
+                      onClick={() => void rodarDuplicidade(itens, regras)}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground disabled:opacity-50"
+                    >
+                      {checando ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="size-4" />
+                      )}
+                      {t("Verificar de novo", "Check again")}
+                    </button>
+                    {!checando && duplicidade && !duplicidade.duplicado && (
+                      <p className="flex items-center gap-2 text-sm text-primary">
+                        <CheckCircle2 className="size-4" />
+                        {t(
+                          "Nenhum lançamento parecido com essas regras.",
+                          "No similar entry with these rules.",
+                        )}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
 
             {duplicidade?.duplicado && (
@@ -288,7 +576,8 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                   {duplicidade.exemplos.map((e) => (
                     <li key={e.id}>
                       • {e.descricao} — R$ {e.valor.toFixed(2).replace(".", ",")}
-                      {e.hora ? ` · ${e.hora}` : ""}
+                      {e.data ? ` · ${e.data}` : ""}
+                      {e.hora ? ` ${e.hora}` : ""}
                     </li>
                   ))}
                 </ul>
@@ -304,151 +593,204 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               </div>
             )}
 
-            <p className="mt-4 text-sm font-semibold text-muted-foreground">
-              {t(
-                `${itens.length} despesa(s) encontrada(s) — ajuste o que precisar`,
-                `${itens.length} expense(s) found — edit anything you need`,
-              )}
-            </p>
-            {baixaConfianca > 0 && (
-              <p className="mt-1 text-sm text-destructive">
-                {t(
-                  `${baixaConfianca} item(ns) com leitura duvidosa: os campos em vermelho merecem uma conferida.`,
-                  `${baixaConfianca} item(s) with uncertain reading: the fields in red deserve a check.`,
-                )}
-              </p>
-            )}
-
-            {itens.length > 1 && primeiro && (
-              <div className="mt-3 rounded-2xl border border-primary/15 p-3">
-                <p className="flex items-center gap-2 text-sm font-semibold">
-                  <Wand2 className="size-4" />
-                  {t("Aplicar em todos os itens", "Apply to every item")}
+            {itens && (
+              <>
+                <p className="mt-4 text-sm font-semibold text-muted-foreground">
+                  {t(
+                    `${itens.length} despesa(s) encontrada(s) — ajuste o que precisar`,
+                    `${itens.length} expense(s) found — edit anything you need`,
+                  )}
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {primeiro.estabelecimento && (
-                    <button
-                      type="button"
-                      onClick={() => aplicarEmTodos("estabelecimento", primeiro.estabelecimento!)}
-                      className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
-                    >
-                      {t("Mesmo estabelecimento", "Same place")}: {primeiro.estabelecimento}
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => aplicarEmTodos("categoria", primeiro.categoria)}
-                    className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
-                  >
-                    {t("Mesma categoria", "Same category")}:{" "}
-                    {idioma === "en" ? CATEGORIA_EN[primeiro.categoria] : primeiro.categoria}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => aplicarEmTodos("data", primeiro.data)}
-                    className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
-                  >
-                    {t("Mesma data", "Same date")}: {primeiro.data}
-                  </button>
-                </div>
-              </div>
-            )}
 
-            <div className="mt-2 space-y-3">
-              {itens.map((item, i) => (
-                <div key={i} className="rounded-2xl bg-secondary/60 p-3">
-                  {(item.confianca ?? 1) < 1 && (
-                    <p
-                      className={`mb-2 text-xs font-semibold ${
-                        (item.confianca ?? 1) < BAIXA ? "text-destructive" : "text-muted-foreground"
-                      }`}
-                    >
-                      {t("Confiança da leitura", "Reading confidence")}:{" "}
-                      {Math.round((item.confianca ?? 0.8) * 100)}%
-                      {(item.campos_incertos ?? []).length > 0 &&
-                        ` · ${t("conferir", "check")}: ${(item.campos_incertos ?? []).join(", ")}`}
+                {baixaConfianca > 0 && (
+                  <div className="mt-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-3">
+                    <p className="text-sm font-semibold text-destructive">
+                      {t(
+                        `${baixaConfianca} item(ns) com leitura duvidosa.`,
+                        `${baixaConfianca} item(s) with uncertain reading.`,
+                      )}
                     </p>
-                  )}
-                  <input
-                    value={item.descricao}
-                    onChange={(e) => atualizar(i, { descricao: e.target.value })}
-                    aria-label={t("Descrição", "Description")}
-                    className={`w-full rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "descricao")}`}
-                  />
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={item.valor}
-                      onChange={(e) => atualizar(i, { valor: Number(e.target.value) })}
-                      aria-label={t("Valor", "Amount")}
-                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "valor")}`}
-                    />
-                    <input
-                      type="date"
-                      value={item.data}
-                      onChange={(e) => atualizar(i, { data: e.target.value })}
-                      aria-label={t("Data", "Date")}
-                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "data")}`}
-                    />
-                    <select
-                      value={item.categoria}
-                      onChange={(e) =>
-                        atualizar(i, { categoria: e.target.value as CategoriaGasto })
-                      }
-                      aria-label={t("Categoria", "Category")}
-                      className={`col-span-2 rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "categoria")}`}
-                    >
-                      {CATEGORIAS_GASTO.map((c) => (
-                        <option key={c} value={c}>
-                          {idioma === "en" ? CATEGORIA_EN[c] : c}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      value={item.estabelecimento ?? ""}
-                      onChange={(e) => atualizar(i, { estabelecimento: e.target.value || null })}
-                      placeholder={t("Estabelecimento", "Place")}
-                      aria-label={t("Estabelecimento", "Place")}
-                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "estabelecimento")}`}
-                    />
-                    <input
-                      value={item.hora ?? ""}
-                      onChange={(e) => atualizar(i, { hora: e.target.value || null })}
-                      placeholder={t("Horário", "Time")}
-                      aria-label={t("Horário", "Time")}
-                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "hora")}`}
-                    />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSoDuvidosos((v) => !v)}
+                        className={`min-h-11 rounded-full px-4 text-sm font-semibold ${
+                          soDuvidosos
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground"
+                        }`}
+                      >
+                        {soDuvidosos
+                          ? t("Mostrar todos os itens", "Show every item")
+                          : t(
+                              `Revisar só os duvidosos (${baixaConfianca})`,
+                              `Review only the uncertain ones (${baixaConfianca})`,
+                            )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={marcarConferidos}
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                      >
+                        <CheckCircle2 className="size-4" />
+                        {t("Marcar como conferidos", "Mark as checked")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={removerDuvidosos}
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-semibold text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                        {t("Remover duvidosos", "Remove uncertain")}
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setItens(itens.filter((_, idx) => idx !== i))}
-                    className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-destructive"
-                  >
-                    <Trash2 className="size-4" />
-                    {t("Remover este item", "Remove this item")}
-                  </button>
+                )}
+
+                {itens.length > 1 && baseLote && (
+                  <div className="mt-3 rounded-2xl border border-primary/15 p-3">
+                    <p className="flex items-center gap-2 text-sm font-semibold">
+                      <Wand2 className="size-4" />
+                      {soDuvidosos
+                        ? t("Aplicar nos itens duvidosos", "Apply to the uncertain items")
+                        : t("Aplicar em todos os itens", "Apply to every item")}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {baseLote.estabelecimento && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            aplicarEmTodos(
+                              "estabelecimento",
+                              baseLote.estabelecimento!,
+                              soDuvidosos,
+                            )
+                          }
+                          className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                        >
+                          {t("Mesmo estabelecimento", "Same place")}: {baseLote.estabelecimento}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => aplicarEmTodos("categoria", baseLote.categoria, soDuvidosos)}
+                        className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                      >
+                        {t("Mesma categoria", "Same category")}:{" "}
+                        {idioma === "en" ? CATEGORIA_EN[baseLote.categoria] : baseLote.categoria}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => aplicarEmTodos("data", baseLote.data, soDuvidosos)}
+                        className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                      >
+                        {t("Mesma data", "Same date")}: {baseLote.data}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-2 space-y-3">
+                  {visiveis.map(({ item, indice }) => (
+                    <div key={indice} className="rounded-2xl bg-secondary/60 p-3">
+                      {(item.confianca ?? 1) < 1 && (
+                        <p
+                          className={`mb-2 text-xs font-semibold ${
+                            (item.confianca ?? 1) < BAIXA
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {t("Confiança da leitura", "Reading confidence")}:{" "}
+                          {Math.round((item.confianca ?? 0.8) * 100)}%
+                          {(item.campos_incertos ?? []).length > 0 &&
+                            ` · ${t("conferir", "check")}: ${(item.campos_incertos ?? []).join(", ")}`}
+                        </p>
+                      )}
+                      <input
+                        value={item.descricao}
+                        onChange={(e) => atualizar(indice, { descricao: e.target.value })}
+                        aria-label={t("Descrição", "Description")}
+                        className={`w-full rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "descricao")}`}
+                      />
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={item.valor}
+                          onChange={(e) => atualizar(indice, { valor: Number(e.target.value) })}
+                          aria-label={t("Valor", "Amount")}
+                          className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "valor")}`}
+                        />
+                        <input
+                          type="date"
+                          value={item.data}
+                          onChange={(e) => atualizar(indice, { data: e.target.value })}
+                          aria-label={t("Data", "Date")}
+                          className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "data")}`}
+                        />
+                        <select
+                          value={item.categoria}
+                          onChange={(e) =>
+                            atualizar(indice, { categoria: e.target.value as CategoriaGasto })
+                          }
+                          aria-label={t("Categoria", "Category")}
+                          className={`col-span-2 rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "categoria")}`}
+                        >
+                          {CATEGORIAS_GASTO.map((c) => (
+                            <option key={c} value={c}>
+                              {idioma === "en" ? CATEGORIA_EN[c] : c}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          value={item.estabelecimento ?? ""}
+                          onChange={(e) =>
+                            atualizar(indice, { estabelecimento: e.target.value || null })
+                          }
+                          placeholder={t("Estabelecimento", "Place")}
+                          aria-label={t("Estabelecimento", "Place")}
+                          className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "estabelecimento")}`}
+                        />
+                        <input
+                          value={item.hora ?? ""}
+                          onChange={(e) => atualizar(indice, { hora: e.target.value || null })}
+                          placeholder={t("Horário", "Time")}
+                          aria-label={t("Horário", "Time")}
+                          className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "hora")}`}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setItens(itens.filter((_, idx) => idx !== indice))}
+                        className="mt-2 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-destructive"
+                      >
+                        <Trash2 className="size-4" />
+                        {t("Remover este item", "Remove this item")}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <p className="mt-4 font-display text-lg">
-              {t("Total", "Total")}: R$ {total.toFixed(2).replace(".", ",")}
-            </p>
+                <p className="mt-4 font-display text-lg">
+                  {t("Total", "Total")}: R$ {total.toFixed(2).replace(".", ",")}
+                </p>
 
-            <label className="mt-3 flex items-center gap-2 rounded-2xl bg-secondary/60 p-3 text-sm font-semibold">
-              <input
-                type="checkbox"
-                checked={anexar}
-                onChange={(e) => setAnexar(e.target.checked)}
-                className="size-5"
-              />
-              {t(
-                "Guardar a foto da nota junto com as despesas",
-                "Keep the receipt photo with these expenses",
-              )}
-            </label>
+                <label className="mt-3 flex items-center gap-2 rounded-2xl bg-secondary/60 p-3 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={anexar}
+                    onChange={(e) => setAnexar(e.target.checked)}
+                    className="size-5"
+                  />
+                  {t(
+                    "Guardar o comprovante junto com as despesas",
+                    "Keep the receipt with these expenses",
+                  )}
+                </label>
+              </>
+            )}
 
             <div className="mt-4 rounded-2xl border border-primary/15 p-3">
               <p className="text-sm font-semibold">
@@ -466,7 +808,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               />
               <button
                 type="button"
-                disabled={leitura.isPending}
+                disabled={leitura.isPending || !previa}
                 onClick={() => {
                   const texto = ajuste.trim();
                   leitura.mutate(texto ? { ajuste: texto } : {});
@@ -478,7 +820,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                 ) : (
                   <RefreshCw className="size-4" />
                 )}
-                {t("Ler a foto de novo", "Read the photo again")}
+                {t("Ler de novo", "Read again")}
               </button>
             </div>
 
@@ -514,6 +856,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                           onClick={() => {
                             setItens(h.itens);
                             setObservacao(h.observacao);
+                            setFalhouLeitura(h.itens.length === 0);
                           }}
                           className="mt-2 min-h-11 rounded-full bg-background px-4 text-sm font-semibold text-primary"
                         >
@@ -529,8 +872,8 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             <div className="mt-4 flex flex-col gap-2 sm:flex-row-reverse">
               <button
                 type="button"
-                disabled={itens.length === 0 || salvar.isPending || bloqueado}
-                onClick={() => salvar.mutate(itens)}
+                disabled={!itens || itens.length === 0 || salvar.isPending || bloqueado}
+                onClick={() => itens && salvar.mutate(itens)}
                 className="min-h-12 flex-1 rounded-full bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50"
               >
                 {salvar.isPending

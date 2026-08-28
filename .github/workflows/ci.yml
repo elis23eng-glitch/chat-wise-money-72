@@ -74,6 +74,72 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Conferir marca d'água no app publicado
-        run: bun scripts/verificar-marca-dagua.mjs
+        id: verificacao
+        run: bun scripts/verificar-marca-dagua.mjs | tee /tmp/marca-dagua.txt
         env:
           APP_URL: https://chat-wise-money-72.lovable.app
+
+      - name: Preparar detalhes do alerta
+        if: failure() && steps.verificacao.outcome == 'failure'
+        id: alerta
+        run: |
+          BUILD_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          echo "build_url=${BUILD_URL}" >> "$GITHUB_OUTPUT"
+          {
+            echo "detalhes<<EOF"
+            cat /tmp/marca-dagua.txt 2>/dev/null || echo "Sem detalhes."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Alertar por webhook
+        if: failure() && steps.alerta.outcome == 'success' && env.ALERTA_WEBHOOK_URL != ''
+        env:
+          ALERTA_WEBHOOK_URL: ${{ secrets.ALERTA_WEBHOOK_URL }}
+        run: |
+          jq -n \
+            --arg titulo "Marca d'água do Lovable detectada no Wise Money" \
+            --arg build "${{ steps.alerta.outputs.build_url }}" \
+            --arg commit "${GITHUB_SHA}" \
+            --arg detalhes "${{ steps.alerta.outputs.detalhes }}" \
+            '{text: ($titulo + "\n" + $build + "\n\n" + $detalhes), titulo: $titulo, build_url: $build, commit: $commit, detalhes: $detalhes}' \
+            > /tmp/alerta.json
+          curl -sS -X POST -H 'content-type: application/json' \
+            --data @/tmp/alerta.json "$ALERTA_WEBHOOK_URL"
+
+      - name: Alertar por e-mail
+        if: failure() && steps.alerta.outcome == 'success' && env.SMTP_SERVIDOR != ''
+        env:
+          SMTP_SERVIDOR: ${{ secrets.SMTP_SERVIDOR }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVIDOR }}
+          server_port: ${{ secrets.SMTP_PORTA }}
+          username: ${{ secrets.SMTP_USUARIO }}
+          password: ${{ secrets.SMTP_SENHA }}
+          subject: "[Wise Money] Marca d'água do Lovable reapareceu"
+          to: ${{ secrets.ALERTA_EMAIL_PARA }}
+          from: Wise Money CI <${{ secrets.SMTP_USUARIO }}>
+          body: |
+            A validação visual detectou a marca d'água no app publicado.
+
+            Build que falhou: ${{ steps.alerta.outputs.build_url }}
+            Commit: ${{ github.sha }}
+
+            ${{ steps.alerta.outputs.detalhes }}
+
+      - name: Abrir issue de rastreio
+        if: failure() && steps.alerta.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --title "Marca d'água do Lovable reapareceu ($(date -u +%Y-%m-%d))" \
+            --body "$(printf 'Build que falhou: %s\nCommit: %s\n\n%s\n' \
+              "${{ steps.alerta.outputs.build_url }}" "${GITHUB_SHA}" \
+              "${{ steps.alerta.outputs.detalhes }}")" \
+            || echo "Não foi possível abrir a issue (permissões de escrita desativadas)."
+
+    permissions:
+      contents: read
+      issues: write
+

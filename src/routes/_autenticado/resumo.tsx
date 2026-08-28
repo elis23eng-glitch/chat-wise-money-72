@@ -537,6 +537,8 @@ function Resumo() {
             )}
           </div>
 
+          <ExportarCsv />
+
           <ExportarComprovantes />
         </aside>
       </section>

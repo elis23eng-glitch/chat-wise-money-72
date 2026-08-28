@@ -114,9 +114,14 @@ export function LimparCacheAntigo() {
         registrarEventoSw("registro-ok");
         await registro.update().catch(() => undefined);
         registro.waiting?.postMessage("skip-waiting");
+        const abertoEm = Date.now();
         registro.addEventListener("updatefound", () => {
           registro.installing?.addEventListener("statechange", function () {
-            if (this.state === "installed") registro.waiting?.postMessage("skip-waiting");
+            // Só aplicamos sozinho logo na abertura; depois disso a pessoa é
+            // avisada discretamente e decide quando atualizar.
+            if (this.state === "installed" && Date.now() - abertoEm < 15000) {
+              registro.waiting?.postMessage("skip-waiting");
+            }
             if (this.state === "redundant") registrarEventoSw("atualizacao-falhou");
           });
         });

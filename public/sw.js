@@ -49,8 +49,7 @@ self.addEventListener("fetch", (evento) => {
         } catch {
           const cache = await caches.open(ESTATICOS);
           const emCache =
-            (await cache.match(chave)) ??
-            (await cache.match(new Request(url.origin + "/")));
+            (await cache.match(chave)) ?? (await cache.match(new Request(url.origin + "/")));
           return emCache ?? Response.error();
         }
       })(),

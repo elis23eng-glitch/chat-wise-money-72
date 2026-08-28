@@ -35,7 +35,9 @@ const linhas = [];
 let falhas = 0;
 let novos = 0;
 
-const navegador = await chromium.launch();
+const navegador = await chromium.launch(
+  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
+);
 
 for (const vp of VIEWPORTS) {
   const contexto = await navegador.newContext({

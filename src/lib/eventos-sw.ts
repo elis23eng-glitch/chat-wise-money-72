@@ -33,7 +33,11 @@ export function lerEventosSw(): EventoSw[] {
 
 export function registrarEventoSw(tipo: TipoEventoSw, detalhe?: string) {
   if (typeof window === "undefined") return;
-  const evento: EventoSw = { tipo, em: new Date().toISOString(), detalhe };
+  const evento: EventoSw = {
+    tipo,
+    em: new Date().toISOString(),
+    ...(detalhe ? { detalhe } : {}),
+  };
   try {
     const lista = [...lerEventosSw(), evento].slice(-LIMITE);
     window.localStorage.setItem(CHAVE, JSON.stringify(lista));

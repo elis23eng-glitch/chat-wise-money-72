@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { HeartPulse, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { getSaudeFinanceira } from "@/lib/saude.functions";
-import { brl } from "@/lib/format";
+import { brl, notaConversao, preencherTokens } from "@/lib/format";
 import { useIdioma } from "@/lib/i18n";
 import { LembretesInteligentes } from "@/components/LembretesInteligentes";
 
@@ -131,7 +131,7 @@ function Saude() {
                     {idioma === "en" ? f.rotulo_en : f.rotulo_pt}
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {idioma === "en" ? f.detalhe_en : f.detalhe_pt}
+                    {preencherTokens(idioma === "en" ? f.detalhe_en : f.detalhe_pt, idioma)}
                   </p>
                   <p className="mt-1 text-xs font-semibold text-primary">
                     +{f.pontos} / {f.maximo} {t("pontos", "points")}
@@ -161,7 +161,7 @@ function Saude() {
                     {idioma === "en" ? f.rotulo_en : f.rotulo_pt}
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {idioma === "en" ? f.detalhe_en : f.detalhe_pt}
+                    {preencherTokens(idioma === "en" ? f.detalhe_en : f.detalhe_pt, idioma)}
                   </p>
                   <p className="mt-1 text-xs font-semibold text-destructive">
                     {f.pontos} / {f.maximo} {t("pontos", "points")}
@@ -172,6 +172,10 @@ function Saude() {
           )}
         </section>
       </div>
+
+      {notaConversao(idioma) ? (
+        <p className="text-xs text-muted-foreground">{notaConversao(idioma)}</p>
+      ) : null}
 
       <LembretesInteligentes />
     </div>

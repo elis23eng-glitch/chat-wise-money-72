@@ -50,6 +50,16 @@ export function notaConversao(idioma?: IdiomaFormato) {
 
 export const moeda = brl;
 
+/**
+ * Resolve marcadores vindos do servidor: {{m:12.34}} vira moeda no idioma atual
+ * e {{c:alimentação}} vira o nome traduzido da categoria.
+ */
+export function preencherTokens(texto: string, idioma?: IdiomaFormato) {
+  return texto
+    .replace(/\{\{m:(-?\d+(?:\.\d+)?)\}\}/g, (_m, v) => brl(Number(v), idioma))
+    .replace(/\{\{c:([^}]+)\}\}/g, (_m, c) => categoriaLabel(String(c), idioma));
+}
+
 function partes(iso: string) {
   const [ano, mes, dia] = iso.slice(0, 10).split("-");
   return { ano: Number(ano), mes: Number(mes), dia: Number(dia) };

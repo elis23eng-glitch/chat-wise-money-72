@@ -16,6 +16,7 @@ import { brl, dataCurta, CORES_CATEGORIA, categoriaLabel, notaConversao } from "
 import { useIdioma } from "@/lib/i18n";
 import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLancamento";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
+import { VerComprovante } from "@/components/VerComprovante";
 
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
@@ -293,11 +294,14 @@ function Resumo() {
                   <p className="truncate font-medium">{g.descricao}</p>
                   <p className="text-xs capitalize text-muted-foreground">
                     {categoriaLabel(g.categoria, idioma)} · {dataCurta(g.data)}
+                    {g.estabelecimento ? ` · ${g.estabelecimento}` : ""}
                   </p>
                 </div>
                 <span className="ml-auto font-display text-lg">{brl(Number(g.valor))}</span>
+                {g.comprovante && <VerComprovante caminho={g.comprovante} />}
                 <button
                   aria-label={t("Corrigir gasto", "Correct expense")}
+
                   onClick={() =>
                     setEditando({
                       tipo: "gasto",

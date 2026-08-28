@@ -2,6 +2,16 @@ import { z } from "zod";
 
 import { CATEGORIAS_GASTO } from "./categorias";
 
+export const CAMPOS_RECIBO = [
+  "descricao",
+  "valor",
+  "categoria",
+  "data",
+  "estabelecimento",
+  "hora",
+  "local",
+] as const;
+
 export const itemReciboSchema = z.object({
   descricao: z.string().max(120),
   valor: z.number().positive(),
@@ -10,6 +20,16 @@ export const itemReciboSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),
   hora: z.string().max(10).nullable(),
   local: z.string().max(160).nullable(),
+  confianca: z.coerce.number().min(0).max(1).catch(0.8).default(0.8),
+  campos_incertos: z
+    .array(z.string())
+    .catch([])
+    .default([])
+    .transform((lista) =>
+      lista.filter((c): c is (typeof CAMPOS_RECIBO)[number] =>
+        (CAMPOS_RECIBO as readonly string[]).includes(c),
+      ),
+    ),
 });
 
 const respostaSchema = z.object({
@@ -40,6 +60,8 @@ Regras:
 - categoria deve ser uma das permitidas; na dúvida use "outros".
 - descricao curta e clara (ex.: "Arroz 5kg — Mercado Bom Preço").
 - Se nada estiver legível, devolva itens vazio e explique com gentileza em observacao.
+- confianca: número de 0 a 1 dizendo o quanto você tem certeza da leitura DAQUELE item (1 = perfeitamente legível, 0.4 = bem duvidoso).
+- campos_incertos: liste os nomes dos campos daquele item que você teve dificuldade de ler (ex.: ["valor","data"]). Se estiver tudo claro, use [].
 - observacao: uma frase curta e acolhedora dizendo o que você entendeu.`;
 
 export async function lerReciboDaImagem(options: {
@@ -59,7 +81,7 @@ export async function lerReciboDaImagem(options: {
 
   const formato = `Responda SOMENTE com um JSON válido neste formato:
 {"estabelecimento": string|null, "data": "AAAA-MM-DD"|null, "hora": "HH:MM"|null, "local": string|null, "observacao": string,
- "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null}]}`;
+ "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null, "confianca": number, "campos_incertos": string[]}]}`;
 
   const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",

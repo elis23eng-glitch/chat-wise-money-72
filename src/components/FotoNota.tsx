@@ -1,12 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, History, Loader2, RefreshCw, Trash2 } from "lucide-react";
+import { AlertTriangle, Camera, History, Loader2, RefreshCw, Trash2, Wand2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { CATEGORIAS_GASTO, CATEGORIA_EN, type CategoriaGasto } from "@/lib/categorias";
 import { useIdioma } from "@/lib/i18n";
-import { lerRecibo, registrarDespesasDoRecibo } from "@/lib/recibo.functions";
+import {
+  lerRecibo,
+  registrarDespesasDoRecibo,
+  verificarDuplicidadeRecibo,
+} from "@/lib/recibo.functions";
+
+type Campo = "descricao" | "valor" | "categoria" | "data" | "estabelecimento" | "hora" | "local";
 
 type Item = {
   descricao: string;
@@ -16,6 +22,8 @@ type Item = {
   estabelecimento: string | null;
   hora: string | null;
   local: string | null;
+  confianca?: number;
+  campos_incertos?: Campo[];
 };
 
 type Tentativa = {
@@ -23,6 +31,12 @@ type Tentativa = {
   ajuste: string | null;
   observacao: string;
   itens: Item[];
+};
+
+type Duplicidade = {
+  duplicado: boolean;
+  total: number;
+  exemplos: { id: string; descricao: string; valor: number; hora: string | null }[];
 };
 
 /** Reduz a foto para no máximo 1400px e converte em JPEG base64. */
@@ -49,12 +63,25 @@ async function prepararImagem(arquivo: File): Promise<string> {
   }
 }
 
+const BAIXA = 0.7;
+
+function incerto(item: Item, campo: Campo) {
+  return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < BAIXA;
+}
+
+function classeCampo(item: Item, campo: Campo) {
+  return incerto(item, campo)
+    ? "border-destructive bg-destructive/5 ring-1 ring-destructive/30"
+    : "border-primary/15 bg-background";
+}
+
 export function FotoNota({ disabled }: { disabled?: boolean }) {
   const { t, idioma } = useIdioma();
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const ler = useServerFn(lerRecibo);
   const registrar = useServerFn(registrarDespesasDoRecibo);
+  const checarDuplicidade = useServerFn(verificarDuplicidadeRecibo);
 
   const [previa, setPrevia] = useState<string | null>(null);
   const [itens, setItens] = useState<Item[] | null>(null);
@@ -62,6 +89,9 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const [ajuste, setAjuste] = useState("");
   const [historico, setHistorico] = useState<Tentativa[]>([]);
   const [historicoAberto, setHistoricoAberto] = useState(false);
+  const [anexar, setAnexar] = useState(true);
+  const [duplicidade, setDuplicidade] = useState<Duplicidade | null>(null);
+  const [ignorarDuplicidade, setIgnorarDuplicidade] = useState(false);
 
   const leitura = useMutation({
     mutationFn: async (entrada: { arquivo?: File; ajuste?: string }) => {
@@ -80,6 +110,8 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
       const lista = r.itens as Item[];
       setItens(lista);
       setObservacao(r.observacao);
+      setDuplicidade(null);
+      setIgnorarDuplicidade(false);
       setHistorico((h) => [
         ...h,
         {
@@ -94,6 +126,18 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
         toast.info(
           t("Não consegui ler despesas nessa foto", "I could not read any expense in this photo"),
         );
+      } else {
+        const primeiro = lista[0]!;
+        void checarDuplicidade({
+          data: {
+            data: primeiro.data,
+            estabelecimento: primeiro.estabelecimento ?? null,
+            hora: primeiro.hora ?? null,
+            valores: lista.map((i) => i.valor),
+          },
+        })
+          .then((d) => setDuplicidade(d as Duplicidade))
+          .catch(() => setDuplicidade(null));
       }
     },
     onError: () =>
@@ -106,7 +150,10 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   });
 
   const salvar = useMutation({
-    mutationFn: async (lista: Item[]) => registrar({ data: { itens: lista } }),
+    mutationFn: async (lista: Item[]) =>
+      registrar({
+        data: { itens: lista, ...(anexar && previa ? { imagem: previa } : {}) },
+      }),
     onSuccess: (r) => {
       toast.success(t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`));
       fechar();
@@ -122,17 +169,54 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     setAjuste("");
     setHistorico([]);
     setHistoricoAberto(false);
+    setDuplicidade(null);
+    setIgnorarDuplicidade(false);
+    setAnexar(true);
     if (inputRef.current) inputRef.current.value = "";
   }
 
   function atualizar(i: number, campo: Partial<Item>) {
     setItens((atual) =>
-      atual ? atual.map((item, idx) => (idx === i ? { ...item, ...campo } : item)) : atual,
+      atual
+        ? atual.map((item, idx) =>
+            idx === i
+              ? {
+                  ...item,
+                  ...campo,
+                  campos_incertos: (item.campos_incertos ?? []).filter(
+                    (c) => !Object.keys(campo).includes(c),
+                  ),
+                }
+              : item,
+          )
+        : atual,
     );
+  }
+
+  function aplicarEmTodos(campo: "estabelecimento" | "categoria" | "data", valor: string) {
+    setItens((atual) =>
+      atual
+        ? atual.map((item) => ({
+            ...item,
+            ...(campo === "estabelecimento"
+              ? { estabelecimento: valor || null }
+              : campo === "categoria"
+                ? { categoria: valor as CategoriaGasto }
+                : { data: valor }),
+            campos_incertos: (item.campos_incertos ?? []).filter((c) => c !== campo),
+          }))
+        : atual,
+    );
+    toast.success(t("Aplicado em todos os itens.", "Applied to every item."));
   }
 
   const total = (itens ?? []).reduce((s, i) => s + (Number.isFinite(i.valor) ? i.valor : 0), 0);
   const local = itens?.find((i) => i.estabelecimento || i.hora || i.local);
+  const baixaConfianca = (itens ?? []).filter(
+    (i) => (i.confianca ?? 1) < BAIXA || (i.campos_incertos ?? []).length > 0,
+  ).length;
+  const primeiro = itens?.[0];
+  const bloqueado = Boolean(duplicidade?.duplicado) && !ignorarDuplicidade;
 
   return (
     <>
@@ -191,21 +275,105 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
               />
             )}
 
+            {duplicidade?.duplicado && (
+              <div className="mt-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-3">
+                <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
+                  <AlertTriangle className="size-4" />
+                  {t(
+                    `Parece que este comprovante já foi registrado (${duplicidade.total} lançamento(s) igual(is)).`,
+                    `This receipt seems to be already saved (${duplicidade.total} matching entr${duplicidade.total === 1 ? "y" : "ies"}).`,
+                  )}
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-foreground">
+                  {duplicidade.exemplos.map((e) => (
+                    <li key={e.id}>
+                      • {e.descricao} — R$ {e.valor.toFixed(2).replace(".", ",")}
+                      {e.hora ? ` · ${e.hora}` : ""}
+                    </li>
+                  ))}
+                </ul>
+                <label className="mt-2 flex items-center gap-2 text-sm font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={ignorarDuplicidade}
+                    onChange={(e) => setIgnorarDuplicidade(e.target.checked)}
+                    className="size-5"
+                  />
+                  {t("Registrar mesmo assim", "Save anyway")}
+                </label>
+              </div>
+            )}
+
             <p className="mt-4 text-sm font-semibold text-muted-foreground">
               {t(
                 `${itens.length} despesa(s) encontrada(s) — ajuste o que precisar`,
                 `${itens.length} expense(s) found — edit anything you need`,
               )}
             </p>
+            {baixaConfianca > 0 && (
+              <p className="mt-1 text-sm text-destructive">
+                {t(
+                  `${baixaConfianca} item(ns) com leitura duvidosa: os campos em vermelho merecem uma conferida.`,
+                  `${baixaConfianca} item(s) with uncertain reading: the fields in red deserve a check.`,
+                )}
+              </p>
+            )}
+
+            {itens.length > 1 && primeiro && (
+              <div className="mt-3 rounded-2xl border border-primary/15 p-3">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Wand2 className="size-4" />
+                  {t("Aplicar em todos os itens", "Apply to every item")}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {primeiro.estabelecimento && (
+                    <button
+                      type="button"
+                      onClick={() => aplicarEmTodos("estabelecimento", primeiro.estabelecimento!)}
+                      className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                    >
+                      {t("Mesmo estabelecimento", "Same place")}: {primeiro.estabelecimento}
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => aplicarEmTodos("categoria", primeiro.categoria)}
+                    className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                  >
+                    {t("Mesma categoria", "Same category")}:{" "}
+                    {idioma === "en" ? CATEGORIA_EN[primeiro.categoria] : primeiro.categoria}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => aplicarEmTodos("data", primeiro.data)}
+                    className="min-h-11 rounded-full bg-secondary px-4 text-sm font-semibold text-secondary-foreground"
+                  >
+                    {t("Mesma data", "Same date")}: {primeiro.data}
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="mt-2 space-y-3">
               {itens.map((item, i) => (
                 <div key={i} className="rounded-2xl bg-secondary/60 p-3">
+                  {(item.confianca ?? 1) < 1 && (
+                    <p
+                      className={`mb-2 text-xs font-semibold ${
+                        (item.confianca ?? 1) < BAIXA ? "text-destructive" : "text-muted-foreground"
+                      }`}
+                    >
+                      {t("Confiança da leitura", "Reading confidence")}:{" "}
+                      {Math.round((item.confianca ?? 0.8) * 100)}%
+                      {(item.campos_incertos ?? []).length > 0 &&
+                        ` · ${t("conferir", "check")}: ${(item.campos_incertos ?? []).join(", ")}`}
+                    </p>
+                  )}
                   <input
                     value={item.descricao}
                     onChange={(e) => atualizar(i, { descricao: e.target.value })}
                     aria-label={t("Descrição", "Description")}
-                    className="w-full rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                    className={`w-full rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "descricao")}`}
                   />
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <input
@@ -215,14 +383,14 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                       value={item.valor}
                       onChange={(e) => atualizar(i, { valor: Number(e.target.value) })}
                       aria-label={t("Valor", "Amount")}
-                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "valor")}`}
                     />
                     <input
                       type="date"
                       value={item.data}
                       onChange={(e) => atualizar(i, { data: e.target.value })}
                       aria-label={t("Data", "Date")}
-                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "data")}`}
                     />
                     <select
                       value={item.categoria}
@@ -230,7 +398,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                         atualizar(i, { categoria: e.target.value as CategoriaGasto })
                       }
                       aria-label={t("Categoria", "Category")}
-                      className="col-span-2 rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                      className={`col-span-2 rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "categoria")}`}
                     >
                       {CATEGORIAS_GASTO.map((c) => (
                         <option key={c} value={c}>
@@ -243,14 +411,14 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                       onChange={(e) => atualizar(i, { estabelecimento: e.target.value || null })}
                       placeholder={t("Estabelecimento", "Place")}
                       aria-label={t("Estabelecimento", "Place")}
-                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "estabelecimento")}`}
                     />
                     <input
                       value={item.hora ?? ""}
                       onChange={(e) => atualizar(i, { hora: e.target.value || null })}
                       placeholder={t("Horário", "Time")}
                       aria-label={t("Horário", "Time")}
-                      className="rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base"
+                      className={`rounded-xl border px-3 py-2.5 text-base ${classeCampo(item, "hora")}`}
                     />
                   </div>
                   <button
@@ -268,6 +436,19 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             <p className="mt-4 font-display text-lg">
               {t("Total", "Total")}: R$ {total.toFixed(2).replace(".", ",")}
             </p>
+
+            <label className="mt-3 flex items-center gap-2 rounded-2xl bg-secondary/60 p-3 text-sm font-semibold">
+              <input
+                type="checkbox"
+                checked={anexar}
+                onChange={(e) => setAnexar(e.target.checked)}
+                className="size-5"
+              />
+              {t(
+                "Guardar a foto da nota junto com as despesas",
+                "Keep the receipt photo with these expenses",
+              )}
+            </label>
 
             <div className="mt-4 rounded-2xl border border-primary/15 p-3">
               <p className="text-sm font-semibold">
@@ -348,13 +529,15 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             <div className="mt-4 flex flex-col gap-2 sm:flex-row-reverse">
               <button
                 type="button"
-                disabled={itens.length === 0 || salvar.isPending}
+                disabled={itens.length === 0 || salvar.isPending || bloqueado}
                 onClick={() => salvar.mutate(itens)}
                 className="min-h-12 flex-1 rounded-full bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50"
               >
                 {salvar.isPending
                   ? t("Registrando…", "Saving…")
-                  : t("Registrar despesas", "Save expenses")}
+                  : bloqueado
+                    ? t("Confirme a duplicidade", "Confirm the duplicate")
+                    : t("Registrar despesas", "Save expenses")}
               </button>
               <button
                 type="button"

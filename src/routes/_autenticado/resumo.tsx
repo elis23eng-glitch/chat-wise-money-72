@@ -540,6 +540,8 @@ function Resumo() {
         </aside>
       </section>
 
+      <BuscaAvancada />
+
       <EditarLancamento
         tipo={editando?.tipo ?? "gasto"}
         lancamento={editando?.lancamento ?? null}

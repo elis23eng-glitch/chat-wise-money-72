@@ -200,6 +200,7 @@ function Conversa() {
 
     if (!limpo || mutation.isPending) return;
     setTexto("");
+    setDitado(null);
     mutation.mutate(limpo);
   }
 

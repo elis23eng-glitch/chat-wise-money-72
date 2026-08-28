@@ -260,7 +260,7 @@ export function AtualizacaoApp() {
                 <BarChart
                   data={[...linhas].reverse().map((l) => ({ ...l, rotulo: dataLocal(l.data) }))}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="rotulo" tick={{ fontSize: 12 }} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={28} />
                   <Tooltip />
@@ -268,13 +268,13 @@ export function AtualizacaoApp() {
                   <Bar
                     dataKey="sucesso"
                     name={t("Sucesso", "Success")}
-                    fill="hsl(var(--primary))"
+                    fill="var(--primary)"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="erro"
                     name={t("Erro", "Error")}
-                    fill="hsl(var(--destructive))"
+                    fill="var(--destructive)"
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>

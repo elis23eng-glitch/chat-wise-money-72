@@ -28,7 +28,9 @@ function passo(ok, texto) {
   return ok;
 }
 
-const navegador = await chromium.launch();
+const navegador = await chromium.launch(
+  process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {},
+);
 const contexto = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 const pagina = await contexto.newPage();
 

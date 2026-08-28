@@ -9,17 +9,24 @@ import { chromium } from "playwright";
 
 const BASE = process.env.APP_URL ?? "http://localhost:8080";
 
+// Service worker legado (versão instalada há semanas): entrega a página
+// guardada em cache e revalida em segundo plano — o padrão que fazia o
+// usuário continuar vendo a marca antiga depois de uma atualização.
 const SW_ANTIGO = `
+const ANTIGA = '<!doctype html><html lang="pt-BR"><head><title>mergulho - assistente</title></head><body><h1>mergulho</h1></body></html>';
 self.addEventListener('install', (e) => { self.skipWaiting(); e.waitUntil(
-  caches.open('mergulho-v1').then((c) => c.put('/', new Response(
-    '<!doctype html><html lang="pt-BR"><head><title>mergulho — assistente</title></head><body><h1>mergulho</h1></body></html>',
-    { headers: { 'content-type': 'text/html' } })))
+  caches.open('mergulho-v1').then((c) => c.put('/', new Response(ANTIGA, { headers: { 'content-type': 'text/html' } })))
 ); });
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', (e) => {
-  if (e.request.mode === 'navigate') {
-    e.respondWith(caches.match('/').then((r) => r || fetch(e.request)));
-  }
+  if (e.request.mode !== 'navigate') return;
+  e.respondWith((async () => {
+    const cache = await caches.open('mergulho-v1');
+    const guardada = await cache.match('/');
+    const rede = fetch(e.request).then((r) => { cache.put('/', r.clone()); return r; });
+    e.waitUntil(rede.catch(() => undefined));
+    return guardada || rede;
+  })());
 });
 `;
 

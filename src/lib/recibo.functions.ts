@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CATEGORIAS } from "./agent.server";
+import { CATEGORIAS_GASTO } from "./categorias";
 import { lerReciboDaImagem } from "./recibo.server";
 
 const entradaSchema = z.object({
@@ -13,7 +13,7 @@ const entradaSchema = z.object({
 const itemSchema = z.object({
   descricao: z.string().min(1).max(120),
   valor: z.number().positive(),
-  categoria: z.enum(CATEGORIAS),
+  categoria: z.enum(CATEGORIAS_GASTO),
   data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 

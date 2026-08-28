@@ -2,12 +2,12 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { z } from "zod";
 
-import { CATEGORIAS } from "./agent.server";
+import { CATEGORIAS_GASTO } from "./categorias";
 
 export const itemReciboSchema = z.object({
   descricao: z.string().max(120),
   valor: z.number().positive(),
-  categoria: z.enum(CATEGORIAS),
+  categoria: z.enum(CATEGORIAS_GASTO),
   data: z.string(),
 });
 

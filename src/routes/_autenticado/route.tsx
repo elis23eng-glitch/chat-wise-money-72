@@ -76,6 +76,8 @@ function AppLayout() {
     { to: "/metas", label: t("Metas", "Goals") },
     { to: "/mercado", label: t("Mercado", "Market") },
     { to: "/insights", label: t("Insights", "Insights") },
+    { to: "/auditoria", label: t("Auditoria", "Audit") },
+    { to: "/seguranca", label: t("Segurança", "Security") },
   ] as const;
 
   if (loading || !session) {

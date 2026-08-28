@@ -53,41 +53,58 @@ export async function lerReciboDaImagem(options: {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
-  const lovable = createOpenAI({
-    baseURL: "https://ai.gateway.lovable.dev/v1",
-    apiKey,
-    headers: {
-      "Lovable-API-Key": apiKey,
-      "X-Lovable-AIG-SDK": "vercel-ai-sdk",
-    },
-  });
-
   const ajuste = options.ajuste?.trim();
+  const sistema =
+    options.idioma === "en"
+      ? `${PROMPT}\n\nO usuário escolheu inglês: escreva descricao e observacao em inglês simples, mas mantenha a categoria em português.`
+      : PROMPT;
 
-  const { object } = await generateObject({
-    model: lovable.chat("google/gemini-3.7-flash"),
-    schema: respostaSchema,
-    system:
-      options.idioma === "en"
-        ? `${PROMPT}\n\nO usuário escolheu inglês: escreva descricao e observacao em inglês simples, mas mantenha a categoria em português.`
-        : PROMPT,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: `Hoje é ${options.hoje}. Leia a imagem e extraia as despesas.${
-              ajuste
-                ? `\n\nA leitura anterior saiu errada. Correções e instruções da pessoa (siga com atenção): ${ajuste}`
-                : ""
-            }`,
-          },
-          { type: "file", mediaType: "image/jpeg", data: options.imagem },
-        ],
-      },
-    ],
+  const formato = `Responda SOMENTE com um JSON válido neste formato:
+{"estabelecimento": string|null, "data": "AAAA-MM-DD"|null, "hora": "HH:MM"|null, "local": string|null, "observacao": string,
+ "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null}]}`;
+
+  const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      "Lovable-API-Key": apiKey,
+    },
+    body: JSON.stringify({
+      model: "google/gemini-3.7-flash",
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: `${sistema}\n\n${formato}` },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Hoje é ${options.hoje}. Leia a imagem e extraia as despesas.${
+                ajuste
+                  ? `\n\nA leitura anterior saiu errada. Correções e instruções da pessoa (siga com atenção): ${ajuste}`
+                  : ""
+              }`,
+            },
+            { type: "image_url", image_url: { url: options.imagem } },
+          ],
+        },
+      ],
+    }),
   });
 
-  return object;
+  if (!resposta.ok) {
+    const detalhe = await resposta.text();
+    if (resposta.status === 429) throw new Error("Muitas leituras seguidas. Tente em instantes.");
+    if (resposta.status === 402) throw new Error("Os créditos de IA acabaram.");
+    throw new Error(`Falha ao ler a imagem (${resposta.status}): ${detalhe.slice(0, 200)}`);
+  }
+
+  const json = (await resposta.json()) as { choices?: { message?: { content?: string } }[] };
+  const texto = json.choices?.[0]?.message?.content ?? "";
+  const limpo = texto
+    .replace(/^```(?:json)?/i, "")
+    .replace(/```$/, "")
+    .trim();
+  return respostaSchema.parse(JSON.parse(limpo));
 }

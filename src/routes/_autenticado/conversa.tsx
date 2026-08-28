@@ -472,7 +472,7 @@ function Conversa() {
                 <VoiceInputButton
                   idioma={idioma === "en" ? "en" : "pt"}
                   onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
-                  onAutoSubmit={(txt) => submeter(txt)}
+                  onAutoSubmit={(txt) => setDitado(txt)}
                   disabled={mutation.isPending}
                 />
               </div>

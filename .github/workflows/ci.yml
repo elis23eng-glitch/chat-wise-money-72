@@ -5,6 +5,10 @@ on:
     branches: [main, master]
   pull_request:
     branches: [main, master]
+  schedule:
+    # Checagem diária da versão publicada (marca d'água).
+    - cron: "0 9 * * *"
+  workflow_dispatch:
 
 jobs:
   validar:
@@ -31,10 +35,45 @@ jobs:
         run: bun run test
 
       - name: Build de produção
-        run: bun run build
+        id: build
+        run: |
+          inicio=$(date +%s)
+          bun run build | tee /tmp/build.log
+          echo "duracao=$(( $(date +%s) - inicio ))" >> "$GITHUB_OUTPUT"
         env:
           # Valores fictícios apenas para validar a compilação no CI.
           # Nenhum dado real é acessado durante o build.
           VITE_SUPABASE_URL: https://exemplo-ci.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
           VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci
+
+      - name: Resumo do build
+        if: always()
+        run: |
+          {
+            echo "## Resumo do build"
+            echo ""
+            echo "| Item | Valor |"
+            echo "| --- | --- |"
+            echo "| Commit | \`${GITHUB_SHA::7}\` |"
+            echo "| Status do build | ${{ steps.build.outcome }} |"
+            echo "| Duração do build | ${{ steps.build.outputs.duracao || 'n/d' }}s |"
+            echo "| Tamanho de \`.output\` | $(du -sh .output 2>/dev/null | cut -f1 || echo 'n/d') |"
+            echo "| Arquivos JS gerados | $(find .output -name '*.js' 2>/dev/null | wc -l) |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  marca-dagua:
+    name: Validação visual (marca d'água)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Conferir marca d'água no app publicado
+        run: bun scripts/verificar-marca-dagua.mjs
+        env:
+          APP_URL: https://chat-wise-money-72.lovable.app

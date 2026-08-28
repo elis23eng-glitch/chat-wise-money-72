@@ -34,3 +34,5 @@ dist-ssr
 # Variáveis de ambiente (nunca versionar chaves)
 .env
 .env.*
+tests/visual/atual
+tests/visual/diff

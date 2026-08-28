@@ -65,7 +65,7 @@ export async function lerReciboDaImagem(options: {
   const ajuste = options.ajuste?.trim();
 
   const { object } = await generateObject({
-    model: lovable("google/gemini-3.7-flash"),
+    model: lovable.chat("google/gemini-3.7-flash"),
     schema: respostaSchema,
     system:
       options.idioma === "en"
@@ -83,7 +83,7 @@ export async function lerReciboDaImagem(options: {
                 : ""
             }`,
           },
-          { type: "image", image: options.imagem },
+          { type: "file", mediaType: "image/jpeg", data: options.imagem },
         ],
       },
     ],

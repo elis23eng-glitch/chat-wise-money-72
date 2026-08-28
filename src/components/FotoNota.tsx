@@ -119,14 +119,30 @@ async function prepararArquivo(arquivo: File) {
   return { dados: await prepararImagem(arquivo), mime: "image/jpeg", nome: arquivo.name };
 }
 
-const BAIXA = 0.7;
+/** Limiares escolhidos pela pessoa na tela de Auditoria (com padrão seguro). */
+const LIMIARES = {
+  geral: 0.7,
+  alerta: 0.7,
+  valor: 0.8,
+  data: 0.7,
+  estabelecimento: 0.6,
+  categoria: 0.6,
+};
+
+function limiarDoCampo(campo: Campo) {
+  if (campo === "valor") return LIMIARES.valor;
+  if (campo === "data") return LIMIARES.data;
+  if (campo === "estabelecimento") return LIMIARES.estabelecimento;
+  if (campo === "categoria") return LIMIARES.categoria;
+  return LIMIARES.geral;
+}
 
 function duvidoso(item: Item) {
-  return (item.confianca ?? 1) < BAIXA || (item.campos_incertos ?? []).length > 0;
+  return (item.confianca ?? 1) < LIMIARES.geral || (item.campos_incertos ?? []).length > 0;
 }
 
 function incerto(item: Item, campo: Campo) {
-  return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < BAIXA;
+  return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < limiarDoCampo(campo);
 }
 
 function classeCampo(item: Item, campo: Campo) {

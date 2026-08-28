@@ -82,7 +82,9 @@ function BotaoRecarregarApp() {
           await recarregarAppAgora();
         } catch {
           setRecarregando(false);
-          toast.error(t("Conecte-se à internet para recarregar.", "Connect to the internet to reload."));
+          toast.error(
+            t("Conecte-se à internet para recarregar.", "Connect to the internet to reload."),
+          );
         }
       }}
     >

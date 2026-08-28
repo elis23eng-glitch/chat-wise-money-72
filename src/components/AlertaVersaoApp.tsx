@@ -57,7 +57,9 @@ export function AlertaVersaoApp() {
             await recarregarAppAgora();
           } catch {
             setRecarregando(false);
-            toast.error(t("Conecte-se à internet para atualizar.", "Connect to the internet to update."));
+            toast.error(
+              t("Conecte-se à internet para atualizar.", "Connect to the internet to update."),
+            );
           }
         }}
       >

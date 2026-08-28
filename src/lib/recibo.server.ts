@@ -20,8 +20,17 @@ export const itemReciboSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),
   hora: z.string().max(10).nullable(),
   local: z.string().max(160).nullable(),
-  confianca: z.number().min(0).max(1).default(0.8),
-  campos_incertos: z.array(z.enum(CAMPOS_RECIBO)).max(7).default([]),
+  confianca: z.coerce.number().min(0).max(1).catch(0.8).default(0.8),
+  campos_incertos: z
+    .array(z.string())
+    .catch([])
+    .default([])
+    .transform((lista) =>
+      lista.filter((c): c is (typeof CAMPOS_RECIBO)[number] =>
+        (CAMPOS_RECIBO as readonly string[]).includes(c),
+      ),
+    ),
+
 });
 
 

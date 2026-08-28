@@ -266,25 +266,33 @@ jobs:
       - name: Instalar navegador do Playwright
         run: bunx playwright install --with-deps chromium
 
-      - name: Subir o app
+      - name: Subir o app e rodar os roteiros E2E
         env:
           # Valores fictícios: o app precisa das variáveis para iniciar,
           # mas o teste só verifica marca, cache e service worker.
           VITE_SUPABASE_URL: https://exemplo-ci.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
           VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci
+          SUPABASE_URL: https://exemplo-ci.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
+          SUPABASE_PROJECT_ID: projeto-ficticio-ci
+          APP_URL: http://localhost:8080
         run: |
-          bun run dev &
-          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:8080/ && break; sleep 2; done
-          curl -sf -o /dev/null http://localhost:8080/
+          set -e
+          bun run dev > /tmp/dev-server.log 2>&1 &
+          pronto=0
+          for i in $(seq 1 90); do
+            if curl -sf -o /dev/null http://localhost:8080/; then pronto=1; break; fi
+            sleep 2
+          done
+          if [ "$pronto" != "1" ]; then
+            echo "O app não subiu a tempo. Log do servidor:"
+            tail -n 100 /tmp/dev-server.log
+            exit 1
+          fi
+          bun scripts/e2e-atualizacao-pwa.mjs
+          bun scripts/e2e-offline-marca.mjs
 
-
-      - name: Simular usuário com o app instalado
-        run: bun scripts/e2e-atualizacao-pwa.mjs
-        env:
-          APP_URL: http://localhost:8080
-
-      - name: Simular abertura offline / alto cache
-        run: bun scripts/e2e-offline-marca.mjs
-        env:
-          APP_URL: http://localhost:8080
+      - name: Log do servidor (em caso de falha)
+        if: failure()
+        run: tail -n 200 /tmp/dev-server.log || true

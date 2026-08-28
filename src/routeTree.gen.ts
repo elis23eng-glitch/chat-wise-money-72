@@ -14,6 +14,7 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as InstalarRouteImport } from './routes/instalar'
+import { Route as NovaSenhaRouteImport } from './routes/nova-senha'
 import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as AutenticadoAnoRouteImport } from './routes/_autenticado/ano'
 import { Route as AutenticadoAuditoriaRouteImport } from './routes/_autenticado/auditoria'
@@ -49,6 +50,11 @@ const EntrarRoute = EntrarRouteImport.update({
 const InstalarRoute = InstalarRouteImport.update({
   id: '/instalar',
   path: '/instalar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovaSenhaRoute = NovaSenhaRouteImport.update({
+  id: '/nova-senha',
+  path: '/nova-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SegurancaRoute = SegurancaRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/nova-senha': typeof NovaSenhaRoute
   '/seguranca': typeof SegurancaRoute
   '/ano': typeof AutenticadoAnoRoute
   '/auditoria': typeof AutenticadoAuditoriaRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/nova-senha': typeof NovaSenhaRoute
   '/seguranca': typeof SegurancaRoute
   '/ano': typeof AutenticadoAnoRoute
   '/auditoria': typeof AutenticadoAuditoriaRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/nova-senha': typeof NovaSenhaRoute
   '/seguranca': typeof SegurancaRoute
   '/_autenticado/ano': typeof AutenticadoAnoRoute
   '/_autenticado/auditoria': typeof AutenticadoAuditoriaRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/nova-senha'
     | '/seguranca'
     | '/ano'
     | '/auditoria'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/nova-senha'
     | '/seguranca'
     | '/ano'
     | '/auditoria'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/nova-senha'
     | '/seguranca'
     | '/_autenticado/ano'
     | '/_autenticado/auditoria'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   EntrarRoute: typeof EntrarRoute
   InstalarRoute: typeof InstalarRoute
+  NovaSenhaRoute: typeof NovaSenhaRoute
   SegurancaRoute: typeof SegurancaRoute
   ApiTtsRoute: typeof ApiTtsRoute
 }
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/instalar'
       fullPath: '/instalar'
       preLoaderRoute: typeof InstalarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nova-senha': {
+      id: '/nova-senha'
+      path: '/nova-senha'
+      fullPath: '/nova-senha'
+      preLoaderRoute: typeof NovaSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/seguranca': {
@@ -396,6 +416,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   EntrarRoute: EntrarRoute,
   InstalarRoute: InstalarRoute,
+  NovaSenhaRoute: NovaSenhaRoute,
   SegurancaRoute: SegurancaRoute,
   ApiTtsRoute: ApiTtsRoute,
 }

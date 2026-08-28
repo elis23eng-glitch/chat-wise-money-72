@@ -50,6 +50,13 @@
       "when": 1787929586625,
       "tag": "0006_expenses_comprovante",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787929611401,
+      "tag": "0007_comprovantes_storage_policies",
+      "breakpoints": true
     }
   ]
 }

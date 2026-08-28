@@ -5,7 +5,7 @@
  * clients.claim). Assim, quem já tem o app instalado recebe a versão
  * atual ao abrir, sem precisar reinstalar.
  */
-const VERSAO = "wise-money-v2";
+const VERSAO = "wise-money-v4";
 const ESTATICOS = `${VERSAO}-estaticos`;
 
 self.addEventListener("install", (evento) => {

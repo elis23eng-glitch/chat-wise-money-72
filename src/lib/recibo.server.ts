@@ -75,7 +75,7 @@ export async function lerReciboDaImagem(options: {
 
   const formato = `Responda SOMENTE com um JSON válido neste formato:
 {"estabelecimento": string|null, "data": "AAAA-MM-DD"|null, "hora": "HH:MM"|null, "local": string|null, "observacao": string,
- "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null}]}`;
+ "itens": [{"descricao": string, "valor": number, "categoria": "${CATEGORIAS_GASTO.join('"|"')}", "data": "AAAA-MM-DD", "estabelecimento": string|null, "hora": string|null, "local": string|null, "confianca": number, "campos_incertos": string[]}]}`;
 
   const resposta = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",

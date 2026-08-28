@@ -65,7 +65,7 @@ try {
   ok = passo(/mergulho/i.test(conteudoAntigo), "Estado inicial reproduz a marca antiga em cache");
 
   // 3. Reabertura: o app atual deve assumir e trocar o service worker sozinho.
-  await pagina.goto(`${BASE}/?atualizar=1`, { waitUntil: "domcontentloaded" });
+  await pagina.goto(`${BASE}/?sw=on`, { waitUntil: "domcontentloaded" });
   await pagina.waitForFunction(
     async () => {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -77,7 +77,7 @@ try {
     { timeout: 20000 },
   );
 
-  await pagina.goto(BASE, { waitUntil: "domcontentloaded" });
+  await pagina.goto(`${BASE}/?sw=on`, { waitUntil: "domcontentloaded" });
   // O app pode recarregar sozinho uma vez quando o novo service worker assume:
   // espera a página estabilizar antes de ler o conteúdo.
   await pagina.waitForTimeout(4000);

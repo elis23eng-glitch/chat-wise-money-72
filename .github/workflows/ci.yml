@@ -243,6 +243,11 @@ jobs:
         env:
           APP_URL: https://chat-wise-money-72.lovable.app
 
+      - name: Conferir manifest.json e textos dos assets
+        run: bun scripts/verificar-manifest.mjs
+        env:
+          APP_URL: https://chat-wise-money-72.lovable.app
+
   e2e-atualizacao:
     name: E2E — app instalado atualiza sem reinstalar
     runs-on: ubuntu-latest

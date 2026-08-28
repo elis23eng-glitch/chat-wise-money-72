@@ -185,6 +185,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ocr_settings: {
+        Row: {
+          alerta_medio: number
+          limiar_categoria: number
+          limiar_data: number
+          limiar_estabelecimento: number
+          limiar_geral: number
+          limiar_valor: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alerta_medio?: number
+          limiar_categoria?: number
+          limiar_data?: number
+          limiar_estabelecimento?: number
+          limiar_geral?: number
+          limiar_valor?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alerta_medio?: number
+          limiar_categoria?: number
+          limiar_data?: number
+          limiar_estabelecimento?: number
+          limiar_geral?: number
+          limiar_valor?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -200,6 +233,111 @@ export type Database = {
           created_at?: string
           id?: string
           nome?: string | null
+        }
+        Relationships: []
+      }
+      receipt_audits: {
+        Row: {
+          arquivo_tipo: string | null
+          comprovante: string | null
+          confianca_media: number
+          created_at: string
+          data: string | null
+          duplicidade_ignorada: boolean
+          duplicidade_total: number
+          edicoes: Json
+          estabelecimento: string | null
+          id: string
+          itens: Json
+          itens_baixa_confianca: number
+          observacao: string
+          tentativas_ocr: number
+          total_itens: number
+          user_id: string
+        }
+        Insert: {
+          arquivo_tipo?: string | null
+          comprovante?: string | null
+          confianca_media?: number
+          created_at?: string
+          data?: string | null
+          duplicidade_ignorada?: boolean
+          duplicidade_total?: number
+          edicoes?: Json
+          estabelecimento?: string | null
+          id?: string
+          itens?: Json
+          itens_baixa_confianca?: number
+          observacao?: string
+          tentativas_ocr?: number
+          total_itens?: number
+          user_id: string
+        }
+        Update: {
+          arquivo_tipo?: string | null
+          comprovante?: string | null
+          confianca_media?: number
+          created_at?: string
+          data?: string | null
+          duplicidade_ignorada?: boolean
+          duplicidade_total?: number
+          edicoes?: Json
+          estabelecimento?: string | null
+          id?: string
+          itens?: Json
+          itens_baixa_confianca?: number
+          observacao?: string
+          tentativas_ocr?: number
+          total_itens?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recurring_rules: {
+        Row: {
+          ativa: boolean
+          categoria: string
+          chave: string
+          created_at: string
+          descricao: string
+          dia_do_mes: number
+          estabelecimento: string | null
+          frequencia: string
+          id: string
+          proxima_data: string | null
+          ultimo_registro: string | null
+          user_id: string
+          valor_medio: number
+        }
+        Insert: {
+          ativa?: boolean
+          categoria?: string
+          chave: string
+          created_at?: string
+          descricao: string
+          dia_do_mes?: number
+          estabelecimento?: string | null
+          frequencia?: string
+          id?: string
+          proxima_data?: string | null
+          ultimo_registro?: string | null
+          user_id: string
+          valor_medio?: number
+        }
+        Update: {
+          ativa?: boolean
+          categoria?: string
+          chave?: string
+          created_at?: string
+          descricao?: string
+          dia_do_mes?: number
+          estabelecimento?: string | null
+          frequencia?: string
+          id?: string
+          proxima_data?: string | null
+          ultimo_registro?: string | null
+          user_id?: string
+          valor_medio?: number
         }
         Relationships: []
       }

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
@@ -17,11 +17,36 @@ import { toast } from "sonner";
 
 import { CATEGORIAS_GASTO, CATEGORIA_EN, type CategoriaGasto } from "@/lib/categorias";
 import { useIdioma } from "@/lib/i18n";
+import { obterLimiares, registrarAuditoria } from "@/lib/auditoria.functions";
 import {
   lerRecibo,
   registrarDespesasDoRecibo,
   verificarDuplicidadeRecibo,
 } from "@/lib/recibo.functions";
+
+/** Compara a primeira leitura do OCR com o que a pessoa vai salvar. */
+function diferencas(antes: Item[], depois: Item[]) {
+  const campos: Campo[] = ["descricao", "valor", "categoria", "data", "estabelecimento", "hora"];
+  const lista: { item: string; campo: string; antes: string; depois: string }[] = [];
+  depois.forEach((d, i) => {
+    const a = antes[i];
+    if (!a) {
+      lista.push({ item: d.descricao, campo: "item", antes: "—", depois: "adicionado" });
+      return;
+    }
+    for (const c of campos) {
+      const va = String(a[c] ?? "");
+      const vd = String(d[c] ?? "");
+      if (va !== vd) lista.push({ item: d.descricao, campo: c, antes: va, depois: vd });
+    }
+  });
+  if (antes.length > depois.length) {
+    antes.slice(depois.length).forEach((a) => {
+      lista.push({ item: a.descricao, campo: "item", antes: "lido", depois: "removido" });
+    });
+  }
+  return lista.slice(0, 200);
+}
 
 type Campo = "descricao" | "valor" | "categoria" | "data" | "estabelecimento" | "hora" | "local";
 
@@ -119,14 +144,32 @@ async function prepararArquivo(arquivo: File) {
   return { dados: await prepararImagem(arquivo), mime: "image/jpeg", nome: arquivo.name };
 }
 
-const BAIXA = 0.7;
+/** Limiares escolhidos pela pessoa na tela de Auditoria (com padrão seguro). */
+const LIMIARES = {
+  geral: 0.7,
+  alerta: 0.7,
+  valor: 0.8,
+  data: 0.7,
+  estabelecimento: 0.6,
+  categoria: 0.6,
+};
+
+function limiarDoCampo(campo: Campo) {
+  if (campo === "valor") return LIMIARES.valor;
+  if (campo === "data") return LIMIARES.data;
+  if (campo === "estabelecimento") return LIMIARES.estabelecimento;
+  if (campo === "categoria") return LIMIARES.categoria;
+  return LIMIARES.geral;
+}
 
 function duvidoso(item: Item) {
-  return (item.confianca ?? 1) < BAIXA || (item.campos_incertos ?? []).length > 0;
+  return (item.confianca ?? 1) < LIMIARES.geral || (item.campos_incertos ?? []).length > 0;
 }
 
 function incerto(item: Item, campo: Campo) {
-  return (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < BAIXA;
+  return (
+    (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < limiarDoCampo(campo)
+  );
 }
 
 function classeCampo(item: Item, campo: Campo) {
@@ -143,6 +186,18 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const ler = useServerFn(lerRecibo);
   const registrar = useServerFn(registrarDespesasDoRecibo);
   const checarDuplicidade = useServerFn(verificarDuplicidadeRecibo);
+  const auditar = useServerFn(registrarAuditoria);
+  const obterLim = useServerFn(obterLimiares);
+
+  const { data: limiares } = useQuery({ queryKey: ["limiares"], queryFn: () => obterLim() });
+  if (limiares) {
+    LIMIARES.geral = limiares.limiar_geral;
+    LIMIARES.alerta = limiares.alerta_medio;
+    LIMIARES.valor = limiares.limiar_valor;
+    LIMIARES.data = limiares.limiar_data;
+    LIMIARES.estabelecimento = limiares.limiar_estabelecimento;
+    LIMIARES.categoria = limiares.limiar_categoria;
+  }
 
   const [previa, setPrevia] = useState<string | null>(null);
   const [mime, setMime] = useState<string>("image/jpeg");
@@ -258,10 +313,41 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   });
 
   const salvar = useMutation({
-    mutationFn: async (lista: Item[]) =>
-      registrar({
+    mutationFn: async (lista: Item[]) => {
+      const r = await registrar({
         data: { itens: lista, ...(anexar && previa ? { imagem: previa, mime } : {}) },
-      }),
+      });
+      try {
+        const media =
+          lista.length > 0 ? lista.reduce((s, i) => s + (i.confianca ?? 1), 0) / lista.length : 1;
+        await auditar({
+          data: {
+            comprovante: r.comprovante ?? null,
+            estabelecimento: lista[0]?.estabelecimento ?? null,
+            data: lista[0]?.data ?? null,
+            arquivoTipo: mime,
+            totalItens: lista.length,
+            itensBaixaConfianca: lista.filter(duvidoso).length,
+            confiancaMedia: Math.min(1, Math.max(0, media)),
+            tentativasOcr: Math.max(1, historico.length),
+            duplicidadeTotal: duplicidade?.total ?? 0,
+            duplicidadeIgnorada: ignorarDuplicidade,
+            observacao: observacao.slice(0, 400),
+            edicoes: diferencas(historico[0]?.itens ?? [], lista),
+            itens: lista.map((i) => ({
+              descricao: i.descricao,
+              valor: i.valor,
+              categoria: i.categoria,
+              data: i.data,
+              ...(typeof i.confianca === "number" ? { confianca: i.confianca } : {}),
+            })),
+          },
+        });
+      } catch {
+        /* a auditoria é um extra: nunca impede o registro da despesa */
+      }
+      return r;
+    },
     onSuccess: (r) => {
       toast.success(t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`));
       fechar();
@@ -361,7 +447,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     (itens ?? []).length > 0
       ? (itens ?? []).reduce((s, i) => s + (i.confianca ?? 1), 0) / (itens ?? []).length
       : 1;
-  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < BAIXA;
+  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < LIMIARES.alerta;
   const primeiro = itens?.[0];
   const primeiroDuvidoso = duvidososLista[0];
   const baseLote = soDuvidosos ? primeiroDuvidoso : primeiro;
@@ -687,7 +773,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                       {(item.confianca ?? 1) < 1 && (
                         <p
                           className={`mb-2 text-xs font-semibold ${
-                            (item.confianca ?? 1) < BAIXA
+                            (item.confianca ?? 1) < LIMIARES.geral
                               ? "text-destructive"
                               : "text-muted-foreground"
                           }`}

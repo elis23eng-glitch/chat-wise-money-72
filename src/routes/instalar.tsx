@@ -158,8 +158,15 @@ function ComoInstalar() {
       <AtualizacaoApp />
 
       <Link
+        to="/seguranca"
+        className="mt-6 block rounded-full bg-secondary px-6 py-4 text-center text-lg font-semibold text-primary-deep"
+      >
+        {t("A instalação é segura? Veja aqui", "Is installing safe? See here")}
+      </Link>
+
+      <Link
         to="/entrar"
-        className="mt-6 block rounded-full bg-primary px-6 py-4 text-center text-lg font-semibold text-primary-foreground"
+        className="mt-3 block rounded-full bg-primary px-6 py-4 text-center text-lg font-semibold text-primary-foreground"
       >
         {t("Entrar no Wise Money", "Go to Wise Money")}
       </Link>

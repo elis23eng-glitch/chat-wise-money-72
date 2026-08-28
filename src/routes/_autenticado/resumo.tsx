@@ -18,6 +18,7 @@ import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLa
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { VerComprovante } from "@/components/VerComprovante";
 import { ExportarComprovantes } from "@/components/ExportarComprovantes";
+import { BuscaAvancada } from "@/components/BuscaAvancada";
 
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
@@ -539,6 +540,8 @@ function Resumo() {
           <ExportarComprovantes />
         </aside>
       </section>
+
+      <BuscaAvancada />
 
       <EditarLancamento
         tipo={editando?.tipo ?? "gasto"}

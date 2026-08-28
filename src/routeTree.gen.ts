@@ -14,7 +14,9 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as AutenticadoRouteRouteImport } from './routes/_autenticado/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as InstalarRouteImport } from './routes/instalar'
+import { Route as SegurancaRouteImport } from './routes/seguranca'
 import { Route as AutenticadoAnoRouteImport } from './routes/_autenticado/ano'
+import { Route as AutenticadoAuditoriaRouteImport } from './routes/_autenticado/auditoria'
 import { Route as AutenticadoConversaRouteImport } from './routes/_autenticado/conversa'
 import { Route as AutenticadoInsightsRouteImport } from './routes/_autenticado/insights'
 import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/mercado'
@@ -47,9 +49,19 @@ const InstalarRoute = InstalarRouteImport.update({
   path: '/instalar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SegurancaRoute = SegurancaRouteImport.update({
+  id: '/seguranca',
+  path: '/seguranca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AutenticadoAnoRoute = AutenticadoAnoRouteImport.update({
   id: '/ano',
   path: '/ano',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
+const AutenticadoAuditoriaRoute = AutenticadoAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
 const AutenticadoConversaRoute = AutenticadoConversaRouteImport.update({
@@ -93,7 +105,9 @@ export interface FileRoutesByFullPath {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/seguranca': typeof SegurancaRoute
   '/ano': typeof AutenticadoAnoRoute
+  '/auditoria': typeof AutenticadoAuditoriaRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
@@ -107,7 +121,9 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/seguranca': typeof SegurancaRoute
   '/ano': typeof AutenticadoAnoRoute
+  '/auditoria': typeof AutenticadoAuditoriaRoute
   '/conversa': typeof AutenticadoConversaRoute
   '/insights': typeof AutenticadoInsightsRoute
   '/mercado': typeof AutenticadoMercadoRoute
@@ -123,7 +139,9 @@ export interface FileRoutesById {
   '/$': typeof SplatRoute
   '/entrar': typeof EntrarRoute
   '/instalar': typeof InstalarRoute
+  '/seguranca': typeof SegurancaRoute
   '/_autenticado/ano': typeof AutenticadoAnoRoute
+  '/_autenticado/auditoria': typeof AutenticadoAuditoriaRoute
   '/_autenticado/conversa': typeof AutenticadoConversaRoute
   '/_autenticado/insights': typeof AutenticadoInsightsRoute
   '/_autenticado/mercado': typeof AutenticadoMercadoRoute
@@ -139,7 +157,9 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/seguranca'
     | '/ano'
+    | '/auditoria'
     | '/conversa'
     | '/insights'
     | '/mercado'
@@ -153,7 +173,9 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/seguranca'
     | '/ano'
+    | '/auditoria'
     | '/conversa'
     | '/insights'
     | '/mercado'
@@ -168,7 +190,9 @@ export interface FileRouteTypes {
     | '/$'
     | '/entrar'
     | '/instalar'
+    | '/seguranca'
     | '/_autenticado/ano'
+    | '/_autenticado/auditoria'
     | '/_autenticado/conversa'
     | '/_autenticado/insights'
     | '/_autenticado/mercado'
@@ -184,6 +208,7 @@ export interface RootRouteChildren {
   SplatRoute: typeof SplatRoute
   EntrarRoute: typeof EntrarRoute
   InstalarRoute: typeof InstalarRoute
+  SegurancaRoute: typeof SegurancaRoute
   ApiTtsRoute: typeof ApiTtsRoute
 }
 
@@ -224,11 +249,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstalarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/seguranca': {
+      id: '/seguranca'
+      path: '/seguranca'
+      fullPath: '/seguranca'
+      preLoaderRoute: typeof SegurancaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_autenticado/ano': {
       id: '/_autenticado/ano'
       path: '/ano'
       fullPath: '/ano'
       preLoaderRoute: typeof AutenticadoAnoRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
+    '/_autenticado/auditoria': {
+      id: '/_autenticado/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AutenticadoAuditoriaRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
     '/_autenticado/conversa': {
@@ -285,6 +324,7 @@ declare module '@tanstack/react-router' {
 
 interface AutenticadoRouteRouteChildren {
   AutenticadoAnoRoute: typeof AutenticadoAnoRoute
+  AutenticadoAuditoriaRoute: typeof AutenticadoAuditoriaRoute
   AutenticadoConversaRoute: typeof AutenticadoConversaRoute
   AutenticadoInsightsRoute: typeof AutenticadoInsightsRoute
   AutenticadoMercadoRoute: typeof AutenticadoMercadoRoute
@@ -295,6 +335,7 @@ interface AutenticadoRouteRouteChildren {
 
 const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoAnoRoute: AutenticadoAnoRoute,
+  AutenticadoAuditoriaRoute: AutenticadoAuditoriaRoute,
   AutenticadoConversaRoute: AutenticadoConversaRoute,
   AutenticadoInsightsRoute: AutenticadoInsightsRoute,
   AutenticadoMercadoRoute: AutenticadoMercadoRoute,
@@ -312,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   SplatRoute: SplatRoute,
   EntrarRoute: EntrarRoute,
   InstalarRoute: InstalarRoute,
+  SegurancaRoute: SegurancaRoute,
   ApiTtsRoute: ApiTtsRoute,
 }
 export const routeTree = rootRouteImport

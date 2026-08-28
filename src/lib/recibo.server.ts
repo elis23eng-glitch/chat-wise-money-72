@@ -53,7 +53,10 @@ Regras:
 - categoria deve ser uma das permitidas; na dúvida use "outros".
 - descricao curta e clara (ex.: "Arroz 5kg — Mercado Bom Preço").
 - Se nada estiver legível, devolva itens vazio e explique com gentileza em observacao.
+- confianca: número de 0 a 1 dizendo o quanto você tem certeza da leitura DAQUELE item (1 = perfeitamente legível, 0.4 = bem duvidoso).
+- campos_incertos: liste os nomes dos campos daquele item que você teve dificuldade de ler (ex.: ["valor","data"]). Se estiver tudo claro, use [].
 - observacao: uma frase curta e acolhedora dizendo o que você entendeu.`;
+
 
 export async function lerReciboDaImagem(options: {
   imagem: string;

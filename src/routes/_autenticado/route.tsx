@@ -11,6 +11,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimeiroAcesso";
 import { AutoAtualizacao } from "@/components/AutoAtualizacao";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { MonitorAcesso } from "@/components/MonitorAcesso";
 
 export const Route = createFileRoute("/_autenticado")({
   ssr: false,
@@ -167,6 +168,7 @@ function AppLayout() {
         </div>
       </div>
 
+      <MonitorAcesso />
       <AutoAtualizacao />
       <PullToRefresh />
       <TutorialPrimeiroAcesso aberto={tutorial.aberto} aoFechar={tutorial.fechar} />

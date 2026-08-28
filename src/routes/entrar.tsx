@@ -326,6 +326,15 @@ function Entrar() {
             </button>
           )}
 
+          {modo === "entrar" && (
+            <button
+              onClick={recuperarSenha}
+              className="mt-4 w-full text-sm font-semibold text-muted-foreground underline"
+            >
+              {t("Esqueci minha senha", "Forgot my password")}
+            </button>
+          )}
+
           <button
             onClick={() => setModo(modo === "entrar" ? "criar" : "entrar")}
             className="mt-5 w-full text-sm font-semibold text-primary"

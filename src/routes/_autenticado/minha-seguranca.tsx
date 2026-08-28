@@ -8,6 +8,11 @@ import { LogOut, MonitorSmartphone, ShieldCheck, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIdioma } from "@/lib/i18n";
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
+import {
+  CodigosRecuperacao,
+  DispositivosConfiaveis,
+  HistoricoAcessos,
+} from "@/components/SegurancaAcessos";
 
 export const Route = createFileRoute("/_autenticado/minha-seguranca")({
   head: () => ({
@@ -350,6 +355,10 @@ function MinhaSeguranca() {
           </button>
         )}
       </section>
+
+      <CodigosRecuperacao />
+      <HistoricoAcessos />
+      <DispositivosConfiaveis />
 
       {/* Privacidade */}
       <section className="surface-card mt-6 p-6 shadow-soft">

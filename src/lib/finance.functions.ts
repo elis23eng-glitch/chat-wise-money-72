@@ -44,7 +44,8 @@ export const getOverview = createServerFn({ method: "GET" })
     const [{ data: gastos }, { data: entradas }, { data: metas }] = await Promise.all([
       supabase
         .from("expenses")
-        .select("id, valor, categoria, descricao, data, created_at")
+        .select("id, valor, categoria, descricao, data, created_at, estabelecimento, hora, comprovante")
+
         .eq("user_id", userId)
         .gte("data", inicioDoMes(-3))
         .order("data", { ascending: false }),

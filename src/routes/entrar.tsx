@@ -63,9 +63,7 @@ function Entrar() {
     e.preventDefault();
     setEnviando(true);
     window.localStorage.setItem("wise-money-email", email);
-    window.localStorage.setItem("wise-money-lembrar", lembrar ? "1" : "0");
-    if (lembrar) salvarSenha(senha);
-    else limparSenhaSalva();
+    window.localStorage.setItem("wise-money-manter-conectado", manterConectado ? "1" : "0");
 
     try {
       if (modo === "criar") {
@@ -151,7 +149,7 @@ function Entrar() {
     abrirConversa();
   }
 
-  if (loading || entrandoSozinho) {
+  if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-background px-6 text-center">
         <p className="text-lg font-semibold text-muted-foreground">
@@ -261,16 +259,16 @@ function Entrar() {
             <label className="flex items-start gap-3 rounded-2xl bg-secondary/60 px-4 py-3">
               <input
                 type="checkbox"
-                checked={lembrar}
-                onChange={(e) => setLembrar(e.target.checked)}
+                checked={manterConectado}
+                onChange={(e) => setManterConectado(e.target.checked)}
                 className="mt-1 size-5 accent-[hsl(var(--primary))]"
               />
               <span className="text-sm font-semibold leading-snug">
-                {t("Entrar sozinho neste aparelho", "Sign in automatically on this device")}
+                {t("Continuar conectado neste dispositivo", "Keep me signed in on this device")}
                 <span className="block text-xs font-normal text-muted-foreground">
                   {t(
-                    "Salvamos sua senha só neste celular para você não digitar toda vez.",
-                    "We save your password on this phone only, so you don't type it every time.",
+                    "Mantenha minha sessão conectada neste dispositivo.",
+                    "Keep my session active on this personal device.",
                   )}
                 </span>
               </span>

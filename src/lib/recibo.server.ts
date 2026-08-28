@@ -30,9 +30,7 @@ export const itemReciboSchema = z.object({
         (CAMPOS_RECIBO as readonly string[]).includes(c),
       ),
     ),
-
 });
-
 
 const respostaSchema = z.object({
   estabelecimento: z.string().max(120).nullable(),
@@ -65,7 +63,6 @@ Regras:
 - confianca: número de 0 a 1 dizendo o quanto você tem certeza da leitura DAQUELE item (1 = perfeitamente legível, 0.4 = bem duvidoso).
 - campos_incertos: liste os nomes dos campos daquele item que você teve dificuldade de ler (ex.: ["valor","data"]). Se estiver tudo claro, use [].
 - observacao: uma frase curta e acolhedora dizendo o que você entendeu.`;
-
 
 export async function lerReciboDaImagem(options: {
   imagem: string;

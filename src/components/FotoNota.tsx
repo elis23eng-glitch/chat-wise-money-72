@@ -1,14 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  AlertTriangle,
-  Camera,
-  History,
-  Loader2,
-  RefreshCw,
-  Trash2,
-  Wand2,
-} from "lucide-react";
+import { AlertTriangle, Camera, History, Loader2, RefreshCw, Trash2, Wand2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 

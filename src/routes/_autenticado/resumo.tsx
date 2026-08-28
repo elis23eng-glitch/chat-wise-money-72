@@ -18,7 +18,6 @@ import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLa
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { VerComprovante } from "@/components/VerComprovante";
 
-
 export const Route = createFileRoute("/_autenticado/resumo")({
   head: () => ({
     meta: [

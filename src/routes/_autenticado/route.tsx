@@ -39,6 +39,8 @@ function BotaoAtualizar() {
             qc.refetchQueries({ queryKey: ["mensagens"], type: "all" }),
             qc.refetchQueries({ queryKey: ["alertas-historico"], type: "all" }),
             qc.refetchQueries({ queryKey: ["ano"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["lembretes"], type: "all" }),
+            qc.refetchQueries({ queryKey: ["saude"], type: "all" }),
           ]);
           toast.success(t("Dados atualizados!", "Data updated!"));
         } catch {

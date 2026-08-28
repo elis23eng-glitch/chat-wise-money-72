@@ -18,6 +18,7 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
+import { FotoNota } from "@/components/FotoNota";
 import { PainelVoz } from "@/components/PainelVoz";
 import { ResumoEmAudio } from "@/components/ResumoEmAudio";
 import { VoiceInputButton } from "@/components/VoiceInputButton";
@@ -417,12 +418,15 @@ function Conversa() {
               )}
             />
             <PromptInputFooter className="justify-between">
-              <VoiceInputButton
-                idioma={idioma === "en" ? "en" : "pt"}
-                onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
-                onAutoSubmit={(txt) => submeter(txt)}
-                disabled={mutation.isPending}
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                <FotoNota disabled={mutation.isPending} />
+                <VoiceInputButton
+                  idioma={idioma === "en" ? "en" : "pt"}
+                  onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
+                  onAutoSubmit={(txt) => submeter(txt)}
+                  disabled={mutation.isPending}
+                />
+              </div>
 
               <PromptInputSubmit
                 status={mutation.isPending ? "submitted" : "ready"}

@@ -147,8 +147,7 @@ function AppLayout() {
             </button>
             <button
               onClick={async () => {
-                window.localStorage.removeItem("wise-money-senha");
-                window.localStorage.setItem("wise-money-lembrar", "0");
+                window.localStorage.setItem("wise-money-manter-conectado", "0");
                 await supabase.auth.signOut();
                 navigate({ to: "/" });
               }}

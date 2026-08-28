@@ -32,30 +32,6 @@ export const Route = createFileRoute("/entrar")({
   component: Entrar,
 });
 
-const CHAVE_SENHA = "wise-money-senha";
-
-/** Guarda a senha no próprio aparelho (codificada) para acesso rápido. */
-function salvarSenha(senha: string) {
-  try {
-    window.localStorage.setItem(CHAVE_SENHA, window.btoa(encodeURIComponent(senha)));
-  } catch {
-    /* ignora */
-  }
-}
-
-function lerSenhaSalva(): string | null {
-  try {
-    const bruto = window.localStorage.getItem(CHAVE_SENHA);
-    return bruto ? decodeURIComponent(window.atob(bruto)) : null;
-  } catch {
-    return null;
-  }
-}
-
-function limparSenhaSalva() {
-  window.localStorage.removeItem(CHAVE_SENHA);
-}
-
 function Entrar() {
   const { session, loading } = useAuth();
   const { t } = useIdioma();
@@ -64,40 +40,19 @@ function Entrar() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [enviando, setEnviando] = useState(false);
-  const [lembrar, setLembrar] = useState(true);
-  const [entrandoSozinho, setEntrandoSozinho] = useState(false);
+  const [manterConectado, setManterConectado] = useState(false);
 
-  // Lembra o e-mail e, se autorizado, a senha para entrar direto no aparelho.
+  // Lembra o e-mail preenchido anteriormente e a preferência de sessão.
   useEffect(() => {
     const salvo = window.localStorage.getItem("wise-money-email");
     if (salvo) setEmail(salvo);
-    const senhaSalva = lerSenhaSalva();
-    if (senhaSalva) setSenha(senhaSalva);
-    setLembrar(window.localStorage.getItem("wise-money-lembrar") !== "0");
+    setManterConectado(
+      window.localStorage.getItem("wise-money-manter-conectado") === "1",
+    );
   }, []);
 
   useEffect(() => {
     if (!loading && session) window.location.replace("/conversa");
-  }, [loading, session]);
-
-  // Acesso automático: com senha salva, abre o app sem digitar nada.
-  useEffect(() => {
-    if (loading || session || entrandoSozinho) return;
-    const emailSalvo = window.localStorage.getItem("wise-money-email");
-    const senhaSalva = lerSenhaSalva();
-    if (!emailSalvo || !senhaSalva) return;
-    setEntrandoSozinho(true);
-    supabase.auth
-      .signInWithPassword({ email: emailSalvo, password: senhaSalva })
-      .then(({ data, error }) => {
-        if (error || !data.session) {
-          limparSenhaSalva();
-          setEntrandoSozinho(false);
-          return;
-        }
-        window.location.replace("/conversa");
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, session]);
 
   function abrirConversa() {
@@ -108,9 +63,7 @@ function Entrar() {
     e.preventDefault();
     setEnviando(true);
     window.localStorage.setItem("wise-money-email", email);
-    window.localStorage.setItem("wise-money-lembrar", lembrar ? "1" : "0");
-    if (lembrar) salvarSenha(senha);
-    else limparSenhaSalva();
+    window.localStorage.setItem("wise-money-manter-conectado", manterConectado ? "1" : "0");
 
     try {
       if (modo === "criar") {
@@ -196,7 +149,7 @@ function Entrar() {
     abrirConversa();
   }
 
-  if (loading || entrandoSozinho) {
+  if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-background px-6 text-center">
         <p className="text-lg font-semibold text-muted-foreground">
@@ -306,16 +259,16 @@ function Entrar() {
             <label className="flex items-start gap-3 rounded-2xl bg-secondary/60 px-4 py-3">
               <input
                 type="checkbox"
-                checked={lembrar}
-                onChange={(e) => setLembrar(e.target.checked)}
+                checked={manterConectado}
+                onChange={(e) => setManterConectado(e.target.checked)}
                 className="mt-1 size-5 accent-[hsl(var(--primary))]"
               />
               <span className="text-sm font-semibold leading-snug">
-                {t("Entrar sozinho neste aparelho", "Sign in automatically on this device")}
+                {t("Continuar conectado neste dispositivo", "Keep me signed in on this device")}
                 <span className="block text-xs font-normal text-muted-foreground">
                   {t(
-                    "Salvamos sua senha só neste celular para você não digitar toda vez.",
-                    "We save your password on this phone only, so you don't type it every time.",
+                    "Mantenha minha sessão conectada neste dispositivo.",
+                    "Keep my session active on this personal device.",
                   )}
                 </span>
               </span>

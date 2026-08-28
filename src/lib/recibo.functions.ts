@@ -9,6 +9,8 @@ const entradaSchema = z.object({
   imagem: z.string().min(100).max(9_000_000),
   idioma: z.enum(["pt", "en"]).optional(),
   ajuste: z.string().max(500).optional(),
+  mime: z.string().max(120).optional(),
+  nomeArquivo: z.string().max(160).optional(),
 });
 
 const itemSchema = z.object({
@@ -33,6 +35,8 @@ export const lerRecibo = createServerFn({ method: "POST" })
       hoje,
       idioma: data.idioma ?? "pt",
       ...(data.ajuste ? { ajuste: data.ajuste } : {}),
+      ...(data.mime ? { mime: data.mime } : {}),
+      ...(data.nomeArquivo ? { nomeArquivo: data.nomeArquivo } : {}),
     });
     return {
       ...leitura,

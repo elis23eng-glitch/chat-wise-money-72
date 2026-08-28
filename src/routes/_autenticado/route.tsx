@@ -12,6 +12,8 @@ import { TutorialPrimeiroAcesso, useTutorial } from "@/components/TutorialPrimei
 import { AutoAtualizacao } from "@/components/AutoAtualizacao";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { MonitorAcesso } from "@/components/MonitorAcesso";
+import { Button } from "@/components/ui/button";
+import { recarregarAppAgora } from "@/lib/pwa-client";
 
 export const Route = createFileRoute("/_autenticado")({
   ssr: false,
@@ -61,6 +63,32 @@ function BotaoAtualizar() {
       <RefreshCw className={`size-4 ${isFetching ? "animate-spin" : ""}`} />
       {t("Atualizar", "Refresh")}
     </button>
+  );
+}
+
+function BotaoRecarregarApp() {
+  const { t } = useIdioma();
+  const [recarregando, setRecarregando] = useState(false);
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={recarregando}
+      onClick={async () => {
+        setRecarregando(true);
+        try {
+          await recarregarAppAgora();
+        } catch {
+          setRecarregando(false);
+          toast.error(t("Conecte-se à internet para recarregar.", "Connect to the internet to reload."));
+        }
+      }}
+    >
+      <RefreshCw className={recarregando ? "animate-spin" : ""} />
+      {t("Recarregar agora", "Reload now")}
+    </Button>
   );
 }
 
@@ -136,6 +164,7 @@ function AppLayout() {
               </Link>
             ))}
             <BotaoAtualizar />
+            <BotaoRecarregarApp />
           </nav>
 
           <div className="order-2 flex items-center gap-3 md:order-3">

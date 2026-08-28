@@ -1,3 +1,5 @@
+import { VERSAO_APP } from "@/lib/app-version";
+
 /**
  * Registro de eventos (somente no navegador) sobre a atualização do app.
  * Serve para acompanhar quantas pessoas realmente receberam a versão nova,
@@ -21,8 +23,7 @@ export type EventoSw = {
 const CHAVE = "wise-money:eventos-sw";
 const LIMITE = 200;
 
-/** Versão do app usada nos caches e no registro de eventos. */
-export const VERSAO_APP = "v4";
+export { VERSAO_APP };
 
 export function lerEventosSw(): EventoSw[] {
   if (typeof window === "undefined") return [];

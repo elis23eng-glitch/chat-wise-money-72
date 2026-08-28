@@ -26,6 +26,7 @@ import { VoiceInputButton } from "@/components/VoiceInputButton";
 import { clearMessages, getMessages, sendMessage } from "@/lib/finance.functions";
 import { useIdioma } from "@/lib/i18n";
 import { saudacaoNina, useLeituraEmVozAlta } from "@/lib/leitura-voz";
+import { VERSAO_APP } from "@/lib/app-version";
 
 export const Route = createFileRoute("/_autenticado/conversa")({
   head: () => ({
@@ -213,8 +214,11 @@ function Conversa() {
             m
           </span>
           <div>
-            <p className="font-display text-lg leading-none">
+            <p className="flex items-center gap-2 font-display text-lg leading-none">
               {t("Seu agente financeiro", "Your financial agent")}
+              <span className="rounded-md bg-primary/10 px-2 py-1 font-sans text-xs font-semibold text-primary">
+                Wise Money {VERSAO_APP}
+              </span>
             </p>
             <p className="text-xs text-muted-foreground">
               {t("Fale como quiser, eu entendo.", "Speak however you like, I'll understand.")}

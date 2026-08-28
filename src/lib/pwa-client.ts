@@ -12,7 +12,7 @@ export type EstadoVersaoPwa = {
 
 const EVENTO_VERSAO = "wise-money:versao-pwa";
 const MARCA_RECARREGAMENTO = "wise-money:recarregamento-versao";
-let atualizacaoRegistrada: (() => Promise<void>) | null = null;
+let atualizacaoRegistrada: ((recarregarPagina?: boolean) => Promise<void>) | null = null;
 
 function emitir(estado: EstadoVersaoPwa) {
   window.dispatchEvent(new CustomEvent<EstadoVersaoPwa>(EVENTO_VERSAO, { detail: estado }));
@@ -89,6 +89,7 @@ export async function verificarVersaoPwa(): Promise<EstadoVersaoPwa> {
   ]);
   const desatualizado =
     numeroVersao(publicada) > numeroVersao(VERSAO_APP) ||
+    (navigator.serviceWorker.controller !== null && worker === null) ||
     (worker !== null && numeroVersao(publicada) > numeroVersao(worker));
   const estado = { ...base, worker, publicada, desatualizado, verificando: false };
   emitir(estado);
@@ -108,8 +109,8 @@ export async function recarregarAppAgora() {
       nomes.filter((nome) => nome.startsWith(PREFIXO_CACHE_APP)).map((nome) => caches.delete(nome)),
     );
   }
-  await atualizacaoRegistrada?.();
-  window.location.reload();
+  if (atualizacaoRegistrada) await atualizacaoRegistrada(true);
+  else window.location.reload();
 }
 
 export async function iniciarAtualizacaoPwa() {

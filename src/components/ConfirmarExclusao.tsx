@@ -16,6 +16,7 @@ export function ConfirmarExclusao({
   titulo,
   descricao,
   carregando,
+  rotuloConfirmar,
   aoConfirmar,
   aoCancelar,
 }: Props) {
@@ -45,7 +46,9 @@ export function ConfirmarExclusao({
             disabled={carregando}
             className="flex-1 rounded-full bg-destructive px-5 py-3 text-base font-semibold text-destructive-foreground transition-colors hover:opacity-90 disabled:opacity-60"
           >
-            {carregando ? t("Apagando…", "Deleting…") : t("Apagar", "Delete")}
+            {carregando
+              ? t("Um instante…", "One moment…")
+              : (rotuloConfirmar ?? t("Apagar", "Delete"))}
           </button>
         </div>
       </div>

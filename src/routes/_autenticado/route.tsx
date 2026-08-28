@@ -80,7 +80,7 @@ function AppLayout() {
     { to: "/insights", label: t("Insights", "Insights") },
     { to: "/saude", label: t("Saúde", "Health") },
     { to: "/auditoria", label: t("Auditoria", "Audit") },
-    { to: "/seguranca", label: t("Segurança", "Security") },
+    { to: "/minha-seguranca", label: t("Segurança", "Security") },
   ] as const;
 
   if (loading || !session) {

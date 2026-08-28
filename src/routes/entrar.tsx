@@ -267,8 +267,8 @@ function Entrar() {
                 {t("Continuar conectado neste dispositivo", "Keep me signed in on this device")}
                 <span className="block text-xs font-normal text-muted-foreground">
                   {t(
-                    "Mantenha minha sessão conectada neste dispositivo.",
-                    "Keep my session active on this personal device.",
+                    "Mantenha sua sessão ativa neste dispositivo pessoal.",
+                    "Keep your session active on this personal device.",
                   )}
                 </span>
               </span>

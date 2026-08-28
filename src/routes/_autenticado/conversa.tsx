@@ -242,6 +242,18 @@ function Conversa() {
             {t("Limpar conversa", "Clear conversation")}
           </button>
 
+          {voz.disponivel && (
+            <button
+              onClick={() =>
+                voz.falar(saudacaoNina(idioma === "en" ? "en" : "pt"), "saudacao-inicial")
+              }
+              className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+            >
+              <Volume2 className="size-4" />
+              {t("Ouvir saudação da Nina", "Hear Nina's greeting")}
+            </button>
+          )}
+
           <button
             onClick={() => setAjudaAberta(true)}
             aria-label={t("Ajuda: comandos de voz", "Help: voice commands")}

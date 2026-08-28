@@ -6,6 +6,7 @@ import {
   notaConversao,
   CATEGORIA_LABEL,
   categoriaLabel,
+  preencherTokens,
   CORES_CATEGORIA,
   dataCurta,
   dataLonga,
@@ -135,5 +136,18 @@ describe("categoriaLabel — paridade de traduções", () => {
         `faltou tradução em inglês para "${categoria}"`,
       ).toBeDefined();
     }
+  });
+});
+
+describe("preencherTokens — valores e categorias vindos do servidor", () => {
+  it("troca {{m:}} por moeda e {{c:}} por categoria em português", () => {
+    expect(preencherTokens('{{c:alimentação}} custou {{m:10.50}}', "pt")).toContain("alimentação");
+    expect(preencherTokens("custou {{m:10.50}}", "pt")).toContain("R$");
+  });
+
+  it("traduz a categoria no inglês e não deixa marcador na tela", () => {
+    const texto = preencherTokens('The "{{c:alimentação}}" category is 50%', "en");
+    expect(texto).toBe('The "Food" category is 50%');
+    expect(preencherTokens("{{m:10.50}}", "en")).not.toContain("{{");
   });
 });

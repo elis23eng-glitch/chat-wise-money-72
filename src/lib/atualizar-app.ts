@@ -54,7 +54,7 @@ export async function verificarAtualizacaoAgora(): Promise<ResultadoAtualizacao>
       await recarregarAppAgora();
     } else if (registro.waiting) {
       registro.waiting.postMessage("skip-waiting");
-    } else {
+    } else if (pendente) {
       pendente.addEventListener("statechange", function () {
         if (this.state === "installed") registro.waiting?.postMessage("skip-waiting");
       });

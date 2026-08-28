@@ -75,3 +75,33 @@ export function tentarQuandoVoltarConexao(acao: () => void): () => void {
   window.addEventListener("online", uma);
   return () => window.removeEventListener("online", uma);
 }
+
+/**
+ * Procura uma versão nova SEM aplicar nada. Serve para a checagem em segundo
+ * plano, que apenas avisa discretamente quando existe novidade.
+ */
+export async function procurarNovaVersao(): Promise<boolean> {
+  if (!temSuporte() || estaOffline()) return false;
+  try {
+    const registro = await navigator.serviceWorker.getRegistration(CAMINHO_SW);
+    if (!registro) return false;
+    await registro.update();
+    return !!(registro.waiting ?? registro.installing);
+  } catch {
+    return false;
+  }
+}
+
+/** Aplica a versão já baixada e recarrega a tela. */
+export async function aplicarVersaoBaixada() {
+  if (!temSuporte()) return;
+  const registro = await navigator.serviceWorker.getRegistration(CAMINHO_SW);
+  if (!registro) return;
+  try {
+    window.sessionStorage.setItem(MARCA_AVISO, "1");
+  } catch {
+    // sem sessionStorage o aviso não aparece, mas a atualização acontece
+  }
+  registrarEventoSw("atualizacao-detectada", "aviso em segundo plano");
+  registro.waiting?.postMessage("skip-waiting");
+}

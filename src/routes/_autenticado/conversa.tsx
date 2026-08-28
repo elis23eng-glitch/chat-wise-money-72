@@ -421,9 +421,9 @@ function Conversa() {
               <div className="flex flex-wrap items-center gap-2">
                 <FotoNota disabled={mutation.isPending} />
                 <VoiceInputButton
-                idioma={idioma === "en" ? "en" : "pt"}
-                onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
-                onAutoSubmit={(txt) => submeter(txt)}
+                  idioma={idioma === "en" ? "en" : "pt"}
+                  onText={(txt) => setTexto((atual) => (atual ? `${atual} ${txt}` : txt))}
+                  onAutoSubmit={(txt) => submeter(txt)}
                   disabled={mutation.isPending}
                 />
               </div>

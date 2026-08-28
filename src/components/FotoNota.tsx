@@ -72,9 +72,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const salvar = useMutation({
     mutationFn: async (lista: Item[]) => registrar({ data: { itens: lista } }),
     onSuccess: (r) => {
-      toast.success(
-        t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`),
-      );
+      toast.success(t(`${r.total} despesa(s) registrada(s)!`, `${r.total} expense(s) saved!`));
       fechar();
       void qc.invalidateQueries();
     },
@@ -116,7 +114,11 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
         onClick={() => inputRef.current?.click()}
         className="inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-4 py-2.5 text-sm font-semibold text-secondary-foreground transition-colors hover:bg-primary/10 disabled:opacity-50"
       >
-        {leitura.isPending ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5" />}
+        {leitura.isPending ? (
+          <Loader2 className="size-5 animate-spin" />
+        ) : (
+          <Camera className="size-5" />
+        )}
         {leitura.isPending
           ? t("Lendo a foto…", "Reading the photo…")
           : t("Foto da nota", "Photo of receipt")}

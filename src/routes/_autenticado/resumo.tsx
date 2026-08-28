@@ -18,6 +18,7 @@ import { EditarLancamento, type LancamentoEditavel } from "@/components/EditarLa
 import { ConfirmarExclusao } from "@/components/ConfirmarExclusao";
 import { VerComprovante } from "@/components/VerComprovante";
 import { ExportarComprovantes } from "@/components/ExportarComprovantes";
+import { ExportarCsv } from "@/components/ExportarCsv";
 import { BuscaAvancada } from "@/components/BuscaAvancada";
 
 export const Route = createFileRoute("/_autenticado/resumo")({

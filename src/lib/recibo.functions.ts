@@ -53,7 +53,9 @@ export const lerRecibo = createServerFn({ method: "POST" })
 /** Junta data + hora num instante comparável (meia-noite quando não há hora). */
 function instante(dia: string, hora: string | null | undefined) {
   const [h, m] = (hora ?? "00:00").split(":");
-  return new Date(`${dia}T${(h ?? "00").padStart(2, "0")}:${(m ?? "00").padStart(2, "0")}:00Z`).getTime();
+  return new Date(
+    `${dia}T${(h ?? "00").padStart(2, "0")}:${(m ?? "00").padStart(2, "0")}:00Z`,
+  ).getTime();
 }
 
 function somarDias(dia: string, dias: number) {

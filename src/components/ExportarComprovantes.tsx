@@ -46,10 +46,7 @@ export function ExportarComprovantes() {
     onError: (erro) =>
       erro instanceof Error && erro.message === "vazio"
         ? toast.info(
-            t(
-              "Nenhum comprovante anexado nesse período.",
-              "No attached receipts in that period.",
-            ),
+            t("Nenhum comprovante anexado nesse período.", "No attached receipts in that period."),
           )
         : toast.error(t("Não consegui gerar o PDF agora.", "I could not build the PDF now.")),
   });

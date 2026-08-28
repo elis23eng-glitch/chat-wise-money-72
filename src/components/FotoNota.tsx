@@ -245,9 +245,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     onError: (erro) => {
       setFalhouLeitura(true);
       if (erro instanceof Error && erro.message === "grande") {
-        toast.error(
-          t("Esse PDF é muito grande (máx. 6 MB).", "This PDF is too large (max 6 MB)."),
-        );
+        toast.error(t("Esse PDF é muito grande (máx. 6 MB).", "This PDF is too large (max 6 MB)."));
         return;
       }
       toast.error(
@@ -406,9 +404,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
         ) : (
           <Camera className="size-5" />
         )}
-        {leitura.isPending
-          ? t("Lendo…", "Reading…")
-          : t("Foto da nota", "Photo of receipt")}
+        {leitura.isPending ? t("Lendo…", "Reading…") : t("Foto da nota", "Photo of receipt")}
       </button>
       <button
         type="button"
@@ -517,10 +513,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                     {(
                       [
                         ["compararValor", t("Mesmo valor", "Same amount")],
-                        [
-                          "compararEstabelecimento",
-                          t("Mesmo estabelecimento", "Same place"),
-                        ],
+                        ["compararEstabelecimento", t("Mesmo estabelecimento", "Same place")],
                         ["compararDescricao", t("Mesma descrição", "Same description")],
                       ] as const
                     ).map(([chave, rotulo]) => (
@@ -528,9 +521,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                         <input
                           type="checkbox"
                           checked={regras[chave]}
-                          onChange={(e) =>
-                            setRegras((r) => ({ ...r, [chave]: e.target.checked }))
-                          }
+                          onChange={(e) => setRegras((r) => ({ ...r, [chave]: e.target.checked }))}
                           className="size-5"
                         />
                         {rotulo}

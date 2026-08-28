@@ -14,12 +14,12 @@ export const Route = createFileRoute("/_autenticado/mercado")({
         content:
           "Cotação do dólar e do euro e explicações claras sobre os tipos de investimento mais comuns.",
       },
-      { property: "og:title", content: "Mercado em linguagem simples" },
+      { property: "og:title", content: "Mercado em linguagem simples — Wise Money" },
       {
         property: "og:description",
         content: "Cotações atualizadas e explicações sobre poupança, Tesouro, CDB e fundos.",
       },
-      { name: "twitter:title", content: "Mercado em linguagem simples" },
+      { name: "twitter:title", content: "Mercado em linguagem simples — Wise Money" },
       {
         name: "twitter:description",
         content: "Cotações atualizadas e explicações sobre poupança, Tesouro, CDB e fundos.",

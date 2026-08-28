@@ -15,12 +15,12 @@ export const Route = createFileRoute("/_autenticado/insights")({
         content:
           "Observações personalizadas sobre seus hábitos de gasto, com dicas práticas para economizar.",
       },
-      { property: "og:title", content: "Insights sobre os seus gastos" },
+      { property: "og:title", content: "Insights sobre os seus gastos — Wise Money" },
       {
         property: "og:description",
         content: "Onde seu dinheiro está indo e o que dá para ajustar, explicado de forma simples.",
       },
-      { name: "twitter:title", content: "Insights sobre os seus gastos" },
+      { name: "twitter:title", content: "Insights sobre os seus gastos — Wise Money" },
       {
         name: "twitter:description",
         content: "Onde seu dinheiro está indo e o que dá para ajustar, explicado de forma simples.",

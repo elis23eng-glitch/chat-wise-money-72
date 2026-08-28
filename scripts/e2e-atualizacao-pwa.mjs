@@ -86,6 +86,13 @@ try {
   ok = passo(/wise money/i.test(textoVisivel), "Nome “Wise Money” visível na tela inicial") && ok;
   ok = passo(!/mergulho/i.test(html), "Marca antiga ausente do DOM") && ok;
 
+  await pagina
+    .waitForFunction(
+      async () => (await navigator.serviceWorker.getRegistrations()).length > 0,
+      null,
+      { timeout: 20000 },
+    )
+    .catch(() => undefined);
   const registros = await pagina.evaluate(async () =>
     (await navigator.serviceWorker.getRegistrations()).map(
       (r) => r.active?.scriptURL ?? r.waiting?.scriptURL ?? r.installing?.scriptURL ?? "",

@@ -185,6 +185,72 @@ export type Database = {
         }
         Relationships: []
       }
+      login_events: {
+        Row: {
+          confiavel: boolean
+          created_at: string
+          device_id: string | null
+          device_name: string | null
+          id: string
+          ip: string | null
+          notificado: boolean
+          novo_dispositivo: boolean
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          confiavel?: boolean
+          created_at?: string
+          device_id?: string | null
+          device_name?: string | null
+          id?: string
+          ip?: string | null
+          notificado?: boolean
+          novo_dispositivo?: boolean
+          status?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          confiavel?: boolean
+          created_at?: string
+          device_id?: string | null
+          device_name?: string | null
+          id?: string
+          ip?: string | null
+          notificado?: boolean
+          novo_dispositivo?: boolean
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ocr_settings: {
         Row: {
           alerta_medio: number
@@ -338,6 +404,42 @@ export type Database = {
           ultimo_registro?: string | null
           user_id?: string
           valor_medio?: number
+        }
+        Relationships: []
+      }
+      trusted_devices: {
+        Row: {
+          apelido: string
+          confiavel_ate: string
+          created_at: string
+          device_id: string
+          id: string
+          sessao_max_horas: number
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          apelido?: string
+          confiavel_ate: string
+          created_at?: string
+          device_id: string
+          id?: string
+          sessao_max_horas?: number
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          apelido?: string
+          confiavel_ate?: string
+          created_at?: string
+          device_id?: string
+          id?: string
+          sessao_max_horas?: number
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }

@@ -405,6 +405,53 @@ function Conversa() {
               ))}
             </div>
           </div>
+          {ditado !== null && (
+            <div className="mb-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+              <p className="text-sm font-semibold text-primary">
+                {t("Confirme antes de salvar", "Confirm before saving")}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t(
+                  "Foi isso que eu ouvi. Corrija se precisar e toque em Confirmar.",
+                  "This is what I heard. Fix it if needed and tap Confirm.",
+                )}
+              </p>
+              <textarea
+                value={ditado}
+                onChange={(e) => setDitado(e.target.value)}
+                rows={2}
+                aria-label={t("Texto ditado por voz", "Dictated text")}
+                className="mt-3 w-full rounded-xl border border-primary/20 bg-background p-3 text-base"
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => submeter(ditado)}
+                  disabled={!ditado.trim() || mutation.isPending}
+                  className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                >
+                  {t("Confirmar e registrar", "Confirm and record")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTexto(ditado);
+                    setDitado(null);
+                  }}
+                  className="rounded-full bg-secondary px-5 py-2.5 text-sm font-semibold text-secondary-foreground"
+                >
+                  {t("Editar no campo", "Edit in the box")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDitado(null)}
+                  className="rounded-full px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-secondary"
+                >
+                  {t("Cancelar", "Cancel")}
+                </button>
+              </div>
+            </div>
+          )}
           <PromptInput
             onSubmit={(_message, event) => {
               event.preventDefault();

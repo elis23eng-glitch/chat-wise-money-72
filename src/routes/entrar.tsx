@@ -125,6 +125,36 @@ function Entrar() {
     }
   }
 
+  async function recuperarSenha() {
+    if (!email) {
+      toast.info(
+        t(
+          "Escreva seu e-mail acima e toque de novo em “Esqueci minha senha”.",
+          "Type your email above and tap “Forgot my password” again.",
+        ),
+      );
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/nova-senha`,
+    });
+    if (error) {
+      toast.error(
+        t(
+          "Não consegui enviar o link agora. Tente de novo em alguns minutos.",
+          "I couldn't send the link right now. Try again in a few minutes.",
+        ),
+      );
+      return;
+    }
+    toast.success(
+      t(
+        "Enviamos um link para o seu e-mail. Abra-o para criar uma nova senha.",
+        "We sent a link to your email. Open it to create a new password.",
+      ),
+    );
+  }
+
   async function entrarComGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: `${window.location.origin}/entrar`,

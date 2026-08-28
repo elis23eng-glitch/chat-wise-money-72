@@ -17,11 +17,36 @@ import { toast } from "sonner";
 
 import { CATEGORIAS_GASTO, CATEGORIA_EN, type CategoriaGasto } from "@/lib/categorias";
 import { useIdioma } from "@/lib/i18n";
+import { obterLimiares, registrarAuditoria } from "@/lib/auditoria.functions";
 import {
   lerRecibo,
   registrarDespesasDoRecibo,
   verificarDuplicidadeRecibo,
 } from "@/lib/recibo.functions";
+
+/** Compara a primeira leitura do OCR com o que a pessoa vai salvar. */
+function diferencas(antes: Item[], depois: Item[]) {
+  const campos: Campo[] = ["descricao", "valor", "categoria", "data", "estabelecimento", "hora"];
+  const lista: { item: string; campo: string; antes: string; depois: string }[] = [];
+  depois.forEach((d, i) => {
+    const a = antes[i];
+    if (!a) {
+      lista.push({ item: d.descricao, campo: "item", antes: "—", depois: "adicionado" });
+      return;
+    }
+    for (const c of campos) {
+      const va = String(a[c] ?? "");
+      const vd = String(d[c] ?? "");
+      if (va !== vd) lista.push({ item: d.descricao, campo: c, antes: va, depois: vd });
+    }
+  });
+  if (antes.length > depois.length) {
+    antes.slice(depois.length).forEach((a) => {
+      lista.push({ item: a.descricao, campo: "item", antes: "lido", depois: "removido" });
+    });
+  }
+  return lista.slice(0, 200);
+}
 
 type Campo = "descricao" | "valor" | "categoria" | "data" | "estabelecimento" | "hora" | "local";
 

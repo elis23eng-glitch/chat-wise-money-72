@@ -23,6 +23,7 @@ import { Route as AutenticadoMercadoRouteImport } from './routes/_autenticado/me
 import { Route as AutenticadoMetasRouteImport } from './routes/_autenticado/metas'
 import { Route as AutenticadoPainelRouteImport } from './routes/_autenticado/painel'
 import { Route as AutenticadoResumoRouteImport } from './routes/_autenticado/resumo'
+import { Route as AutenticadoSaudeRouteImport } from './routes/_autenticado/saude'
 import { Route as ApiTtsRouteImport } from './routes/api/tts'
 
 const IndexRoute = IndexRouteImport.update({
@@ -94,6 +95,11 @@ const AutenticadoResumoRoute = AutenticadoResumoRouteImport.update({
   path: '/resumo',
   getParentRoute: () => AutenticadoRouteRoute,
 } as any)
+const AutenticadoSaudeRoute = AutenticadoSaudeRouteImport.update({
+  id: '/saude',
+  path: '/saude',
+  getParentRoute: () => AutenticadoRouteRoute,
+} as any)
 const ApiTtsRoute = ApiTtsRouteImport.update({
   id: '/api/tts',
   path: '/api/tts',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/metas': typeof AutenticadoMetasRoute
   '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
+  '/saude': typeof AutenticadoSaudeRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesByTo {
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/metas': typeof AutenticadoMetasRoute
   '/painel': typeof AutenticadoPainelRoute
   '/resumo': typeof AutenticadoResumoRoute
+  '/saude': typeof AutenticadoSaudeRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRoutesById {
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_autenticado/metas': typeof AutenticadoMetasRoute
   '/_autenticado/painel': typeof AutenticadoPainelRoute
   '/_autenticado/resumo': typeof AutenticadoResumoRoute
+  '/_autenticado/saude': typeof AutenticadoSaudeRoute
   '/api/tts': typeof ApiTtsRoute
 }
 export interface FileRouteTypes {
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/painel'
     | '/resumo'
+    | '/saude'
     | '/api/tts'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/painel'
     | '/resumo'
+    | '/saude'
     | '/api/tts'
   id:
     | '__root__'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_autenticado/metas'
     | '/_autenticado/painel'
     | '/_autenticado/resumo'
+    | '/_autenticado/saude'
     | '/api/tts'
   fileRoutesById: FileRoutesById
 }
@@ -312,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AutenticadoResumoRouteImport
       parentRoute: typeof AutenticadoRouteRoute
     }
+    '/_autenticado/saude': {
+      id: '/_autenticado/saude'
+      path: '/saude'
+      fullPath: '/saude'
+      preLoaderRoute: typeof AutenticadoSaudeRouteImport
+      parentRoute: typeof AutenticadoRouteRoute
+    }
     '/api/tts': {
       id: '/api/tts'
       path: '/api/tts'
@@ -331,6 +350,7 @@ interface AutenticadoRouteRouteChildren {
   AutenticadoMetasRoute: typeof AutenticadoMetasRoute
   AutenticadoPainelRoute: typeof AutenticadoPainelRoute
   AutenticadoResumoRoute: typeof AutenticadoResumoRoute
+  AutenticadoSaudeRoute: typeof AutenticadoSaudeRoute
 }
 
 const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
@@ -342,6 +362,7 @@ const AutenticadoRouteRouteChildren: AutenticadoRouteRouteChildren = {
   AutenticadoMetasRoute: AutenticadoMetasRoute,
   AutenticadoPainelRoute: AutenticadoPainelRoute,
   AutenticadoResumoRoute: AutenticadoResumoRoute,
+  AutenticadoSaudeRoute: AutenticadoSaudeRoute,
 }
 
 const AutenticadoRouteRouteWithChildren =

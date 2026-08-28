@@ -57,6 +57,13 @@
       "when": 1787929611401,
       "tag": "0007_comprovantes_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787931117666,
+      "tag": "0008_auditoria_ocr_recorrentes",
+      "breakpoints": true
     }
   ]
 }

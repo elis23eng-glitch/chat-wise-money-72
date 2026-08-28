@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Apple, Smartphone, TriangleAlert } from "lucide-react";
 
+import { AtualizacaoApp } from "@/components/AtualizacaoApp";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useIdioma } from "@/lib/i18n";
 
@@ -153,6 +154,8 @@ function ComoInstalar() {
           )}
         </p>
       </section>
+
+      <AtualizacaoApp />
 
       <Link
         to="/entrar"

@@ -14,11 +14,15 @@ export type TipoEventoSw =
 export type EventoSw = {
   tipo: TipoEventoSw;
   em: string;
+  versao?: string;
   detalhe?: string;
 };
 
 const CHAVE = "wise-money:eventos-sw";
-const LIMITE = 50;
+const LIMITE = 200;
+
+/** Versão do app usada nos caches e no registro de eventos. */
+export const VERSAO_APP = "v2";
 
 export function lerEventosSw(): EventoSw[] {
   if (typeof window === "undefined") return [];
@@ -36,6 +40,7 @@ export function registrarEventoSw(tipo: TipoEventoSw, detalhe?: string) {
   const evento: EventoSw = {
     tipo,
     em: new Date().toISOString(),
+    versao: VERSAO_APP,
     ...(detalhe ? { detalhe } : {}),
   };
   try {
@@ -54,4 +59,43 @@ export function resumoEventosSw(): Record<string, number> {
     acc[e.tipo] = (acc[e.tipo] ?? 0) + 1;
     return acc;
   }, {});
+}
+
+export type ResumoPorVersaoData = {
+  versao: string;
+  data: string;
+  sucesso: number;
+  erro: number;
+};
+
+const TIPOS_ERRO: TipoEventoSw[] = ["registro-falhou", "atualizacao-falhou"];
+
+/**
+ * Agrupa os eventos por versão do app e por dia, contando quantas
+ * atualizações deram certo e quantas deram erro.
+ */
+export function resumoPorVersaoData(eventos = lerEventosSw()): ResumoPorVersaoData[] {
+  const mapa = new Map<string, ResumoPorVersaoData>();
+  for (const evento of eventos) {
+    const versao = evento.versao ?? "?";
+    const data = (evento.em ?? "").slice(0, 10) || "?";
+    const chave = `${versao}|${data}`;
+    const atual = mapa.get(chave) ?? { versao, data, sucesso: 0, erro: 0 };
+    if (TIPOS_ERRO.includes(evento.tipo)) atual.erro += 1;
+    else atual.sucesso += 1;
+    mapa.set(chave, atual);
+  }
+  return [...mapa.values()].sort((a, b) =>
+    a.data === b.data ? a.versao.localeCompare(b.versao) : b.data.localeCompare(a.data),
+  );
+}
+
+export function limparEventosSw() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(CHAVE);
+  } catch {
+    // sem armazenamento não há o que limpar
+  }
+  window.dispatchEvent(new Event("wise-money:sw"));
 }

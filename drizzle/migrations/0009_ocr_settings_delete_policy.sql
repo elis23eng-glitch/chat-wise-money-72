@@ -1,0 +1,1 @@
+CREATE POLICY ocr_settings_delete_own ON public.ocr_settings FOR DELETE TO authenticated USING (auth.uid() = user_id);

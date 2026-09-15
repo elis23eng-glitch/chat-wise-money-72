@@ -78,9 +78,22 @@ try {
   );
 
   await pagina.goto(`${BASE}/?sw=on`, { waitUntil: "domcontentloaded" });
-  // O app pode recarregar sozinho uma vez quando o novo service worker assume:
-  // espera a página estabilizar antes de ler o conteúdo.
-  await pagina.waitForTimeout(4000);
+  // O novo worker pré-carrega os recursos antes de assumir o controle. Em CI
+  // isso pode levar mais que alguns segundos; aguardar o estado correto evita
+  // confundir um worker apenas "installing" com uma atualização concluída.
+  await pagina.waitForFunction(
+    async () => {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      const workerAtualAtivo = regs.some((r) => r.active?.scriptURL.endsWith("/sw.js"));
+      const workerAtualControlaPagina =
+        navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js");
+      return workerAtualAtivo && workerAtualControlaPagina;
+    },
+    null,
+    { timeout: 120000 },
+  );
+  // O app pode recarregar sozinho uma vez quando o novo service worker assume.
+  await pagina.waitForTimeout(500);
   await pagina.waitForLoadState("load").catch(() => undefined);
   await pagina.locator("h1").first().waitFor({ timeout: 20000 });
 

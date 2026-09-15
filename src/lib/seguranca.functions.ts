@@ -14,7 +14,7 @@ import {
 /** Registra um novo acesso e avisa se o aparelho é desconhecido. */
 export const registrarAcesso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { deviceId: string }) => ({
+  .validator((data: { deviceId: string }) => ({
     deviceId: String(data.deviceId).slice(0, 80),
   }))
   .handler(async ({ data, context }) => {
@@ -75,7 +75,7 @@ export const getDispositivosConfiaveis = createServerFn({ method: "GET" })
 
 export const salvarDispositivoConfiavel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: { deviceId: string; apelido?: string; dias: number; sessaoMaxHoras: number }) => ({
       deviceId: String(data.deviceId).slice(0, 80),
       apelido: String(data.apelido ?? "").slice(0, 60),
@@ -104,7 +104,7 @@ export const salvarDispositivoConfiavel = createServerFn({ method: "POST" })
 
 export const removerDispositivoConfiavel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+  .validator((data: { id: string }) => ({ id: String(data.id) }))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("trusted_devices")
@@ -152,7 +152,7 @@ export const gerarCodigosRecuperacao = createServerFn({ method: "POST" })
 /** Usa um código de recuperação: valida, marca como usado e remove o 2FA da conta. */
 export const usarCodigoRecuperacao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { codigo: string }) => ({ codigo: String(data.codigo).slice(0, 40) }))
+  .validator((data: { codigo: string }) => ({ codigo: String(data.codigo).slice(0, 40) }))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const hash = hashCodigo(data.codigo);

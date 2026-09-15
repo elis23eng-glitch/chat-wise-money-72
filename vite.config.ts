@@ -13,6 +13,10 @@ export default defineConfig({
       VitePWA({
         registerType: "autoUpdate",
         injectRegister: null,
+        // O TanStack/Nitro publica os assets estáticos a partir desta pasta.
+        // Sem este alinhamento, o plugin gerava o worker em /dist e o app
+        // implantado não encontrava /sw.js.
+        outDir: ".output/public",
         filename: "sw.js",
         devOptions: { enabled: false },
         workbox: {

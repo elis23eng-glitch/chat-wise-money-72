@@ -7,7 +7,7 @@ import { montarLinhasCsv, resumirCategorias } from "./exportar.server";
 /** Dados de gastos, entradas e categorias de um período para gerar o CSV. */
 export const getDadosCsv = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { inicio: string; fim: string }) =>
+  .validator((input: { inicio: string; fim: string }) =>
     z.object({ inicio: z.string().min(10).max(10), fim: z.string().min(10).max(10) }).parse(input),
   )
   .handler(async ({ data, context }) => {

@@ -1,5 +1,7 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "wise-money",
+  "version": "1.0.0",
+  "description": "Assistente financeiro conversacional, acessível e bilíngue.",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -9,9 +11,12 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write . --ignore-unknown",
+    "format:check": "prettier --check . --ignore-unknown",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run build"
   },
   "overrides": {
     "rolldown": "1.2.1"

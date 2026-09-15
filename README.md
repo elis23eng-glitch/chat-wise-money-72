@@ -1,4 +1,4 @@
-# 💰 Chat Wise Money — Assistente Financeiro Conversacional
+# 💰 Wise Money — Assistente Financeiro Conversacional
 
 [![CI](https://github.com/elis23eng-glitch/chat-wise-money-72/actions/workflows/ci.yml/badge.svg)](https://github.com/elis23eng-glitch/chat-wise-money-72/actions/workflows/ci.yml)
 [![Licença: MIT](https://img.shields.io/badge/Licen%C3%A7a-MIT-green.svg)](LICENSE)
@@ -10,6 +10,9 @@
 
 Acesse em: **[https://chat-wise-money-72.lovable.app](https://chat-wise-money-72.lovable.app)**
 
+> **Aviso:** projeto educacional de organização financeira. Não substitui orientação profissional
+> nem realiza recomendação individual de investimentos.
+
 ---
 
 ## ✨ Sobre o projeto
@@ -17,6 +20,9 @@ Acesse em: **[https://chat-wise-money-72.lovable.app](https://chat-wise-money-72
 O **Chat Wise Money** é um assistente financeiro conversacional que ajuda iniciantes — incluindo pessoas com pouca familiaridade com tecnologia, como idosos — a organizarem suas finanças pessoais de forma simples, acolhedora e educativa.
 
 A assistente virtual **Nina** interpreta mensagens em linguagem natural, registra gastos e entradas, gera insights personalizados, acompanha metas financeiras e exibe cotações de mercado. Tudo com uma interface clara, acessível e amigável.
+
+Para revisão técnica, consulte a [arquitetura](docs/ARCHITECTURE.md), a
+[política de segurança](SECURITY.md) e o [histórico de mudanças](CHANGELOG.md).
 
 ---
 
@@ -52,7 +58,7 @@ Esta versão reúne todas as evoluções implementadas no projeto, desde a base 
 ### 🔧 Autenticação e acesso
 
 - **Correção do fluxo de autenticação** — login, cadastro e login com Google redirecionam corretamente para o app; confirmação automática de e-mail ativada.
-- **Acesso automático no celular** — opção "Entrar sozinho neste aparelho" lembra o e-mail e a senha localmente (com aviso de segurança), ideal para uso diário.
+- **Acesso simplificado no celular** — a opção lembra apenas o e-mail e a preferência de sessão; a senha nunca é armazenada pela aplicação.
 - **Login mobile simplificado** — priorização do Google One Tap, áreas de toque maiores e autocomplete de senha.
 
 ### 💰 Controle financeiro avançado
@@ -81,7 +87,7 @@ Esta versão reúne todas as evoluções implementadas no projeto, desde a base 
 ### ✅ Qualidade e segurança
 
 - **CI/CD com GitHub Actions** — lint, typecheck, testes (Vitest) e build validados automaticamente a cada push/pull request.
-- **Varredura de segurança** — verificação de vulnerabilidades e permissões antes de cada publicação.
+- **Práticas de segurança** — autenticação das operações, RLS no banco, separação entre chaves públicas e segredos de servidor e validações automatizadas no CI.
 
 ---
 
@@ -120,8 +126,11 @@ O projeto foi pensado para ser usado por pessoas de todas as idades, com foco es
 
 ```bash
 # Clone o repositório
-git clone <url-do-repositorio>
-cd chat-wise-money
+git clone https://github.com/elis23eng-glitch/chat-wise-money-72.git
+cd chat-wise-money-72
+
+# Crie a configuração local e preencha apenas no seu computador
+cp .env.example .env
 
 # Instale as dependências
 bun install
@@ -131,6 +140,12 @@ bun run dev
 ```
 
 O app estará disponível em `http://localhost:8080`.
+
+Para executar toda a verificação de qualidade localmente:
+
+```bash
+bun run check
+```
 
 ---
 

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { supabase } from "@/integrations/supabase/client";
+
 const CHAVE_AUTO = "wm-leitura-automatica";
 const CHAVE_PREFS = "wm-voz-prefs";
 
@@ -192,9 +194,16 @@ export function useLeituraEmVozAlta(idioma: "pt" | "en") {
 
       void (async () => {
         try {
+          const { data } = await supabase.auth.getSession();
+          const accessToken = data.session?.access_token;
+          if (!accessToken) throw new Error("Sessão indisponível para TTS");
+
           const res = await fetch("/api/tts", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({
               text: conteudo,
               idioma,

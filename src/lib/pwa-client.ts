@@ -47,6 +47,25 @@ async function removerRegistroEmContextoProtegido() {
   );
 }
 
+/**
+ * Remove registros de versões antigas antes de instalar o worker atual.
+ * Um service worker legado pode continuar controlando a navegação e servir
+ * HTML em cache, impedindo que o novo worker conclua a migração sozinho.
+ */
+async function removerRegistrosLegados() {
+  if (!("serviceWorker" in navigator)) return;
+  const registros = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(
+    registros
+      .filter((registro) => {
+        const workers = [registro.active, registro.waiting, registro.installing];
+        const possuiWorkerAtual = workers.some((worker) => worker?.scriptURL.endsWith("/sw.js"));
+        return !possuiWorkerAtual;
+      })
+      .map((registro) => registro.unregister()),
+  );
+}
+
 async function versaoPublicada() {
   const resposta = await fetch(`/version.json?agora=${Date.now()}`, { cache: "no-store" });
   if (!resposta.ok) return null;
@@ -120,6 +139,7 @@ export async function iniciarAtualizacaoPwa() {
     return;
   }
 
+  await removerRegistrosLegados();
   atualizacaoRegistrada = registerSW({
     immediate: true,
     onNeedRefresh() {

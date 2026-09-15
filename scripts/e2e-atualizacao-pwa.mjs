@@ -49,7 +49,9 @@ await contexto.route("**/sw-antigo.js", (rota) =>
 let ok = true;
 try {
   // 1. Instalação da versão antiga (usuário instalou o app há semanas).
-  await pagina.goto(BASE, { waitUntil: "domcontentloaded" });
+  // Desliga o registro atual apenas durante a preparação do cenário, para que
+  // ele não dispute o mesmo escopo antes da instalação do worker legado.
+  await pagina.goto(`${BASE}/?sw=off`, { waitUntil: "domcontentloaded" });
   await pagina.evaluate(async () => {
     const r = await navigator.serviceWorker.register("/sw-antigo.js", { scope: "/" });
     await navigator.serviceWorker.ready;

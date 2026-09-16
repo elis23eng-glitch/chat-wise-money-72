@@ -13,6 +13,7 @@ export type EstadoVersaoPwa = {
 const EVENTO_VERSAO = "wise-money:versao-pwa";
 const MARCA_RECARREGAMENTO = "wise-money:recarregamento-versao";
 let atualizacaoRegistrada: ((recarregarPagina?: boolean) => Promise<void>) | null = null;
+let inicializacaoPwa: Promise<void> | null = null;
 
 function emitir(estado: EstadoVersaoPwa) {
   window.dispatchEvent(new CustomEvent<EstadoVersaoPwa>(EVENTO_VERSAO, { detail: estado }));
@@ -132,7 +133,7 @@ export async function recarregarAppAgora() {
   else window.location.reload();
 }
 
-export async function iniciarAtualizacaoPwa() {
+async function executarInicializacaoPwa() {
   if (!("serviceWorker" in navigator)) return;
   if (!contextoPublicado()) {
     await removerRegistroEmContextoProtegido();
@@ -158,6 +159,21 @@ export async function iniciarAtualizacaoPwa() {
 
   const estado = await verificarVersaoPwa();
   if (estado.desatualizado) await recarregarAppAgora();
+}
+
+/**
+ * O React executa effects duas vezes em desenvolvimento/StrictMode. Compartilhar
+ * a mesma promessa impede duas rotinas concorrentes de remover e registrar o
+ * service worker no mesmo escopo durante a migração de versões antigas.
+ */
+export function iniciarAtualizacaoPwa(): Promise<void> {
+  if (!inicializacaoPwa) {
+    inicializacaoPwa = executarInicializacaoPwa().catch((erro: unknown) => {
+      inicializacaoPwa = null;
+      throw erro;
+    });
+  }
+  return inicializacaoPwa;
 }
 
 export function ouvirEstadoVersao(acao: (estado: EstadoVersaoPwa) => void) {

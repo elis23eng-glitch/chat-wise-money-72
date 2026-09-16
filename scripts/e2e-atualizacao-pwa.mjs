@@ -40,6 +40,19 @@ const navegador = await chromium.launch(
 );
 const contexto = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 const pagina = await contexto.newPage();
+const cdp = await contexto.newCDPSession(pagina);
+
+await cdp.send("ServiceWorker.enable");
+cdp.on("ServiceWorker.workerErrorReported", (evento) =>
+  console.log(`[service-worker:error] ${JSON.stringify(evento)}`),
+);
+cdp.on("ServiceWorker.workerRegistrationUpdated", (evento) =>
+  console.log(`[service-worker:registration] ${JSON.stringify(evento)}`),
+);
+cdp.on("ServiceWorker.workerVersionUpdated", (evento) =>
+  console.log(`[service-worker:version] ${JSON.stringify(evento)}`),
+);
+contexto.on("serviceworker", (worker) => console.log(`[service-worker:created] ${worker.url()}`));
 
 pagina.on("console", (mensagem) => console.log(`[browser:${mensagem.type()}] ${mensagem.text()}`));
 pagina.on("pageerror", (erro) => console.log(`[browser:pageerror] ${erro.message}`));

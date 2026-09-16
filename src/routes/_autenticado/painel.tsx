@@ -192,11 +192,13 @@ function Painel() {
   const periodoSaldo = semanal ? (semana?.saldo ?? 0) : saldo;
 
   // ---- Alertas de saldo ----
-  const alertas: Alerta[] = [];
-  if (!isLoading && data) {
+  const alertas = useMemo<Alerta[]>(() => {
+    const novosAlertas: Alerta[] = [];
+    if (isLoading || !data) return novosAlertas;
+
     const rotuloPeriodo = semanal ? t("nesta semana", "this week") : t("neste mês", "this month");
     if (periodoSaldo < 0) {
-      alertas.push({
+      novosAlertas.push({
         tipo: "saldo_negativo",
         tom: "perigo",
         titulo: t("Atenção: saldo negativo", "Heads up: negative balance"),
@@ -206,7 +208,7 @@ function Painel() {
         ),
       });
     } else if (periodoEntradas > 0 && periodoSaldo < periodoEntradas * 0.1) {
-      alertas.push({
+      novosAlertas.push({
         tipo: "saldo_apertado",
         tom: "atencao",
         titulo: t("Seu saldo está apertado", "Your balance is tight"),
@@ -216,7 +218,7 @@ function Painel() {
         ),
       });
     } else if (periodoSaldo > 0 && periodoEntradas > 0) {
-      alertas.push({
+      novosAlertas.push({
         tipo: "sobra",
         tom: "bom",
         titulo: t("Está sobrando dinheiro", "You have money left over"),
@@ -228,7 +230,7 @@ function Painel() {
     }
 
     if (!semanal && entradas > 0 && (data.projecaoMes ?? 0) > entradas) {
-      alertas.push({
+      novosAlertas.push({
         tipo: "projecao_vermelho",
         tom: "atencao",
         titulo: t(
@@ -245,7 +247,7 @@ function Painel() {
     if (semanal && semana && semana.gastoAnterior > 0) {
       const dif = ((semana.gasto - semana.gastoAnterior) / semana.gastoAnterior) * 100;
       if (dif >= 25) {
-        alertas.push({
+        novosAlertas.push({
           tipo: "gasto_acima_semana",
           tom: "atencao",
           titulo: t("Você gastou mais que na semana passada", "You spent more than last week"),
@@ -256,7 +258,9 @@ function Painel() {
         });
       }
     }
-  }
+
+    return novosAlertas;
+  }, [data, entradas, isLoading, periodoEntradas, periodoSaldo, semanal, semana, t]);
 
   // ---- Histórico de alertas ----
   const qc = useQueryClient();
@@ -271,7 +275,7 @@ function Painel() {
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
   const [filtroInicio, setFiltroInicio] = useState("");
   const [filtroFim, setFiltroFim] = useState("");
-  const gravar = useMutation({
+  const { mutate: gravarAlertasHistorico } = useMutation({
     mutationFn: (alertas: AlertaRegistro[]) => gravarAlertas({ data: { alertas } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["alertas-historico"] }),
   });
@@ -291,22 +295,24 @@ function Painel() {
         saldo: periodoSaldo,
         extra: a.tipo === "projecao_vermelho" ? (data?.projecaoMes ?? null) : null,
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
-      JSON.stringify(alertas.map((a) => a.tipo)),
-      semanal,
-      periodoSaldo,
-      periodoGastos,
+      alertas,
+      data?.projecaoMes,
+      hoje,
+      inicioMes,
       periodoEntradas,
+      periodoGastos,
+      periodoSaldo,
+      semanal,
+      semana?.fim,
+      semana?.inicio,
     ],
   );
 
-  const assinatura = JSON.stringify(registros);
   useEffect(() => {
     if (isLoading || registros.length === 0) return;
-    gravar.mutate(registros);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assinatura, isLoading]);
+    gravarAlertasHistorico(registros);
+  }, [gravarAlertasHistorico, isLoading, registros]);
 
   const tituloAlerta = (tipo: TipoAlerta) =>
     tipo === "saldo_negativo"

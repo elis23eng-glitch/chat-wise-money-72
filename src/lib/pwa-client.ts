@@ -1,5 +1,3 @@
-import { registerSW } from "virtual:pwa-register";
-
 import { PREFIXO_CACHE_APP, VERSAO_APP, numeroVersao } from "@/lib/app-version";
 
 export type EstadoVersaoPwa = {
@@ -46,28 +44,6 @@ async function removerRegistroEmContextoProtegido() {
       })
       .map((registro) => registro.unregister()),
   );
-}
-
-/**
- * Atualiza uma instalação legada no mesmo escopo. Desregistrar o worker antigo
- * não libera imediatamente as abas já abertas; registrar o novo script sobre a
- * mesma inscrição permite que o ciclo nativo install/activate faça a troca.
- */
-async function migrarRegistroLegado(): Promise<boolean> {
-  if (!("serviceWorker" in navigator)) return false;
-  const registros = await navigator.serviceWorker.getRegistrations();
-  const legados = registros.filter((registro) => {
-    const workers = [registro.active, registro.waiting, registro.installing];
-    const possuiWorkerAtual = workers.some((worker) => worker?.scriptURL.endsWith("/sw.js"));
-    return !possuiWorkerAtual;
-  });
-  if (legados.length === 0) return false;
-
-  await navigator.serviceWorker.register("/sw.js", {
-    scope: "/",
-    updateViaCache: "none",
-  });
-  return true;
 }
 
 async function versaoPublicada() {
@@ -143,19 +119,34 @@ async function executarInicializacaoPwa() {
     return;
   }
 
-  if (await migrarRegistroLegado()) return;
-  atualizacaoRegistrada = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      void recarregarAppAgora();
-    },
-    onRegisteredSW(_url, registro) {
-      void registro?.update();
-    },
+  const controladorAnterior = navigator.serviceWorker.controller;
+  if (controladorAnterior) {
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      () => {
+        if (navigator.serviceWorker.controller !== controladorAnterior) window.location.reload();
+      },
+      { once: true },
+    );
+  }
+
+  const registro = await navigator.serviceWorker.register("/sw.js", {
+    scope: "/",
+    updateViaCache: "none",
   });
+  atualizacaoRegistrada = async (recarregarPagina = false) => {
+    await registro.update();
+    if (registro.waiting) {
+      registro.waiting.postMessage({ type: "SKIP_WAITING" });
+      return;
+    }
+    if (recarregarPagina) window.location.reload();
+  };
+  await registro.update();
 
   const estado = await verificarVersaoPwa();
-  if (estado.desatualizado) await recarregarAppAgora();
+  const controladorAtual = navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js");
+  if (estado.desatualizado && controladorAtual) await recarregarAppAgora();
 }
 
 /**

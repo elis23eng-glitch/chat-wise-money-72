@@ -45,13 +45,20 @@ const pagina = await contexto.newPage();
 await contexto.route("**/sw-antigo.js", (rota) =>
   rota.fulfill({ status: 200, contentType: "text/javascript", body: SW_ANTIGO }),
 );
+await contexto.route("**/fixture-pwa.html", (rota) =>
+  rota.fulfill({
+    status: 200,
+    contentType: "text/html",
+    body: "<!doctype html><html><body>Preparando instalação legada</body></html>",
+  }),
+);
 
 let ok = true;
 try {
   // 1. Instalação da versão antiga (usuário instalou o app há semanas).
-  // Desliga o registro atual apenas durante a preparação do cenário, para que
-  // ele não dispute o mesmo escopo antes da instalação do worker legado.
-  await pagina.goto(`${BASE}/?sw=off`, { waitUntil: "domcontentloaded" });
+  // Usa uma página vazia da mesma origem para que a aplicação atual não limpe
+  // o cache legado enquanto o cenário de atualização está sendo preparado.
+  await pagina.goto(`${BASE}/fixture-pwa.html`, { waitUntil: "domcontentloaded" });
   await pagina.evaluate(async () => {
     const r = await navigator.serviceWorker.register("/sw-antigo.js", { scope: "/" });
     await navigator.serviceWorker.ready;

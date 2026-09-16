@@ -49,11 +49,11 @@ async function removerRegistroEmContextoProtegido() {
 }
 
 /**
- * Remove registros de versões antigas antes de instalar o worker atual.
- * Um service worker legado pode continuar controlando a navegação e servir
- * HTML em cache, impedindo que o novo worker conclua a migração sozinho.
+ * Atualiza uma instalação legada no mesmo escopo. Desregistrar o worker antigo
+ * não libera imediatamente as abas já abertas; registrar o novo script sobre a
+ * mesma inscrição permite que o ciclo nativo install/activate faça a troca.
  */
-async function removerRegistrosLegados(): Promise<boolean> {
+async function migrarRegistroLegado(): Promise<boolean> {
   if (!("serviceWorker" in navigator)) return false;
   const registros = await navigator.serviceWorker.getRegistrations();
   const legados = registros.filter((registro) => {
@@ -63,8 +63,11 @@ async function removerRegistrosLegados(): Promise<boolean> {
   });
   if (legados.length === 0) return false;
 
-  const resultados = await Promise.all(legados.map((registro) => registro.unregister()));
-  return resultados.some(Boolean);
+  await navigator.serviceWorker.register("/sw.js", {
+    scope: "/",
+    updateViaCache: "none",
+  });
+  return true;
 }
 
 async function versaoPublicada() {
@@ -140,13 +143,7 @@ async function executarInicializacaoPwa() {
     return;
   }
 
-  if (await removerRegistrosLegados()) {
-    // O worker desregistrado ainda controla a aba atual até a próxima
-    // navegação. Recarregar encerra esse vínculo; a nova página registra o
-    // worker atual sem disputar o mesmo escopo com a versão legada.
-    window.location.reload();
-    return;
-  }
+  if (await migrarRegistroLegado()) return;
   atualizacaoRegistrada = registerSW({
     immediate: true,
     onNeedRefresh() {

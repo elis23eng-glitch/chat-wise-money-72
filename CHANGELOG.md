@@ -15,3 +15,6 @@ Todas as mudanças relevantes deste projeto serão documentadas aqui.
 - correção do lint e das APIs depreciadas do TanStack Start;
 - ajuste do E2E de PWA para testar o build de produção;
 - documentação de arquitetura, segurança e débitos técnicos.
+- extração das regras de revisão de comprovantes para um módulo de domínio testável;
+- cobertura automatizada para diferenças de OCR, confiança e campos incertos;
+- remoção do gerador PWA obsoleto, preservando o service worker estático validado.

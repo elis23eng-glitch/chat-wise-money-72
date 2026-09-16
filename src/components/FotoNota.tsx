@@ -12,7 +12,7 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { CATEGORIAS_GASTO, CATEGORIA_EN, type CategoriaGasto } from "@/lib/categorias";
@@ -23,79 +23,21 @@ import {
   registrarDespesasDoRecibo,
   verificarDuplicidadeRecibo,
 } from "@/lib/recibo.functions";
-
-/** Compara a primeira leitura do OCR com o que a pessoa vai salvar. */
-function diferencas(antes: Item[], depois: Item[]) {
-  const campos: Campo[] = ["descricao", "valor", "categoria", "data", "estabelecimento", "hora"];
-  const lista: { item: string; campo: string; antes: string; depois: string }[] = [];
-  depois.forEach((d, i) => {
-    const a = antes[i];
-    if (!a) {
-      lista.push({ item: d.descricao, campo: "item", antes: "—", depois: "adicionado" });
-      return;
-    }
-    for (const c of campos) {
-      const va = String(a[c] ?? "");
-      const vd = String(d[c] ?? "");
-      if (va !== vd) lista.push({ item: d.descricao, campo: c, antes: va, depois: vd });
-    }
-  });
-  if (antes.length > depois.length) {
-    antes.slice(depois.length).forEach((a) => {
-      lista.push({ item: a.descricao, campo: "item", antes: "lido", depois: "removido" });
-    });
-  }
-  return lista.slice(0, 200);
-}
-
-type Campo = "descricao" | "valor" | "categoria" | "data" | "estabelecimento" | "hora" | "local";
-
-type Item = {
-  descricao: string;
-  valor: number;
-  categoria: CategoriaGasto;
-  data: string;
-  estabelecimento: string | null;
-  hora: string | null;
-  local: string | null;
-  confianca?: number;
-  campos_incertos?: Campo[];
-};
-
-type Tentativa = {
-  em: string;
-  ajuste: string | null;
-  observacao: string;
-  itens: Item[];
-};
-
-type Duplicidade = {
-  duplicado: boolean;
-  total: number;
-  exemplos: {
-    id: string;
-    descricao: string;
-    valor: number;
-    data?: string;
-    hora: string | null;
-  }[];
-};
-
-type Regras = {
-  janelaHoras: number;
-  compararValor: boolean;
-  compararEstabelecimento: boolean;
-  compararDescricao: boolean;
-};
-
-const REGRAS_PADRAO: Regras = {
-  janelaHoras: 0,
-  compararValor: true,
-  compararEstabelecimento: true,
-  compararDescricao: false,
-};
-
-const JANELAS = [0, 1, 3, 6, 12, 24, 72, 168] as const;
+import {
+  JANELAS_DUPLICIDADE,
+  LIMIARES_CONFIANCA_PADRAO,
+  REGRAS_DUPLICIDADE_PADRAO,
+  calcularConfiancaMedia,
+  campoIncerto,
+  itemDuvidoso,
+  listarDiferencasLeitura,
+  type CampoRecibo,
+  type ItemRecibo,
+  type LimiaresConfianca,
+  type RegrasDuplicidade,
+  type ResultadoDuplicidade,
+  type TentativaLeitura,
+} from "@/lib/receipt-review";
 
 /** Reduz a foto para no máximo 1400px e converte em JPEG base64. */
 async function prepararImagem(arquivo: File): Promise<string> {
@@ -144,40 +86,6 @@ async function prepararArquivo(arquivo: File) {
   return { dados: await prepararImagem(arquivo), mime: "image/jpeg", nome: arquivo.name };
 }
 
-/** Limiares escolhidos pela pessoa na tela de Auditoria (com padrão seguro). */
-const LIMIARES = {
-  geral: 0.7,
-  alerta: 0.7,
-  valor: 0.8,
-  data: 0.7,
-  estabelecimento: 0.6,
-  categoria: 0.6,
-};
-
-function limiarDoCampo(campo: Campo) {
-  if (campo === "valor") return LIMIARES.valor;
-  if (campo === "data") return LIMIARES.data;
-  if (campo === "estabelecimento") return LIMIARES.estabelecimento;
-  if (campo === "categoria") return LIMIARES.categoria;
-  return LIMIARES.geral;
-}
-
-function duvidoso(item: Item) {
-  return (item.confianca ?? 1) < LIMIARES.geral || (item.campos_incertos ?? []).length > 0;
-}
-
-function incerto(item: Item, campo: Campo) {
-  return (
-    (item.campos_incertos ?? []).includes(campo) || (item.confianca ?? 1) < limiarDoCampo(campo)
-  );
-}
-
-function classeCampo(item: Item, campo: Campo) {
-  return incerto(item, campo)
-    ? "border-destructive bg-destructive/5 ring-1 ring-destructive/30"
-    : "border-primary/15 bg-background";
-}
-
 export function FotoNota({ disabled }: { disabled?: boolean }) {
   const { t, idioma } = useIdioma();
   const qc = useQueryClient();
@@ -190,27 +98,40 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const obterLim = useServerFn(obterLimiares);
 
   const { data: limiares } = useQuery({ queryKey: ["limiares"], queryFn: () => obterLim() });
-  if (limiares) {
-    LIMIARES.geral = limiares.limiar_geral;
-    LIMIARES.alerta = limiares.alerta_medio;
-    LIMIARES.valor = limiares.limiar_valor;
-    LIMIARES.data = limiares.limiar_data;
-    LIMIARES.estabelecimento = limiares.limiar_estabelecimento;
-    LIMIARES.categoria = limiares.limiar_categoria;
-  }
+  const limiaresConfianca = useMemo<LimiaresConfianca>(
+    () =>
+      limiares
+        ? {
+            geral: limiares.limiar_geral,
+            alerta: limiares.alerta_medio,
+            valor: limiares.limiar_valor,
+            data: limiares.limiar_data,
+            estabelecimento: limiares.limiar_estabelecimento,
+            categoria: limiares.limiar_categoria,
+          }
+        : { ...LIMIARES_CONFIANCA_PADRAO },
+    [limiares],
+  );
+  const duvidoso = (item: ItemRecibo) => itemDuvidoso(item, limiaresConfianca);
+  const classeCampo = (item: ItemRecibo, campo: CampoRecibo) =>
+    campoIncerto(item, campo, limiaresConfianca)
+      ? "border-destructive bg-destructive/5 ring-1 ring-destructive/30"
+      : "border-primary/15 bg-background";
 
   const [previa, setPrevia] = useState<string | null>(null);
   const [mime, setMime] = useState<string>("image/jpeg");
   const [nomeArquivo, setNomeArquivo] = useState<string>("");
-  const [itens, setItens] = useState<Item[] | null>(null);
+  const [itens, setItens] = useState<ItemRecibo[] | null>(null);
   const [observacao, setObservacao] = useState("");
   const [ajuste, setAjuste] = useState("");
-  const [historico, setHistorico] = useState<Tentativa[]>([]);
+  const [historico, setHistorico] = useState<TentativaLeitura[]>([]);
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [anexar, setAnexar] = useState(true);
-  const [duplicidade, setDuplicidade] = useState<Duplicidade | null>(null);
+  const [duplicidade, setDuplicidade] = useState<ResultadoDuplicidade | null>(null);
   const [ignorarDuplicidade, setIgnorarDuplicidade] = useState(false);
-  const [regras, setRegras] = useState<Regras>(REGRAS_PADRAO);
+  const [regras, setRegras] = useState<RegrasDuplicidade>(() => ({
+    ...REGRAS_DUPLICIDADE_PADRAO,
+  }));
   const [regrasAbertas, setRegrasAbertas] = useState(false);
   const [soDuvidosos, setSoDuvidosos] = useState(false);
   const [falhouLeitura, setFalhouLeitura] = useState(false);
@@ -218,7 +139,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
 
   const ehPdf = mime === "application/pdf";
 
-  async function rodarDuplicidade(lista: Item[], regrasAtuais: Regras) {
+  async function rodarDuplicidade(lista: ItemRecibo[], regrasAtuais: RegrasDuplicidade) {
     const primeiroItem = lista[0];
     if (!primeiroItem) return;
     setChecando(true);
@@ -236,7 +157,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
           compararDescricao: regrasAtuais.compararDescricao,
         },
       });
-      setDuplicidade(d as Duplicidade);
+      setDuplicidade(d as ResultadoDuplicidade);
       setIgnorarDuplicidade(false);
     } catch {
       setDuplicidade(null);
@@ -271,7 +192,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
       });
     },
     onSuccess: (r, entrada) => {
-      const lista = r.itens as Item[];
+      const lista = r.itens as ItemRecibo[];
       setItens(lista);
       setObservacao(r.observacao);
       setDuplicidade(null);
@@ -313,13 +234,12 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   });
 
   const salvar = useMutation({
-    mutationFn: async (lista: Item[]) => {
+    mutationFn: async (lista: ItemRecibo[]) => {
       const r = await registrar({
         data: { itens: lista, ...(anexar && previa ? { imagem: previa, mime } : {}) },
       });
       try {
-        const media =
-          lista.length > 0 ? lista.reduce((s, i) => s + (i.confianca ?? 1), 0) / lista.length : 1;
+        const media = calcularConfiancaMedia(lista);
         await auditar({
           data: {
             comprovante: r.comprovante ?? null,
@@ -333,7 +253,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
             duplicidadeTotal: duplicidade?.total ?? 0,
             duplicidadeIgnorada: ignorarDuplicidade,
             observacao: observacao.slice(0, 400),
-            edicoes: diferencas(historico[0]?.itens ?? [], lista),
+            edicoes: listarDiferencasLeitura(historico[0]?.itens ?? [], lista),
             itens: lista.map((i) => ({
               descricao: i.descricao,
               valor: i.valor,
@@ -370,13 +290,13 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
     setAnexar(true);
     setSoDuvidosos(false);
     setFalhouLeitura(false);
-    setRegras(REGRAS_PADRAO);
+    setRegras({ ...REGRAS_DUPLICIDADE_PADRAO });
     setRegrasAbertas(false);
     if (inputRef.current) inputRef.current.value = "";
     if (arquivoRef.current) arquivoRef.current.value = "";
   }
 
-  function atualizar(i: number, campo: Partial<Item>) {
+  function atualizar(i: number, campo: Partial<ItemRecibo>) {
     setItens((atual) =>
       atual
         ? atual.map((item, idx) =>
@@ -443,11 +363,8 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
   const local = itens?.find((i) => i.estabelecimento || i.hora || i.local);
   const duvidososLista = (itens ?? []).filter(duvidoso);
   const baixaConfianca = duvidososLista.length;
-  const confiancaMedia =
-    (itens ?? []).length > 0
-      ? (itens ?? []).reduce((s, i) => s + (i.confianca ?? 1), 0) / (itens ?? []).length
-      : 1;
-  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < LIMIARES.alerta;
+  const confiancaMedia = calcularConfiancaMedia(itens ?? []);
+  const alertaGeral = (itens ?? []).length > 0 && confiancaMedia < limiaresConfianca.alerta;
   const primeiro = itens?.[0];
   const primeiroDuvidoso = duvidososLista[0];
   const baseLote = soDuvidosos ? primeiroDuvidoso : primeiro;
@@ -587,7 +504,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                         }
                         className="mt-1 w-full rounded-xl border border-primary/15 bg-background px-3 py-2.5 text-base font-normal"
                       >
-                        {JANELAS.map((h) => (
+                        {JANELAS_DUPLICIDADE.map((h) => (
                           <option key={h} value={h}>
                             {h === 0
                               ? t("apenas o mesmo dia", "same day only")
@@ -773,7 +690,7 @@ export function FotoNota({ disabled }: { disabled?: boolean }) {
                       {(item.confianca ?? 1) < 1 && (
                         <p
                           className={`mb-2 text-xs font-semibold ${
-                            (item.confianca ?? 1) < LIMIARES.geral
+                            (item.confianca ?? 1) < limiaresConfianca.geral
                               ? "text-destructive"
                               : "text-muted-foreground"
                           }`}

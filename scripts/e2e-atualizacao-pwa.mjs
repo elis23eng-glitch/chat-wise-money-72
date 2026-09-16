@@ -41,6 +41,9 @@ const navegador = await chromium.launch(
 const contexto = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 const pagina = await contexto.newPage();
 
+pagina.on("console", (mensagem) => console.log(`[browser:${mensagem.type()}] ${mensagem.text()}`));
+pagina.on("pageerror", (erro) => console.log(`[browser:pageerror] ${erro.message}`));
+
 // O service worker "antigo" é servido pela própria origem via interceptação.
 await contexto.route("**/sw-antigo.js", (rota) =>
   rota.fulfill({ status: 200, contentType: "text/javascript", body: SW_ANTIGO }),
@@ -85,11 +88,27 @@ try {
   // O novo worker pré-carrega os recursos antes de assumir o controle. Em CI
   // isso pode levar mais que alguns segundos; aguardar o estado correto evita
   // confundir um worker apenas "installing" com uma atualização concluída.
-  await pagina.waitForFunction(
-    () => navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js") === true,
-    null,
-    { timeout: 120000 },
-  );
+  let controladorAtual = false;
+  for (let tentativa = 1; tentativa <= 24; tentativa++) {
+    const diagnostico = await pagina.evaluate(async () => ({
+      controller: navigator.serviceWorker.controller?.scriptURL ?? null,
+      registrations: (await navigator.serviceWorker.getRegistrations()).map((r) => ({
+        scope: r.scope,
+        active: r.active ? { url: r.active.scriptURL, state: r.active.state } : null,
+        waiting: r.waiting ? { url: r.waiting.scriptURL, state: r.waiting.state } : null,
+        installing: r.installing
+          ? { url: r.installing.scriptURL, state: r.installing.state }
+          : null,
+      })),
+    }));
+    console.log(`[PWA ${tentativa}/24] ${JSON.stringify(diagnostico)}`);
+    controladorAtual = diagnostico.controller?.endsWith("/sw.js") === true;
+    if (controladorAtual) break;
+    await pagina.waitForTimeout(5000);
+  }
+  if (!controladorAtual) {
+    throw new Error("O service worker atual não assumiu o controle após 120 segundos.");
+  }
   // O app pode recarregar sozinho uma vez quando o novo service worker assume.
   await pagina.waitForTimeout(500);
   await pagina.waitForLoadState("load").catch(() => undefined);

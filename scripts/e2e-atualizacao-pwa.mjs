@@ -41,11 +41,13 @@ const navegador = await chromium.launch(
 const contexto = await navegador.newContext({ viewport: { width: 390, height: 844 } });
 const pagina = await contexto.newPage();
 const cdp = await contexto.newCDPSession(pagina);
+let erroAvaliacaoWorker = null;
 
 await cdp.send("ServiceWorker.enable");
-cdp.on("ServiceWorker.workerErrorReported", (evento) =>
-  console.log(`[service-worker:error] ${JSON.stringify(evento)}`),
-);
+cdp.on("ServiceWorker.workerErrorReported", (evento) => {
+  erroAvaliacaoWorker = evento;
+  console.log(`[service-worker:error] ${JSON.stringify(evento)}`);
+});
 cdp.on("ServiceWorker.workerRegistrationUpdated", (evento) =>
   console.log(`[service-worker:registration] ${JSON.stringify(evento)}`),
 );
@@ -115,6 +117,9 @@ try {
       })),
     }));
     console.log(`[PWA ${tentativa}/24] ${JSON.stringify(diagnostico)}`);
+    if (erroAvaliacaoWorker) {
+      throw new Error(`Falha ao avaliar o service worker: ${JSON.stringify(erroAvaliacaoWorker)}`);
+    }
     controladorAtual = diagnostico.controller?.endsWith("/sw.js") === true;
     if (controladorAtual) break;
     await pagina.waitForTimeout(5000);

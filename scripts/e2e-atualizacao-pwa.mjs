@@ -75,29 +75,18 @@ try {
 
   // 3. Reabertura: o app atual deve assumir e trocar o service worker sozinho.
   await pagina.goto(`${BASE}/?sw=on`, { waitUntil: "domcontentloaded" });
-  await pagina.waitForFunction(
-    async () => {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      return regs.some((r) =>
-        [r.active, r.waiting, r.installing].some((s) => s?.scriptURL.endsWith("/sw.js")),
-      );
-    },
-    null,
-    { timeout: 20000 },
-  );
-
+  // O worker legado responde primeiro com o cache e atualiza-o em segundo
+  // plano. A segunda abertura reproduz o comportamento real de reabrir o app.
+  await pagina.waitForTimeout(1000);
   await pagina.goto(`${BASE}/?sw=on`, { waitUntil: "domcontentloaded" });
+  await pagina.waitForFunction(() => /wise money/i.test(document.title), null, {
+    timeout: 20000,
+  });
   // O novo worker pré-carrega os recursos antes de assumir o controle. Em CI
   // isso pode levar mais que alguns segundos; aguardar o estado correto evita
   // confundir um worker apenas "installing" com uma atualização concluída.
   await pagina.waitForFunction(
-    async () => {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      const workerAtualAtivo = regs.some((r) => r.active?.scriptURL.endsWith("/sw.js"));
-      const workerAtualControlaPagina =
-        navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js");
-      return workerAtualAtivo && workerAtualControlaPagina;
-    },
+    () => navigator.serviceWorker.controller?.scriptURL.endsWith("/sw.js") === true,
     null,
     { timeout: 120000 },
   );
@@ -114,13 +103,6 @@ try {
   ok = passo(/wise money/i.test(textoVisivel), "Nome “Wise Money” visível na tela inicial") && ok;
   ok = passo(!/mergulho/i.test(html), "Marca antiga ausente do DOM") && ok;
 
-  await pagina
-    .waitForFunction(
-      async () => (await navigator.serviceWorker.getRegistrations()).length > 0,
-      null,
-      { timeout: 20000 },
-    )
-    .catch(() => undefined);
   const registros = await pagina.evaluate(async () =>
     (await navigator.serviceWorker.getRegistrations()).map(
       (r) => r.active?.scriptURL ?? r.waiting?.scriptURL ?? r.installing?.scriptURL ?? "",

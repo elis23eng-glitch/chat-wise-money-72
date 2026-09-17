@@ -3,16 +3,19 @@
 import { Button } from "@/components/ui/button";
 import { ButtonGroup, ButtonGroupText } from "@/components/ui/button-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  chaveRecursosMensagem,
+  detectarRecursosMensagem,
+  possuiRecursoAvancado,
+  type RecursosMensagem,
+} from "@/lib/message-rendering";
 import { cn } from "@/lib/utils";
 import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
 import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { Streamdown } from "streamdown";
+import { Streamdown, type PluginConfig } from "streamdown";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: UIMessage["role"];
@@ -270,16 +273,62 @@ export const MessageBranchPage = ({ className, ...props }: MessageBranchPageProp
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+const pluginsBasicos: PluginConfig = { cjk };
+const cachePlugins = new Map<string, Promise<PluginConfig>>();
+
+function carregarPluginsAvancados(recursos: RecursosMensagem): Promise<PluginConfig> {
+  const chave = chaveRecursosMensagem(recursos);
+  const existente = cachePlugins.get(chave);
+  if (existente) return existente;
+
+  const carregamento = Promise.all([
+    recursos.codigo ? import("@streamdown/code") : null,
+    recursos.matematica ? import("@streamdown/math") : null,
+    recursos.mermaid ? import("@streamdown/mermaid") : null,
+  ]).then(([moduloCodigo, moduloMatematica, moduloMermaid]) => ({
+    ...pluginsBasicos,
+    ...(moduloCodigo ? { code: moduloCodigo.code } : {}),
+    ...(moduloMatematica ? { math: moduloMatematica.math } : {}),
+    ...(moduloMermaid ? { mermaid: moduloMermaid.mermaid } : {}),
+  }));
+  cachePlugins.set(chave, carregamento);
+  return carregamento;
+}
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
-    <Streamdown
-      className={cn("size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
-      plugins={streamdownPlugins}
-      {...props}
-    />
-  ),
+  ({ className, children, ...props }: MessageResponseProps) => {
+    const conteudo = typeof children === "string" ? children : "";
+    const recursos = useMemo(() => detectarRecursosMensagem(conteudo), [conteudo]);
+    const chaveRecursos = chaveRecursosMensagem(recursos);
+    const [plugins, setPlugins] = useState<PluginConfig>(pluginsBasicos);
+
+    useEffect(() => {
+      let ativo = true;
+      if (!possuiRecursoAvancado(recursos)) {
+        setPlugins(pluginsBasicos);
+        return () => {
+          ativo = false;
+        };
+      }
+
+      carregarPluginsAvancados(recursos).then((carregados) => {
+        if (ativo) setPlugins(carregados);
+      });
+      return () => {
+        ativo = false;
+      };
+    }, [chaveRecursos, recursos]);
+
+    return (
+      <Streamdown
+        className={cn("size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0", className)}
+        plugins={plugins}
+        {...props}
+      >
+        {conteudo}
+      </Streamdown>
+    );
+  },
   (prevProps, nextProps) =>
     prevProps.children === nextProps.children && nextProps.isAnimating === prevProps.isAnimating,
 );

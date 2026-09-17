@@ -12,12 +12,21 @@ Reduzir o acoplamento dos componentes mais extensos, ampliar a cobertura de test
 - remoção de `vite-plugin-pwa`, que não era mais utilizado desde a adoção do service worker estático;
 - validação de formatação, lint, tipos, testes, build de produção e integridade do service worker.
 
+## Segunda entrega
+
+- regras de geração, filtragem e estatísticas de alertas extraídas do painel para funções puras;
+- cobertura unitária dos cenários de saldo negativo, saldo apertado, sobra, projeção mensal e aumento semanal;
+- renderizadores de código, fórmulas e diagramas carregados somente quando o conteúdo exige esses recursos;
+- bundle inicial da conversa reduzido de aproximadamente 713 kB para 222 kB, uma redução de 69%;
+- bundle compactado da conversa reduzido de aproximadamente 224 kB para 72 kB, uma redução de 68%;
+- orçamento automatizado de bundle incluído no CI para impedir regressões de desempenho nas rotas de conversa e painel.
+
 ## Próximas entregas
 
 1. separar os painéis visuais e estados do fluxo de comprovantes;
-2. modularizar regras e seções do painel financeiro;
-3. carregar sob demanda os renderizadores técnicos da conversa, com foco nos pacotes de diagramas e realce de código;
-4. estabelecer orçamento de bundle e ampliar testes de rotas críticas.
+2. extrair as seções visuais maiores do painel financeiro;
+3. ampliar testes das rotas e fluxos autenticados;
+4. revisar dependências desatualizadas em entregas isoladas e acompanhadas de regressão visual.
 
 ## Critério de segurança
 

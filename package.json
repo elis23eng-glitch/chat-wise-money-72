@@ -16,6 +16,7 @@
     "format:check": "prettier --check . --ignore-unknown",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "bundle:check": "node scripts/verificar-bundle.mjs",
     "check": "bun run format:check && bun run lint && bun run typecheck && bun run test && bun run build"
   },
   "overrides": {

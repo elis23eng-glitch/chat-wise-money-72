@@ -25,3 +25,6 @@ Todas as mudanças relevantes deste projeto serão documentadas aqui.
 - modularização dos controles, da prévia de relatório e do histórico de alertas do painel;
 - redução de aproximadamente 30% nas linhas da rota principal do painel;
 - testes das regras de seleção e ordenação das seções do relatório.
+- verificação automatizada da integridade e sintaxe do service worker após o build;
+- paridade entre o comando local de qualidade e os controles executados no CI;
+- relatório final de auditoria, guia de contribuição e modelo padronizado de pull request.

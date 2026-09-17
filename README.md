@@ -13,6 +13,21 @@ Acesse em: **[https://chat-wise-money-72.lovable.app](https://chat-wise-money-72
 > **Aviso:** projeto educacional de organização financeira. Não substitui orientação profissional
 > nem realiza recomendação individual de investimentos.
 
+| Indicador         | Situação                                                |
+| ----------------- | ------------------------------------------------------- |
+| Aplicação         | publicada e instalável como PWA                         |
+| Qualidade         | CI com cinco frentes independentes                      |
+| Testes unitários  | 50 aprovados                                            |
+| Auditoria técnica | concluída em setembro de 2026                           |
+| Bundle            | conversa e painel protegidos por orçamento automatizado |
+
+### Caminho rápido para revisão técnica
+
+1. Teste a [aplicação publicada](https://chat-wise-money-72.lovable.app).
+2. Consulte a [arquitetura e os limites de confiança](docs/ARCHITECTURE.md).
+3. Veja o [relatório final da auditoria](docs/AUDIT-REPORT.md).
+4. Confira a [política de segurança](SECURITY.md) e o [histórico de mudanças](CHANGELOG.md).
+
 ---
 
 ## ✨ Sobre o projeto
@@ -86,7 +101,7 @@ Esta versão reúne todas as evoluções implementadas no projeto, desde a base 
 
 ### ✅ Qualidade e segurança
 
-- **CI/CD com GitHub Actions** — lint, typecheck, testes (Vitest) e build validados automaticamente a cada push/pull request.
+- **CI/CD com GitHub Actions** — qualidade técnica, PWA, regressão visual, identidade do produto e bundle validados automaticamente.
 - **Práticas de segurança** — autenticação das operações, RLS no banco, separação entre chaves públicas e segredos de servidor e validações automatizadas no CI.
 
 ---
@@ -147,6 +162,9 @@ Para executar toda a verificação de qualidade localmente:
 bun run check
 ```
 
+Esse comando executa formatação, lint, TypeScript, 50 testes, build de produção, integridade do
+service worker e orçamento de bundle.
+
 ---
 
 ## 🗄️ Estrutura do banco de dados
@@ -195,18 +213,16 @@ Todas as tabelas possuem **Row Level Security (RLS)** ativa para proteger os dad
 
 O repositório usa **GitHub Actions** (`.github/workflows/ci.yml`) para validar automaticamente cada push e pull request:
 
-- **Lint** — ESLint + Prettier.
-- **Verificação de tipos** — `tsc --noEmit`.
-- **Testes unitários** — Vitest (formatação de moeda, datas e traduções PT-BR/EN).
-- **Build de produção** — garante que o app compila de ponta a ponta.
+- **Qualidade técnica** — Prettier, ESLint, TypeScript, 50 testes e build de produção.
+- **Desempenho** — limites automatizados para os bundles das rotas de conversa e painel.
+- **PWA** — integridade do service worker e E2E de atualização sem reinstalação.
+- **Regressão visual** — comparação automatizada de screenshots das rotas públicas.
+- **Identidade do produto** — validação da marca Wise Money e ausência de marca-d'água.
 
 Para rodar as mesmas validações localmente:
 
 ```bash
-bun run lint
-bun run typecheck
-bun run test
-bun run build
+bun run check
 ```
 
 ---
@@ -262,27 +278,18 @@ Direção visual: Mint Ledger Calm — tons de verde-menta e creme, tipografia l
 
 ---
 
-## 📸 Imagens e vídeos das interações
+## 🔎 Roteiro de demonstração
 
-Abaixo estão os locais onde você pode adicionar capturas de tela e vídeos das interações com o Copilot/Lovable durante o desenvolvimento:
+Uma avaliação funcional do projeto pode ser feita em poucos minutos:
 
-### Capturas de tela do app
+1. crie uma conta de teste e conclua o tutorial de primeiro acesso;
+2. registre uma entrada e um gasto por texto ou voz no chat com a Nina;
+3. confira saldo, categorias e alertas no painel mensal e semanal;
+4. crie uma meta e acompanhe seu progresso;
+5. abra a prévia de um relatório, altere idioma e seções e gere o PDF;
+6. acesse `/instalar` para conferir a experiência PWA.
 
-| Tela                | Descrição                         | Onde colocar                      |
-| ------------------- | --------------------------------- | --------------------------------- |
-| Chat com a Nina     | Conversa registrando um gasto     | `docs/screenshots/chat-nina.png`  |
-| Painel financeiro   | Gráficos, saldo e alertas         | `docs/screenshots/painel.png`     |
-| Metas               | Acompanhamento de metas           | `docs/screenshots/metas.png`      |
-| Cotações de mercado | Dólar, euro e educação financeira | `docs/screenshots/mercado.png`    |
-| Prévia do PDF       | Seleção de seções e idioma        | `docs/screenshots/previa-pdf.png` |
-
-### Vídeos demonstrativos
-
-- `docs/videos/tutorial-primeiro-acesso.mp4` — passo a passo do tutorial inicial.
-- `docs/videos/chat-por-voz.mp4` — demonstração do registro de gastos por comando de voz.
-- `docs/videos/gerando-relatorio.mp4` — prévia, checklist e exportação do PDF.
-
-> 📁 **Como adicionar:** crie as pastas `docs/screenshots` e `docs/videos` na raiz do repositório e insira os arquivos. Depois, atualize os caminhos acima para apontar para os arquivos reais.
+Use apenas informações fictícias durante a demonstração pública.
 
 ---
 
@@ -304,7 +311,10 @@ O maior aprendizado foi perceber que tecnologia de verdade acontece quando a gen
 
 ## 👩‍💻 Autora
 
-**Elisangela Vieira**
+**Elisângela Vieira** — Engenheira Civil conectando Engenharia, Dados, Automação e Tecnologia.
+
+- [LinkedIn](https://www.linkedin.com/in/elisangelavieira-engcivil/)
+- [GitHub](https://github.com/elis23eng-glitch)
 
 Projeto desenvolvido para a **DIO (Digital Innovation One)**.
 
@@ -318,4 +328,5 @@ Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICEN
 
 ## 🤝 Contribuições
 
-Sugestões, melhorias e feedbacks são bem-vindos! Sinta-se à vontade para abrir uma _issue_ ou enviar um _pull request_.
+Sugestões, melhorias e feedbacks são bem-vindos. Consulte o [guia de contribuição](CONTRIBUTING.md)
+antes de abrir uma _issue_ ou enviar uma _pull request_.

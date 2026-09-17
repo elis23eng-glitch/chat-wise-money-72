@@ -47,11 +47,14 @@ flowchart TD
 
 ## Decisões e débitos técnicos conhecidos
 
-- O dashboard principal ainda concentra apresentação e regras de alertas em um arquivo grande. A
-  próxima etapa é extrair seções e regras puras com cobertura unitária.
+- As regras de alertas e relatório do dashboard já estão isoladas em funções puras, e suas seções
+  visuais maiores foram extraídas para componentes próprios. A rota principal ainda pode ser
+  subdividida progressivamente conforme novos recursos forem adicionados.
+- O fluxo de comprovantes já possui regras de revisão testáveis, mas seus painéis visuais e estados
+  ainda podem ser separados em uma evolução futura.
 - Alguns componentes de UI gerados exportam componentes e utilitários juntos, produzindo avisos de
   Fast Refresh sem impedir o build.
 - A migração do Recharts 2 para a versão principal atual deve ser feita separadamente, acompanhada
   de regressão visual.
-- O conjunto de testes cobre formatação e autenticação básica; regras financeiras e fluxos E2E
-  autenticados devem receber cobertura progressiva.
+- O conjunto de testes cobre formatação, revisão de comprovantes, alertas, relatórios e renderização
+  progressiva. Fluxos E2E autenticados devem receber cobertura progressiva.

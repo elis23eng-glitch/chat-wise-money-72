@@ -52,6 +52,12 @@ import {
   mesCurto,
   notaConversao,
 } from "@/lib/format";
+import {
+  calcularEstatisticasAlertas,
+  filtrarHistoricoAlertas,
+  gerarAlertasPainel,
+  type AlertaPainel,
+} from "@/lib/dashboard-alerts";
 import { useIdioma } from "@/lib/i18n";
 import { PreviaRelatorio } from "@/components/PreviaRelatorio";
 import { LembretesInteligentes } from "@/components/LembretesInteligentes";
@@ -123,14 +129,7 @@ function DicaComparativo({ active, payload, label }: DicaProps) {
   );
 }
 
-type Alerta = {
-  tipo: TipoAlerta;
-  tom: "perigo" | "atencao" | "bom";
-  titulo: string;
-  texto: string;
-};
-
-function CartaoAlerta({ alerta }: { alerta: Alerta }) {
+function CartaoAlerta({ alerta }: { alerta: AlertaPainel }) {
   const estilo =
     alerta.tom === "perigo"
       ? "border-destructive/40 bg-destructive/10 text-destructive"
@@ -192,75 +191,23 @@ function Painel() {
   const periodoSaldo = semanal ? (semana?.saldo ?? 0) : saldo;
 
   // ---- Alertas de saldo ----
-  const alertas = useMemo<Alerta[]>(() => {
-    const novosAlertas: Alerta[] = [];
-    if (isLoading || !data) return novosAlertas;
-
-    const rotuloPeriodo = semanal ? t("nesta semana", "this week") : t("neste mês", "this month");
-    if (periodoSaldo < 0) {
-      novosAlertas.push({
-        tipo: "saldo_negativo",
-        tom: "perigo",
-        titulo: t("Atenção: saldo negativo", "Heads up: negative balance"),
-        texto: t(
-          `Você gastou ${brl(Math.abs(periodoSaldo))} a mais do que recebeu ${rotuloPeriodo}. Vale revisar os gastos maiores e segurar o que der.`,
-          `You spent ${brl(Math.abs(periodoSaldo))} more than you received ${rotuloPeriodo}. It's worth reviewing the biggest expenses and holding back where you can.`,
-        ),
-      });
-    } else if (periodoEntradas > 0 && periodoSaldo < periodoEntradas * 0.1) {
-      novosAlertas.push({
-        tipo: "saldo_apertado",
-        tom: "atencao",
-        titulo: t("Seu saldo está apertado", "Your balance is tight"),
-        texto: t(
-          `Sobrou só ${brl(periodoSaldo)} de tudo que você recebeu ${rotuloPeriodo}. Um cuidado a mais agora evita susto depois.`,
-          `Only ${brl(periodoSaldo)} is left from everything you received ${rotuloPeriodo}. A little extra care now avoids a surprise later.`,
-        ),
-      });
-    } else if (periodoSaldo > 0 && periodoEntradas > 0) {
-      novosAlertas.push({
-        tipo: "sobra",
-        tom: "bom",
-        titulo: t("Está sobrando dinheiro", "You have money left over"),
-        texto: t(
-          `Sobraram ${brl(periodoSaldo)} ${rotuloPeriodo}. Que tal guardar uma partezinha numa meta?`,
-          `You have ${brl(periodoSaldo)} left ${rotuloPeriodo}. How about saving a little in a goal?`,
-        ),
-      });
-    }
-
-    if (!semanal && entradas > 0 && (data.projecaoMes ?? 0) > entradas) {
-      novosAlertas.push({
-        tipo: "projecao_vermelho",
-        tom: "atencao",
-        titulo: t(
-          "No ritmo de hoje, o mês fecha no vermelho",
-          "At today's pace, the month ends in the red",
-        ),
-        texto: t(
-          `Se continuar assim, você vai gastar cerca de ${brl(data.projecaoMes)} e recebeu ${brl(entradas)}. Dá tempo de ajustar.`,
-          `If this keeps up, you'll spend about ${brl(data.projecaoMes)} while you received ${brl(entradas)}. There's still time to adjust.`,
-        ),
-      });
-    }
-
-    if (semanal && semana && semana.gastoAnterior > 0) {
-      const dif = ((semana.gasto - semana.gastoAnterior) / semana.gastoAnterior) * 100;
-      if (dif >= 25) {
-        novosAlertas.push({
-          tipo: "gasto_acima_semana",
-          tom: "atencao",
-          titulo: t("Você gastou mais que na semana passada", "You spent more than last week"),
-          texto: t(
-            `Seus gastos subiram ${Math.round(dif)}% em relação aos 7 dias anteriores (${brl(semana.gastoAnterior)}).`,
-            `Your spending went up ${Math.round(dif)}% compared with the previous 7 days (${brl(semana.gastoAnterior)}).`,
-          ),
-        });
-      }
-    }
-
-    return novosAlertas;
-  }, [data, entradas, isLoading, periodoEntradas, periodoSaldo, semanal, semana, t]);
+  const alertas = useMemo(
+    () =>
+      gerarAlertasPainel({
+        carregando: isLoading,
+        dadosDisponiveis: Boolean(data),
+        semanal,
+        entradasPeriodo: periodoEntradas,
+        saldoPeriodo: periodoSaldo,
+        entradasMes: entradas,
+        projecaoMes: data?.projecaoMes ?? 0,
+        gastoSemana: semana?.gasto ?? 0,
+        gastoSemanaAnterior: semana?.gastoAnterior ?? 0,
+        traduzir: t,
+        formatarMoeda: brl,
+      }),
+    [data, entradas, isLoading, periodoEntradas, periodoSaldo, semanal, semana, t],
+  );
 
   // ---- Histórico de alertas ----
   const qc = useQueryClient();
@@ -327,56 +274,21 @@ function Painel() {
 
   const historicoFiltrado = useMemo(
     () =>
-      (historico ?? []).filter((h) => {
-        if (filtroPeriodo !== "todos" && h.periodo !== filtroPeriodo) return false;
-        if (filtroInicio && h.inicio < filtroInicio) return false;
-        if (filtroFim && h.inicio > filtroFim) return false;
-        return true;
+      filtrarHistoricoAlertas(historico ?? [], {
+        periodo: filtroPeriodo,
+        inicio: filtroInicio,
+        fim: filtroFim,
       }),
     [historico, filtroPeriodo, filtroInicio, filtroFim],
   );
 
   const filtrosAtivos = filtroPeriodo !== "todos" || filtroInicio !== "" || filtroFim !== "";
 
-  const estatAlertas = useMemo(() => {
-    const itens = historicoFiltrado;
-    if (itens.length === 0) return null;
-
-    const media = (nums: number[]) => nums.reduce((s, n) => s + n, 0) / nums.length;
-    const pior = itens.reduce((p, a) => (a.saldo < p.saldo ? a : p), itens[0]!);
-
-    const contagem = new Map<TipoAlerta, number>();
-    for (const a of itens) contagem.set(a.tipo, (contagem.get(a.tipo) ?? 0) + 1);
-    const maisComum = [...contagem.entries()].sort((a, b) => b[1] - a[1])[0]![0];
-
-    const meses = new Map<string, { quantidade: number; saldos: number[] }>();
-    for (const a of itens) {
-      const chave = a.criadoEm.slice(0, 7);
-      const atual = meses.get(chave) ?? { quantidade: 0, saldos: [] };
-      atual.quantidade += 1;
-      atual.saldos.push(a.saldo);
-      meses.set(chave, atual);
-    }
-    const porMes = [...meses.entries()]
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(-12)
-      .map(([chave, v]) => ({
-        chave,
-        rotulo: mesCurto(`${chave}-01`, idioma),
-        quantidade: v.quantidade,
-        saldoMedio: Math.round(media(v.saldos) * 100) / 100,
-      }));
-
-    return {
-      total: itens.length,
-      maisComum,
-      saldoMedio: media(itens.map((a) => a.saldo)),
-      entradasMedia: media(itens.map((a) => a.entradas)),
-      gastosMedia: media(itens.map((a) => a.gastos)),
-      pior,
-      porMes,
-    };
-  }, [historicoFiltrado, idioma]);
+  const estatAlertas = useMemo(
+    () =>
+      calcularEstatisticasAlertas(historicoFiltrado, (chave) => mesCurto(`${chave}-01`, idioma)),
+    [historicoFiltrado, idioma],
+  );
 
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);

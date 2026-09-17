@@ -59,6 +59,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: chave-ficticia-somente-para-ci
           VITE_SUPABASE_PROJECT_ID: projeto-ficticio-ci
 
+      - name: Integridade do service worker
+        run: bun run service-worker:check
+
       - name: Orçamento de bundle
         run: bun run bundle:check
 

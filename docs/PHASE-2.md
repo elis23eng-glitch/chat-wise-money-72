@@ -31,7 +31,13 @@ Reduzir o acoplamento dos componentes mais extensos, ampliar a cobertura de test
 - tamanho do arquivo da rota reduzido de aproximadamente 69,8 kB para 46,3 kB, sem alteração funcional planejada;
 - validação de formatação, lint, tipos, 50 testes, build de produção, service worker e orçamento de bundle.
 
-## Próximas entregas
+## Encerramento
+
+A Fase 2 foi encerrada após três entregas isoladas, todas aprovadas pelos controles de qualidade e
+regressão visual do GitHub. Os resultados consolidados e riscos residuais estão registrados no
+[relatório final de auditoria](AUDIT-REPORT.md).
+
+## Backlog futuro
 
 1. separar os painéis visuais e estados do fluxo de comprovantes;
 2. ampliar testes das rotas e fluxos autenticados;

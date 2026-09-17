@@ -22,3 +22,6 @@ Todas as mudanças relevantes deste projeto serão documentadas aqui.
 - carregamento sob demanda dos renderizadores avançados da conversa;
 - redução de aproximadamente 69% no bundle inicial da rota de conversa;
 - orçamento de bundle automatizado no CI.
+- modularização dos controles, da prévia de relatório e do histórico de alertas do painel;
+- redução de aproximadamente 30% nas linhas da rota principal do painel;
+- testes das regras de seleção e ordenação das seções do relatório.

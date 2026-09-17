@@ -21,12 +21,21 @@ Reduzir o acoplamento dos componentes mais extensos, ampliar a cobertura de test
 - bundle compactado da conversa reduzido de aproximadamente 224 kB para 72 kB, uma redução de 68%;
 - orçamento automatizado de bundle incluído no CI para impedir regressões de desempenho nas rotas de conversa e painel.
 
+## Terceira entrega
+
+- controles, seleção de seções e prévia do relatório extraídos para componentes próprios;
+- histórico de alertas, filtros, indicadores e gráficos extraídos para um módulo visual coeso;
+- regras de disponibilidade e listagem das seções do relatório isoladas em funções puras;
+- três testes unitários adicionados para impedir relatório vazio e preservar a ordem das seções;
+- rota principal do painel reduzida de 1.660 para 1.165 linhas, uma redução de aproximadamente 30%;
+- tamanho do arquivo da rota reduzido de aproximadamente 69,8 kB para 46,3 kB, sem alteração funcional planejada;
+- validação de formatação, lint, tipos, 50 testes, build de produção, service worker e orçamento de bundle.
+
 ## Próximas entregas
 
 1. separar os painéis visuais e estados do fluxo de comprovantes;
-2. extrair as seções visuais maiores do painel financeiro;
-3. ampliar testes das rotas e fluxos autenticados;
-4. revisar dependências desatualizadas em entregas isoladas e acompanhadas de regressão visual.
+2. ampliar testes das rotas e fluxos autenticados;
+3. revisar dependências desatualizadas em entregas isoladas e acompanhadas de regressão visual.
 
 ## Critério de segurança
 

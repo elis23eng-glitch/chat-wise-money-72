@@ -4,17 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowDownRight,
-  Check,
-  Minus,
-  Download,
-  History,
   ArrowUpRight,
   CalendarDays,
-  Eye,
-  Link2 as LinkIcon,
-  X,
   PiggyBank,
-  Share2,
   Target,
   TrendingDown,
   TrendingUp,
@@ -58,8 +50,15 @@ import {
   gerarAlertasPainel,
   type AlertaPainel,
 } from "@/lib/dashboard-alerts";
+import { temSecaoRelatorio, type OpcaoSecaoRelatorio } from "@/lib/dashboard-report";
 import { useIdioma } from "@/lib/i18n";
-import { PreviaRelatorio } from "@/components/PreviaRelatorio";
+import type { DadosRelatorio, SecoesRelatorio } from "@/lib/pdf-report";
+import {
+  DashboardReportControls,
+  DashboardReportPreview,
+  type AcaoRelatorio,
+} from "@/components/dashboard/DashboardReport";
+import { AlertHistorySection } from "@/components/dashboard/AlertHistorySection";
 import { LembretesInteligentes } from "@/components/LembretesInteligentes";
 
 export const Route = createFileRoute("/_autenticado/painel")({
@@ -292,17 +291,17 @@ function Painel() {
 
   // ---- Exportar o painel em PDF ----
   const [painelPdfAberto, setPainelPdfAberto] = useState(false);
-  const [exportando, setExportando] = useState<null | "baixar" | "compartilhar" | "link">(null);
+  const [exportando, setExportando] = useState<AcaoRelatorio | null>(null);
   const [avisoPdf, setAvisoPdf] = useState("");
   const [idiomaPdf, setIdiomaPdf] = useState<"pt" | "en">(idioma);
-  const [secoesPdf, setSecoesPdf] = useState({
+  const [secoesPdf, setSecoesPdf] = useState<SecoesRelatorio>({
     resumo: true,
     categorias: true,
     metas: true,
     alertas: true,
   });
 
-  const dadosPdf = () =>
+  const dadosPdf = (): DadosRelatorio | null =>
     data
       ? {
           idioma: idiomaPdf,
@@ -326,7 +325,7 @@ function Painel() {
         }
       : null;
 
-  const nenhumaSecao = !Object.values(secoesPdf).some(Boolean);
+  const nenhumaSecao = !temSecaoRelatorio(secoesPdf);
 
   // Prévia do relatório
   const [previaAberta, setPreviaAberta] = useState(false);
@@ -348,7 +347,16 @@ function Painel() {
     setPreviaAberta(true);
   }
 
-  async function exportarPdf(acao: "baixar" | "compartilhar" | "link") {
+  async function copiarLinkRelatorio() {
+    try {
+      await navigator.clipboard.writeText(linkRelatorio);
+      setLinkCopiado(true);
+    } catch {
+      /* sem permissão de área de transferência */
+    }
+  }
+
+  async function exportarPdf(acao: AcaoRelatorio) {
     const dados = dadosPdf();
     if (!dados || nenhumaSecao) return;
     setAvisoPdf("");
@@ -396,12 +404,14 @@ function Painel() {
     }
   }
 
-  const SECOES_PDF = [
+  const secoesPdfOpcoes: OpcaoSecaoRelatorio[] = [
     { chave: "resumo" as const, rotulo: t("Saldo e resumo", "Balance and summary") },
     { chave: "categorias" as const, rotulo: t("Gastos por categoria", "Spending by category") },
     { chave: "metas" as const, rotulo: t("Metas", "Goals") },
     { chave: "alertas" as const, rotulo: t("Histórico de alertas", "Alert history") },
   ];
+
+  const dadosRelatorio = dadosPdf();
 
   return (
     <div className="space-y-8">
@@ -448,321 +458,45 @@ function Painel() {
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setPainelPdfAberto((v) => !v)}
-          disabled={isLoading}
-          aria-expanded={painelPdfAberto}
-          className="mt-5 ml-0 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50 sm:ml-3"
-        >
-          <Download className="size-4" />
-          {t("Exportar PDF", "Export PDF")}
-        </button>
-
-        {painelPdfAberto && (
-          <div className="surface-card mt-4 max-w-2xl space-y-5 p-6">
-            <div>
-              <h2 className="font-display text-xl">
-                {t("O que entra no PDF?", "What goes into the PDF?")}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t(
-                  "Marque as partes que você quer no relatório.",
-                  "Check the parts you want in the report.",
-                )}
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {SECOES_PDF.map((s) => (
-                  <label
-                    key={s.chave}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-base"
-                  >
-                    <input
-                      type="checkbox"
-                      className="size-5 accent-[var(--primary)]"
-                      checked={secoesPdf[s.chave]}
-                      onChange={(e) =>
-                        setSecoesPdf((atual) => ({ ...atual, [s.chave]: e.target.checked }))
-                      }
-                    />
-                    {s.rotulo}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("Idioma do PDF", "PDF language")}
-              </h3>
-              <div
-                className="mt-2 inline-flex items-center gap-1 rounded-full bg-secondary p-1"
-                role="group"
-                aria-label={t("Idioma do PDF", "PDF language")}
-              >
-                {[
-                  { valor: "pt" as const, rotulo: "Português (BR)" },
-                  { valor: "en" as const, rotulo: "English" },
-                ].map((op) => (
-                  <button
-                    key={op.valor}
-                    type="button"
-                    onClick={() => setIdiomaPdf(op.valor)}
-                    aria-pressed={idiomaPdf === op.valor}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                      idiomaPdf === op.valor
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-primary"
-                    }`}
-                  >
-                    {op.rotulo}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={abrirPrevia}
-                disabled={nenhumaSecao}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
-              >
-                <Eye className="size-5" />
-                {t("Ver prévia", "Preview report")}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportarPdf("baixar")}
-                disabled={nenhumaSecao || exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-              >
-                <Download className="size-5" />
-                {exportando === "baixar"
-                  ? t("Gerando PDF…", "Generating PDF…")
-                  : t("Baixar PDF", "Download PDF")}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportarPdf("compartilhar")}
-                disabled={nenhumaSecao || exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-              >
-                <Share2 className="size-5" />
-                {exportando === "compartilhar"
-                  ? t("Preparando…", "Preparing…")
-                  : t("Compartilhar", "Share")}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportarPdf("link")}
-                disabled={nenhumaSecao || exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-6 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-              >
-                <LinkIcon className="size-5" />
-                {exportando === "link"
-                  ? t("Criando link…", "Creating link…")
-                  : t("Compartilhar por link", "Share by link")}
-              </button>
-            </div>
-
-            {linkRelatorio && (
-              <div className="rounded-2xl border border-primary/20 bg-secondary p-4">
-                <p className="text-base font-semibold text-primary-deep">
-                  {linkCopiado
-                    ? t("Link copiado! Vale por 7 dias.", "Link copied! Valid for 7 days.")
-                    : t("Link pronto — vale por 7 dias.", "Link ready — valid for 7 days.")}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <input
-                    readOnly
-                    value={linkRelatorio}
-                    onFocus={(e) => e.currentTarget.select()}
-                    aria-label={t("Link do relatório", "Report link")}
-                    className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(linkRelatorio);
-                        setLinkCopiado(true);
-                      } catch {
-                        /* ignora */
-                      }
-                    }}
-                    className="rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary-deep"
-                  >
-                    {t("Copiar", "Copy")}
-                  </button>
-                  <a
-                    href={linkRelatorio}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-full border border-primary/30 bg-card px-5 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
-                  >
-                    {t("Abrir", "Open")}
-                  </a>
-                </div>
-              </div>
-            )}
-
-            {nenhumaSecao && (
-              <p className="text-sm text-destructive">
-                {t(
-                  "Escolha pelo menos uma seção para gerar o PDF.",
-                  "Pick at least one section to generate the PDF.",
-                )}
-              </p>
-            )}
-            {avisoPdf && <p className="text-sm text-muted-foreground">{avisoPdf}</p>}
-          </div>
-        )}
+        <DashboardReportControls
+          aberto={painelPdfAberto}
+          desabilitado={isLoading}
+          exportando={exportando}
+          idioma={idiomaPdf}
+          secoes={secoesPdf}
+          opcoesSecoes={secoesPdfOpcoes}
+          nenhumaSecao={nenhumaSecao}
+          linkRelatorio={linkRelatorio}
+          linkCopiado={linkCopiado}
+          aviso={avisoPdf}
+          t={t}
+          onAlternar={() => setPainelPdfAberto((aberto) => !aberto)}
+          onIdiomaChange={setIdiomaPdf}
+          onSecaoChange={(chave, selecionada) =>
+            setSecoesPdf((atual) => ({ ...atual, [chave]: selecionada }))
+          }
+          onAbrirPrevia={abrirPrevia}
+          onExportar={exportarPdf}
+          onCopiarLink={copiarLinkRelatorio}
+        />
       </header>
 
-      {previaAberta && dadosPdf() && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col bg-foreground/60 p-3 backdrop-blur-sm sm:p-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label={t("Prévia do relatório", "Report preview")}
-        >
-          <div className="surface-card mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden p-0">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
-              <div>
-                <h2 className="font-display text-xl leading-none">
-                  {t("Prévia do relatório", "Report preview")}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {(idiomaPdf === "pt" ? "Português (BR)" : "English") +
-                    " · " +
-                    SECOES_PDF.filter((s) => secoesPdf[s.chave])
-                      .map((s) => s.rotulo)
-                      .join(", ")}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={fecharPrevia}
-                className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-primary-deep hover:bg-primary/15"
-              >
-                <X className="size-4" />
-                {t("Fechar", "Close")}
-              </button>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto bg-muted/40 p-4">
-              <div className="mx-auto mb-4 max-w-2xl rounded-2xl border border-border bg-card p-5">
-                <h3 className="font-display text-lg">
-                  {t("Confira antes de exportar", "Check before exporting")}
-                </h3>
-                <ul className="mt-3 space-y-2 text-base">
-                  <li className="flex items-center gap-3">
-                    <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-                      <Check className="size-4" />
-                    </span>
-                    <span>
-                      {t("Idioma do relatório:", "Report language:")}{" "}
-                      <strong>{idiomaPdf === "pt" ? "Português (BR)" : "English"}</strong>
-                    </span>
-                  </li>
-                  {SECOES_PDF.map((s) => {
-                    const incluida = secoesPdf[s.chave];
-                    return (
-                      <li key={s.chave} className="flex items-center gap-3">
-                        <span
-                          className={`grid size-6 shrink-0 place-items-center rounded-full ${
-                            incluida
-                              ? "bg-primary/15 text-primary"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {incluida ? <Check className="size-4" /> : <Minus className="size-4" />}
-                        </span>
-                        <span className={incluida ? "" : "text-muted-foreground"}>
-                          {s.rotulo} —{" "}
-                          {incluida
-                            ? t("incluída", "included")
-                            : t("fora do PDF", "not in the PDF")}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                <label className="mt-4 flex cursor-pointer items-center gap-3 rounded-xl bg-secondary px-4 py-3 text-base font-semibold text-primary-deep">
-                  <input
-                    type="checkbox"
-                    checked={conferido}
-                    onChange={(e) => setConferido(e.target.checked)}
-                    className="size-5 accent-[hsl(var(--primary))]"
-                  />
-                  {t(
-                    "Conferi o idioma e as seções, pode exportar",
-                    "I checked the language and sections, ready to export",
-                  )}
-                </label>
-              </div>
-
-              <PreviaRelatorio dados={dadosPdf()!} />
-            </div>
-
-            <div className="flex flex-wrap gap-3 border-t border-border p-4">
-              <button
-                type="button"
-                onClick={() => exportarPdf("baixar")}
-                disabled={exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-base font-semibold text-primary-foreground hover:bg-primary-deep disabled:opacity-50"
-              >
-                <Download className="size-5" />
-                {t("Baixar PDF", "Download PDF")}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportarPdf("compartilhar")}
-                disabled={exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-              >
-                <Share2 className="size-5" />
-                {t("Compartilhar", "Share")}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportarPdf("link")}
-                disabled={exportando !== null}
-                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-card px-5 py-3 text-base font-semibold text-primary hover:bg-primary/10 disabled:opacity-50"
-              >
-                <LinkIcon className="size-5" />
-                {exportando === "link"
-                  ? t("Criando link…", "Creating link…")
-                  : t("Compartilhar por link", "Share by link")}
-              </button>
-            </div>
-
-            {(linkRelatorio || avisoPdf) && (
-              <div className="border-t border-border p-4 text-sm">
-                {linkRelatorio && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <input
-                      readOnly
-                      value={linkRelatorio}
-                      onFocus={(e) => e.currentTarget.select()}
-                      aria-label={t("Link do relatório", "Report link")}
-                      className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm"
-                    />
-                    <span className="text-muted-foreground">
-                      {linkCopiado
-                        ? t("Copiado! Vale 7 dias.", "Copied! Valid for 7 days.")
-                        : t("Vale por 7 dias.", "Valid for 7 days.")}
-                    </span>
-                  </div>
-                )}
-                {avisoPdf && <p className="mt-2 text-muted-foreground">{avisoPdf}</p>}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <DashboardReportPreview
+        aberta={previaAberta}
+        dados={dadosRelatorio}
+        idioma={idiomaPdf}
+        secoes={secoesPdf}
+        opcoesSecoes={secoesPdfOpcoes}
+        conferido={conferido}
+        exportando={exportando}
+        linkRelatorio={linkRelatorio}
+        linkCopiado={linkCopiado}
+        aviso={avisoPdf}
+        t={t}
+        onConferidoChange={setConferido}
+        onFechar={fecharPrevia}
+        onExportar={exportarPdf}
+      />
 
       {isLoading && (
         <p className="text-muted-foreground">
@@ -1406,254 +1140,25 @@ function Painel() {
       )}
 
       {!isLoading && (
-        <Caixa>
-          <div className="flex items-center gap-2">
-            <History className="size-5 text-primary" />
-            <h2 className="font-display text-2xl">{t("Histórico de alertas", "Alert history")}</h2>
-          </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t(
-              "Cada alerta de saldo que apareceu para você, com a data, o período e os valores daquele momento.",
-              "Every balance alert you saw, with the date, the period and the numbers at that moment.",
-            )}
-          </p>
-
-          {historico && historico.length > 0 && (
-            <div className="mt-5 flex flex-wrap items-end gap-x-4 gap-y-3">
-              <div
-                className="inline-flex items-center gap-1 rounded-full bg-secondary p-1"
-                role="group"
-                aria-label={t("Filtrar por tipo de período", "Filter by period type")}
-              >
-                {[
-                  { valor: "todos" as const, rotulo: t("Todos", "All") },
-                  { valor: "semana" as const, rotulo: t("Semana", "Week") },
-                  { valor: "mes" as const, rotulo: t("Mês", "Month") },
-                ].map((op) => (
-                  <button
-                    key={op.valor}
-                    type="button"
-                    onClick={() => setFiltroPeriodo(op.valor)}
-                    aria-pressed={filtroPeriodo === op.valor}
-                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                      filtroPeriodo === op.valor
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:text-primary"
-                    }`}
-                  >
-                    {op.rotulo}
-                  </button>
-                ))}
-              </div>
-
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("De", "From")}
-                </span>
-                <input
-                  type="date"
-                  value={filtroInicio}
-                  max={filtroFim || undefined}
-                  onChange={(e) => setFiltroInicio(e.target.value)}
-                  className="mt-1 block rounded-2xl border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary"
-                />
-              </label>
-              <label className="block">
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("Até", "To")}
-                </span>
-                <input
-                  type="date"
-                  value={filtroFim}
-                  min={filtroInicio || undefined}
-                  onChange={(e) => setFiltroFim(e.target.value)}
-                  className="mt-1 block rounded-2xl border border-input bg-card px-3 py-2 text-sm outline-none focus:border-primary"
-                />
-              </label>
-
-              {filtrosAtivos && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFiltroPeriodo("todos");
-                    setFiltroInicio("");
-                    setFiltroFim("");
-                  }}
-                  className="rounded-full border border-primary/30 px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-primary/10"
-                >
-                  {t("Limpar filtros", "Clear filters")}
-                </button>
-              )}
-            </div>
-          )}
-
-          {historico && historico.length > 0 && filtrosAtivos && (
-            <p className="mt-3 text-sm text-muted-foreground" role="status">
-              {t(
-                `Mostrando ${historicoFiltrado.length} de ${historico.length} alertas`,
-                `Showing ${historicoFiltrado.length} of ${historico.length} alerts`,
-              )}
-            </p>
-          )}
-
-          {estatAlertas && (
-            <>
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl bg-primary/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {t("Alertas registrados", "Alerts recorded")}
-                  </p>
-                  <p className="mt-1 font-display text-2xl">{estatAlertas.total}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("Tipo mais comum:", "Most common:")} {tituloAlerta(estatAlertas.maisComum)}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-primary/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {t("Saldo médio nos alertas", "Average balance on alerts")}
-                  </p>
-                  <p
-                    className={`mt-1 font-display text-2xl ${
-                      estatAlertas.saldoMedio < 0 ? "text-destructive" : "text-primary-deep"
-                    }`}
-                  >
-                    {brl(estatAlertas.saldoMedio)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {t("Entradas", "Income")} {brl(estatAlertas.entradasMedia)} ·{" "}
-                    {t("Gastos", "Spending")} {brl(estatAlertas.gastosMedia)}
-                  </p>
-                </div>
-                <div className="rounded-2xl bg-primary/5 p-4">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {t("Pior saldo", "Worst balance")}
-                  </p>
-                  <p className="mt-1 font-display text-2xl text-destructive">
-                    {brl(estatAlertas.pior.saldo)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {dataCurta(estatAlertas.pior.inicio)} – {dataCurta(estatAlertas.pior.fim)}
-                  </p>
-                </div>
-              </div>
-
-              <h3 className="mt-8 font-display text-xl">
-                {t("Alertas por mês", "Alerts per month")}
-              </h3>
-              <div className="mt-3 h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={estatAlertas.porMes}>
-                    <XAxis dataKey="rotulo" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} fontSize={12} />
-                    <Tooltip
-                      cursor={{ fill: "var(--color-primary)", fillOpacity: 0.06 }}
-                      formatter={(v: number) => [
-                        `${v}`,
-                        t("Alertas no mês", "Alerts in the month"),
-                      ]}
-                    />
-                    <Bar
-                      dataKey="quantidade"
-                      fill="var(--color-accent)"
-                      radius={[8, 8, 0, 0]}
-                      maxBarSize={44}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              <h3 className="mt-8 font-display text-xl">
-                {t("Saldo médio por mês", "Average balance per month")}
-              </h3>
-              <div className="mt-3 h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={estatAlertas.porMes}>
-                    <XAxis dataKey="rotulo" tickLine={false} axisLine={false} fontSize={12} />
-                    <YAxis tickFormatter={(v) => brl(Number(v))} width={80} fontSize={11} />
-                    <Tooltip
-                      cursor={{ fill: "var(--color-primary)", fillOpacity: 0.06 }}
-                      formatter={(v: number) => [
-                        brl(Number(v)),
-                        t("Saldo médio", "Average balance"),
-                      ]}
-                    />
-                    <Bar dataKey="saldoMedio" radius={[8, 8, 0, 0]} maxBarSize={44}>
-                      {estatAlertas.porMes.map((m) => (
-                        <Cell
-                          key={m.chave}
-                          fill={
-                            m.saldoMedio < 0 ? "var(--color-destructive)" : "var(--color-primary)"
-                          }
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </>
-          )}
-
-          {!historico || historico.length === 0 ? (
-            <p className="mt-4 text-muted-foreground">
-              {t(
-                "Nenhum alerta registrado ainda. Eles aparecem aqui assim que forem disparados.",
-                "No alerts recorded yet. They show up here as soon as they are triggered.",
-              )}
-            </p>
-          ) : historicoFiltrado.length === 0 ? (
-            <p className="mt-4 text-muted-foreground">
-              {t(
-                "Nenhum alerta encontrado com esses filtros. Tente outro período ou intervalo de datas.",
-                "No alerts found with these filters. Try another period or date range.",
-              )}
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-primary/10">
-              {historicoFiltrado.map((h) => (
-                <li key={h.id} className="flex flex-wrap items-start gap-x-4 gap-y-2 py-4">
-                  <span
-                    className={`mt-1 size-2.5 shrink-0 rounded-full ${
-                      h.tom === "perigo"
-                        ? "bg-destructive"
-                        : h.tom === "atencao"
-                          ? "bg-accent"
-                          : "bg-primary"
-                    }`}
-                    aria-hidden
-                  />
-                  <div className="min-w-[12rem] flex-1">
-                    <p className="font-medium">{tituloAlerta(h.tipo)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {h.periodo === "semana" ? t("Semana", "Week") : t("Mês", "Month")}:{" "}
-                      {dataCurta(h.inicio)} – {dataCurta(h.fim)} ·{" "}
-                      {t("registrado em", "recorded on")} {dataCurta(h.criadoEm.slice(0, 10))}
-                    </p>
-                  </div>
-                  <div className="flex gap-4 text-sm">
-                    <span className="text-primary-deep">
-                      <span className="block text-xs text-muted-foreground">
-                        {t("Entradas", "Income")}
-                      </span>
-                      {brl(h.entradas)}
-                    </span>
-                    <span>
-                      <span className="block text-xs text-muted-foreground">
-                        {t("Gastos", "Spending")}
-                      </span>
-                      {brl(h.gastos)}
-                    </span>
-                    <span className={h.saldo < 0 ? "text-destructive" : "text-primary-deep"}>
-                      <span className="block text-xs text-muted-foreground">
-                        {t("Saldo", "Balance")}
-                      </span>
-                      {brl(h.saldo)}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Caixa>
+        <AlertHistorySection
+          historico={historico}
+          historicoFiltrado={historicoFiltrado}
+          estatisticas={estatAlertas}
+          filtroPeriodo={filtroPeriodo}
+          filtroInicio={filtroInicio}
+          filtroFim={filtroFim}
+          filtrosAtivos={filtrosAtivos}
+          t={t}
+          tituloAlerta={tituloAlerta}
+          onFiltroPeriodoChange={setFiltroPeriodo}
+          onFiltroInicioChange={setFiltroInicio}
+          onFiltroFimChange={setFiltroFim}
+          onLimparFiltros={() => {
+            setFiltroPeriodo("todos");
+            setFiltroInicio("");
+            setFiltroFim("");
+          }}
+        />
       )}
     </div>
   );
